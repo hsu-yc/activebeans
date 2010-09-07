@@ -25,7 +25,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class ActiveBeanTest {
 
 	@Mock
-	private ActiveBeans activeBean;
+	private ActiveBeans activeBeans;
 
 	@Mock
 	private QueryMethods<UserMapper> queryMethods;
@@ -49,13 +49,13 @@ public class ActiveBeanTest {
 	@Test
 	public void createByHash() {
 		@SuppressWarnings("unused")
-		UserMapper u = activeBean.create(UserMapper.class, params);
+		UserMapper u = activeBeans.create(UserMapper.class, params);
 	}
 
 	@Test
 	public void createByBlockInitialization() {
 		@SuppressWarnings("unused")
-		UserMapper u = activeBean.create(UserMapper.class,
+		UserMapper u = activeBeans.create(UserMapper.class,
 				new Initialization<User>() {
 					@Override
 					public User init(User t) {
@@ -68,9 +68,9 @@ public class ActiveBeanTest {
 
 	@Test
 	public void createByBareObject() {
-		when(activeBean.create(UserMapper.class)).thenReturn(userMap);
+		when(activeBeans.create(UserMapper.class)).thenReturn(userMap);
 		when(userMap.bean()).thenReturn(new User());
-		Base<User> arUser = activeBean.create(UserMapper.class);
+		Base<User> arUser = activeBeans.create(UserMapper.class);
 		User u = arUser.bean();
 		u.setAge(0);
 		u.setName("");
@@ -78,23 +78,23 @@ public class ActiveBeanTest {
 
 	@Test
 	public void specifyConditionsBySQLWithOrdinalParams() {
-		activeBean.where(UserMapper.class, "name = ? and age = ?", "", 0);
+		activeBeans.where(UserMapper.class, "name = ? and age = ?", "", 0);
 	}
 
 	@Test
 	public void specifyConditionsBySQLWithNamedParam() {
-		activeBean.where(UserMapper.class, "name = :name and age = :age",
+		activeBeans.where(UserMapper.class, "name = :name and age = :age",
 				params);
 	}
 
 	@Test
 	public void specifyConditionsByHashToUseEqualityWithSqlAnd() {
-		activeBean.where(UserMapper.class, params);
+		activeBeans.where(UserMapper.class, params);
 	}
 
 	@Test
 	public void specifyConditionsByHashToUseRange() {
-		activeBean.where(UserMapper.class,
+		activeBeans.where(UserMapper.class,
 				Collections.singletonMap("grade", new Range<Integer>() {
 					@Override
 					public Integer start() {
@@ -110,90 +110,90 @@ public class ActiveBeanTest {
 
 	@Test
 	public void specifyConditionsByHashToUseIn() {
-		activeBean.where(UserMapper.class,
+		activeBeans.where(UserMapper.class,
 				Collections.singletonMap("grade", Arrays.asList(1, 3, 5)));
 	}
 
 	@Test
 	public void specifyJoinTableConditionByNestedHash() {
-		when(activeBean.joins(eq(UserMapper.class), anyString()))
+		when(activeBeans.joins(eq(UserMapper.class), anyString()))
 				.thenReturn(queryMethods);
-		activeBean.joins(UserMapper.class, "schools").where(
+		activeBeans.joins(UserMapper.class, "schools").where(
 				Collections.singletonMap("schools",
 						Collections.singletonMap("type", "public")));
 	}
 
 	@Test
 	public void specifyJoinTableConditionByNestedKeysInHash() {
-		when(activeBean.joins(eq(UserMapper.class), anyString()))
+		when(activeBeans.joins(eq(UserMapper.class), anyString()))
 				.thenReturn(queryMethods);
-		activeBean.joins(UserMapper.class, "schools").where(
+		activeBeans.joins(UserMapper.class, "schools").where(
 				Collections.singletonMap("schools.type", "public"));
 	}
 
 	@Test
 	public void queryAttributes() {
-		when(activeBean.create(UserMapper.class)).thenReturn(userMap);
+		when(activeBeans.create(UserMapper.class)).thenReturn(userMap);
 		@SuppressWarnings("unused")
-		boolean iaPresent = activeBean.create(UserMapper.class).present(
+		boolean iaPresent = activeBeans.create(UserMapper.class).present(
 				"age");
 	}
 
 	@Test
 	public void accessAttributeBeforeTypeCast() {
-		when(activeBean.create(UserMapper.class)).thenReturn(userMap);
+		when(activeBeans.create(UserMapper.class)).thenReturn(userMap);
 		@SuppressWarnings("unused")
-		Object ageBeforeTypeCast = activeBean.create(UserMapper.class)
+		Object ageBeforeTypeCast = activeBeans.create(UserMapper.class)
 				.beforeTypeCast("age");
 	}
 
 	@Test
 	public void findByDynamicAttributes() {
-		when(activeBean.create(UserMapper.class)).thenReturn(userMap);
+		when(activeBeans.create(UserMapper.class)).thenReturn(userMap);
 		@SuppressWarnings("unused")
-		List<UserMapper> uList = activeBean.create(UserMapper.class)
+		List<UserMapper> uList = activeBeans.create(UserMapper.class)
 				.findByAgeAndName(0, "");
 	}
 
 	@Test
 	public void findByDynamicAttributesOnRelations() {
-		when(activeBean.create(UserMapper.class)).thenReturn(userMap);
+		when(activeBeans.create(UserMapper.class)).thenReturn(userMap);
 		when(userMap.group()).thenReturn(belongsTo);
 		when(belongsTo.get()).thenReturn(groupMap);
 		@SuppressWarnings("unused")
-		List<GroupMapper> gList = activeBean.create(UserMapper.class)
+		List<GroupMapper> gList = activeBeans.create(UserMapper.class)
 				.group().get().findByName("");
 	}
 
 	@Test
 	public void findOrCreateByDynamicAttributes() {
-		when(activeBean.create(UserMapper.class)).thenReturn(userMap);
+		when(activeBeans.create(UserMapper.class)).thenReturn(userMap);
 		@SuppressWarnings("unused")
-		UserMapper u = activeBean.create(UserMapper.class)
+		UserMapper u = activeBeans.create(UserMapper.class)
 				.findOrCreateByName("");
 	}
 
 	@Test
 	public void findOrCreateByDynamicAttributesWithHashInitialization() {
-		when(activeBean.create(UserMapper.class)).thenReturn(userMap);
+		when(activeBeans.create(UserMapper.class)).thenReturn(userMap);
 		@SuppressWarnings("unused")
-		UserMapper u = activeBean.create(UserMapper.class)
+		UserMapper u = activeBeans.create(UserMapper.class)
 				.findOrCreateByName(params);
 	}
 
 	@Test
 	public void findOrInitializeByDynamicAttributes() {
-		when(activeBean.create(UserMapper.class)).thenReturn(userMap);
+		when(activeBeans.create(UserMapper.class)).thenReturn(userMap);
 		@SuppressWarnings("unused")
-		UserMapper u = activeBean.create(UserMapper.class)
+		UserMapper u = activeBeans.create(UserMapper.class)
 				.findOrInitializeByName("");
 	}
 
 	@Test
 	public void findOrCreateByDynamicAttributesWithBlockInitialization() {
-		when(activeBean.create(UserMapper.class)).thenReturn(userMap);
+		when(activeBeans.create(UserMapper.class)).thenReturn(userMap);
 		@SuppressWarnings("unused")
-		UserMapper u = activeBean.create(UserMapper.class)
+		UserMapper u = activeBeans.create(UserMapper.class)
 				.findOrInitializeByName(new Initialization<User>() {
 					@Override
 					public User init(User t) {
@@ -205,10 +205,10 @@ public class ActiveBeanTest {
 
 	@Test
 	public void associateByBelongingTo() {
-		when(activeBean.create(UserMapper.class)).thenReturn(userMap);
+		when(activeBeans.create(UserMapper.class)).thenReturn(userMap);
 		when(userMap.group()).thenReturn(belongsTo);
 		@SuppressWarnings("unused")
-		GroupMapper g = activeBean.create(UserMapper.class).group().get();
+		GroupMapper g = activeBeans.create(UserMapper.class).group().get();
 	}
 
 }
