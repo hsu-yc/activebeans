@@ -1,5 +1,7 @@
 package org.activebeans;
 
+import java.util.List;
+
 public interface Base<T> {
 
 	Base<T> write(String attr, Object val);
@@ -8,10 +10,20 @@ public interface Base<T> {
 
 	boolean present(String attr);
 
-	boolean newRecord();
+	boolean newBean();
 
 	Object beforeTypeCast(String attr);
 
 	T bean();
+	
+	List<Base<T>> create(T... obj);
+	
+	List<Base<T>> create(Initialization<T> init, T... obj);
+	
+	boolean save();
+	
+	boolean update();
+	
+	boolean updateAttributes(T obj);
 
 }
