@@ -4,11 +4,11 @@ import java.util.Map;
 
 public interface ActiveBeans {
 
-	<T extends Base<?>> T create(Class<T> mapper, Map<String, ?> params);
+	<T extends Base<?>> T newBean(Class<T> mapper, Map<String, ?> params);
 
-	<T extends Base<U>, U> T create(Class<T> mapper, Initialization<U> init);
+	<T extends Base<U>, U> T newBean(Class<T> mapper, Initialization<U> init);
 
-	<T extends Base<?>> T create(Class<T> mapper);
+	<T extends Base<?>> T newBean(Class<T> mapper);
 
 	<T extends Base<?>> FinderMethods<T> where(Class<T> mapper, String where,
 			Object... params);
