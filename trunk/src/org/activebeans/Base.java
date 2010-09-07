@@ -15,15 +15,17 @@ public interface Base<T> {
 	Object beforeTypeCast(String attr);
 
 	T bean();
-	
+
+	Base<T> create(T obj);
+
 	List<Base<T>> create(T... obj);
-	
+
 	List<Base<T>> create(Initialization<T> init, T... obj);
-	
+
 	boolean save();
-	
-	boolean update();
-	
+
+	Base<T> update();
+
 	boolean updateAttributes(T obj);
 
 }
