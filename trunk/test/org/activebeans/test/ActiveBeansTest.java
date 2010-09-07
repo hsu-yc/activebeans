@@ -22,7 +22,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ActiveBeanTest {
+public class ActiveBeansTest {
 
 	@Mock
 	private ActiveBeans activeBeans;
