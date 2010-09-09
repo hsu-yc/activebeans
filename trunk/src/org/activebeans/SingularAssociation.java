@@ -1,7 +1,5 @@
 package org.activebeans;
 
-import java.util.Map;
-
 public interface SingularAssociation<T extends Base<?>> {
 
 	T get();
@@ -10,8 +8,8 @@ public interface SingularAssociation<T extends Base<?>> {
 
 	SingularAssociation<T> set(T associate);
 
-	T build(Class<T> mapper, Map<String, ?> attrs);
+	<U extends Base<V>, V> T build(Class<T> mapper, V obj);
 
-	T create(Class<T> mapper, Map<String, ?> attrs);
+	<U extends Base<V>, V> T create(Class<T> mapper, V obj);
 
 }

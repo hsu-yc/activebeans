@@ -41,15 +41,18 @@ public class ActiveBeansTest {
 
 	private Map<String, Object> params;
 
+	private User user;
+
 	@Before
 	public void init() {
 		params = Collections.emptyMap();
+		user = new User();
 	}
 
 	@Test
 	public void createByHash() {
 		@SuppressWarnings("unused")
-		UserMapper u = activeBeans.newBean(UserMapper.class, params);
+		UserMapper u = activeBeans.newBean(UserMapper.class, user);
 	}
 
 	@Test
@@ -209,5 +212,5 @@ public class ActiveBeansTest {
 		@SuppressWarnings("unused")
 		GroupMapper g = activeBeans.newBean(UserMapper.class).group().get();
 	}
-	
+
 }

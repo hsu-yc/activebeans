@@ -35,7 +35,7 @@ public interface CollectionAssociation<T extends Base<?>> {
 
 	List<T> find(Class<T> mapper, Object... ids);
 
-	List<T> find_each(Class<T> mapper, Do<T> block);
+	<U extends Base<V>, V> List<U> find_each(Class<U> mapper, Do<V> block);
 
 	boolean exists(Class<T> mapper, Object... ids);
 
@@ -43,12 +43,12 @@ public interface CollectionAssociation<T extends Base<?>> {
 
 	boolean exists(Class<T> mapper, Map<String, ?> params);
 
-	T build(Class<T> mapper, Map<String, ?> attrs);
+	<U extends Base<V>, V> U build(Class<U> mapper, V obj);
 
-	List<T> build(Class<T> mapper, Map<String, ?>... attrs);
+	<U extends Base<V>, V> List<U> build(Class<U> mapper, V... objs);
 
-	T create(Class<T> mapper, Map<String, ?> attrs);
+	<U extends Base<V>, V> U create(Class<U> mapper, V obj);
 
-	List<T> create(Class<T> mapper, Map<String, ?>... attrs);
+	<U extends Base<V>, V> List<U> create(Class<U> mapper, V... objs);
 
 }
