@@ -55,15 +55,14 @@ public class ActiveBeansTest {
 	@Test
 	public void createByBlockInitialization() {
 		@SuppressWarnings("unused")
-		UserMapper u = activeBeans.newBean(UserMapper.class,
-				new Do<User>() {
-					@Override
-					public User block(User t) {
-						t.setAge(0);
-						t.setName("");
-						return t;
-					}
-				});
+		UserMapper u = activeBeans.newBean(UserMapper.class, new Do<User>() {
+			@Override
+			public User block(User t) {
+				t.setAge(0);
+				t.setName("");
+				return t;
+			}
+		});
 	}
 
 	@Test
@@ -116,8 +115,8 @@ public class ActiveBeansTest {
 
 	@Test
 	public void specifyJoinTableConditionByNestedHash() {
-		when(activeBeans.joins(eq(UserMapper.class), anyString()))
-				.thenReturn(queryMethods);
+		when(activeBeans.joins(eq(UserMapper.class), anyString())).thenReturn(
+				queryMethods);
 		activeBeans.joins(UserMapper.class, "schools").where(
 				Collections.singletonMap("schools",
 						Collections.singletonMap("type", "public")));
@@ -125,8 +124,8 @@ public class ActiveBeansTest {
 
 	@Test
 	public void specifyJoinTableConditionByNestedKeysInHash() {
-		when(activeBeans.joins(eq(UserMapper.class), anyString()))
-				.thenReturn(queryMethods);
+		when(activeBeans.joins(eq(UserMapper.class), anyString())).thenReturn(
+				queryMethods);
 		activeBeans.joins(UserMapper.class, "schools").where(
 				Collections.singletonMap("schools.type", "public"));
 	}
@@ -135,8 +134,8 @@ public class ActiveBeansTest {
 	public void queryAttributes() {
 		when(activeBeans.newBean(UserMapper.class)).thenReturn(userMap);
 		@SuppressWarnings("unused")
-		boolean iaPresent = activeBeans.newBean(UserMapper.class).present(
-				"age");
+		boolean iaPresent = activeBeans.newBean(UserMapper.class)
+				.present("age");
 	}
 
 	@Test
@@ -161,8 +160,8 @@ public class ActiveBeansTest {
 		when(userMap.group()).thenReturn(belongsTo);
 		when(belongsTo.get()).thenReturn(groupMap);
 		@SuppressWarnings("unused")
-		List<GroupMapper> gList = activeBeans.newBean(UserMapper.class)
-				.group().get().findByName("");
+		List<GroupMapper> gList = activeBeans.newBean(UserMapper.class).group()
+				.get().findByName("");
 	}
 
 	@Test
@@ -210,5 +209,5 @@ public class ActiveBeansTest {
 		@SuppressWarnings("unused")
 		GroupMapper g = activeBeans.newBean(UserMapper.class).group().get();
 	}
-
+	
 }
