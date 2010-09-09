@@ -10,8 +10,8 @@ public interface SingularAssociation<T extends Base<?>> {
 
 	SingularAssociation<T> set(T associate);
 
-	T build(Map<String, ?> attrs);
+	T build(Class<T> mapper, Map<String, ?> attrs);
 
-	T create(Map<String, ?> attrs);
-	
+	T create(Class<T> mapper, Map<String, ?> attrs);
+
 }
