@@ -15,7 +15,7 @@ public interface ActiveBeans {
 	
 	<T extends Base<?>> List<T> find_each(Class<T> mapper, Do<T> block);
 	
-	<T extends Base<?>> T newBean(Class<T> mapper, Map<String, ?> params);
+	<T extends Base<?>> T newBean(Class<T> mapper, Map<String, ?> attrs);
 
 	<T extends Base<U>, U> T newBean(Class<T> mapper, Do<U> init);
 
