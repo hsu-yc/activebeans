@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.activebeans.Base;
 import org.activebeans.BelongsTo;
-import org.activebeans.Initialization;
+import org.activebeans.Do;
 
 public interface UserMapper extends Base<User> {
 
@@ -19,6 +19,6 @@ public interface UserMapper extends Base<User> {
 
 	UserMapper findOrInitializeByName(String name);
 
-	UserMapper findOrInitializeByName(Initialization<User> init);
+	UserMapper findOrInitializeByName(Do<User> init);
 
 }

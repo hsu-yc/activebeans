@@ -20,7 +20,7 @@ public interface Base<T> {
 
 	List<Base<T>> create(T... obj);
 
-	List<Base<T>> create(Initialization<T> init, T... obj);
+	List<Base<T>> create(Do<T> init, T... obj);
 
 	boolean save();
 
