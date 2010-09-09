@@ -12,7 +12,7 @@ import java.util.Map;
 import org.activebeans.ActiveBeans;
 import org.activebeans.Base;
 import org.activebeans.BelongsTo;
-import org.activebeans.Initialization;
+import org.activebeans.Do;
 import org.activebeans.QueryMethods;
 import org.activebeans.Range;
 import org.junit.Before;
@@ -56,9 +56,9 @@ public class ActiveBeansTest {
 	public void createByBlockInitialization() {
 		@SuppressWarnings("unused")
 		UserMapper u = activeBeans.newBean(UserMapper.class,
-				new Initialization<User>() {
+				new Do<User>() {
 					@Override
-					public User init(User t) {
+					public User block(User t) {
 						t.setAge(0);
 						t.setName("");
 						return t;
@@ -194,9 +194,9 @@ public class ActiveBeansTest {
 		when(activeBeans.newBean(UserMapper.class)).thenReturn(userMap);
 		@SuppressWarnings("unused")
 		UserMapper u = activeBeans.newBean(UserMapper.class)
-				.findOrInitializeByName(new Initialization<User>() {
+				.findOrInitializeByName(new Do<User>() {
 					@Override
-					public User init(User t) {
+					public User block(User t) {
 						t.setAge(0);
 						return t;
 					}
