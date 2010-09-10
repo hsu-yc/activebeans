@@ -1,6 +1,7 @@
 package org.activebeans;
 
-import java.util.List;
+import java.util.Map;
+
 
 public interface Base<T> {
 
@@ -14,18 +15,12 @@ public interface Base<T> {
 
 	Object beforeTypeCast(String attr);
 
-	T bean();
-
-	Base<T> create(T obj);
-
-	List<Base<T>> create(T... obj);
-
-	List<Base<T>> create(Do<T> init, T... obj);
+	T get();
 
 	boolean save();
 
 	Base<T> update();
 
-	boolean updateAttributes(T obj);
+	boolean updateAttributes(Map<String, ?> attrs);
 
 }

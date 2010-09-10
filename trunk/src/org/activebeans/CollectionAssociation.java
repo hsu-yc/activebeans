@@ -25,30 +25,26 @@ public interface CollectionAssociation<T extends Base<?>> {
 
 	int size();
 
-	T first(Class<T> mapper);
+	T first();
 
-	T last(Class<T> mapper);
+	T last();
 
-	T all(Class<T> mapper);
+	T all();
 
-	T find(Class<T> mapper, Object id);
+	T find(Object id);
 
-	List<T> find(Class<T> mapper, Object... ids);
+	List<T> find(Object... ids);
 
-	<U extends Base<V>, V> List<U> find_each(Class<U> mapper, Do<V> block);
+	List<T> find_each(Do<T> block);
 
-	boolean exists(Class<T> mapper, Object... ids);
+	boolean exists(Object... ids);
 
-	boolean exists(Class<T> mapper, String where, Object... params);
+	boolean exists(String where, Object... params);
 
-	boolean exists(Class<T> mapper, Map<String, ?> params);
+	boolean exists(Map<String, ?> params);
 
-	<U extends Base<V>, V> U build(Class<U> mapper, V obj);
+	T build(Map<String, ?> attrs);
 
-	<U extends Base<V>, V> List<U> build(Class<U> mapper, V... objs);
-
-	<U extends Base<V>, V> U create(Class<U> mapper, V obj);
-
-	<U extends Base<V>, V> List<U> create(Class<U> mapper, V... objs);
+	T create(Map<String, ?> attrs);
 
 }
