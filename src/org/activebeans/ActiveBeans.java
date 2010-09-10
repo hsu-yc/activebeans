@@ -17,11 +17,19 @@ public interface ActiveBeans {
 
 	<T extends Base<?>> List<T> find_each(Class<T> mapper, Do<T> block);
 
-	<T extends Base<U>, U> T newBean(Class<T> mapper, U obj);
+	<T extends Base<U>, U> T of(Class<T> mapper, U obj);
 
-	<T extends Base<U>, U> T newBean(Class<T> mapper, Do<U> init);
+	<T extends Base<U>, U> T of(Class<T> mapper, Do<U> init);
 
-	<T extends Base<?>> T newBean(Class<T> mapper);
+	<T extends Base<?>> T of(Class<T> mapper);
+	
+	<T extends Base<U>, U> T create(Class<T> mapper, U obj);
+
+	<T extends Base<U>, U> List<T> create(Class<T> mapper, U... objs);
+
+	<T extends Base<U>, U> List<T> create(Class<T> mapper, Do<U> init, U obj);
+	
+	<T extends Base<U>, U> List<T> create(Class<T> mapper, Do<U> init, U... objs);
 
 	<T extends Base<?>> FinderMethods<T> where(Class<T> mapper, String where,
 			Object... params);
