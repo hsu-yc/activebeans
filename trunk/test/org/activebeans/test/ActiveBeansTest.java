@@ -138,7 +138,7 @@ public class ActiveBeansTest {
 		when(activeBeans.of(UserMapper.class)).thenReturn(userMap);
 		@SuppressWarnings("unused")
 		boolean iaPresent = activeBeans.of(UserMapper.class)
-				.present("age");
+				.isPresent("age");
 	}
 
 	@Test

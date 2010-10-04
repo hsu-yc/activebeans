@@ -9,9 +9,9 @@ public interface Base<T> {
 
 	Object read(String attr);
 
-	boolean present(String attr);
+	boolean isPresent(String attr);
 
-	boolean newBean();
+	boolean isNew();
 
 	Object beforeTypeCast(String attr);
 
