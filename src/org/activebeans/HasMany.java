@@ -1,6 +1,6 @@
 package org.activebeans;
 
-public interface HasMany<T extends Base<?>> extends CollectionAssociation<T> {
+public interface HasMany<T extends Base> extends CollectionAssociation<T> {
 
 	@Override
 	HasMany<T> add(T... obj);

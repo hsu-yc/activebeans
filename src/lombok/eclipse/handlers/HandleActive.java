@@ -16,6 +16,7 @@ import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 
 import org.activebeans.Active;
+import org.activebeans.Base;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
@@ -76,18 +77,26 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 					+ String.valueOf(activeItf.name));
 			long[] poss = new long[activateQName.length];
 			Arrays.fill(poss, node.up().get().sourceStart);
-			QualifiedTypeReference activatedTypeRef = new QualifiedTypeReference(
+			QualifiedTypeReference activeTypeRef = new QualifiedTypeReference(
 					activateQName, poss);
-			Eclipse.setGeneratedBy(activatedTypeRef, node.up().get());
-
+			Eclipse.setGeneratedBy(activeTypeRef, node.up().get());
+			char[][] baseQName = Eclipse.fromQualifiedName(Base.class
+					.getCanonicalName());
+			long[] poss2 = new long[baseQName.length];
+			Arrays.fill(poss2, node.up().get().sourceStart);
+			QualifiedTypeReference baseTypeRef = new QualifiedTypeReference(
+					baseQName, poss2);
+			Eclipse.setGeneratedBy(baseTypeRef, node.up().get());
 			TypeDeclaration beanType = (TypeDeclaration) node.up().get();
 			beanType.modifiers |= ClassFileConstants.AccAbstract;
 			if (beanType.superInterfaces == null) {
-				beanType.superInterfaces = new TypeReference[] { activatedTypeRef };
+				beanType.superInterfaces = new TypeReference[] { activeTypeRef,
+						baseTypeRef };
 			} else {
 				List<TypeReference> superItfs = new ArrayList<TypeReference>(
 						Arrays.asList(beanType.superInterfaces));
-				superItfs.add(activatedTypeRef);
+				superItfs.add(activeTypeRef);
+				superItfs.add(baseTypeRef);
 				beanType.superInterfaces = superItfs
 						.toArray(new TypeReference[0]);
 			}

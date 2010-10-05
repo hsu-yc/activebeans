@@ -1,26 +1,13 @@
 package org.activebeans;
 
-import java.util.Map;
-
-
-public interface Base<T> {
-
-	Base<T> write(String attr, Object val);
-
-	Object read(String attr);
+public interface Base {
 
 	boolean isPresent(String attr);
 
 	boolean isNew();
 
-	Object beforeTypeCast(String attr);
-
-	T get();
-
 	boolean save();
 
-	Base<T> update();
-
-	boolean updateAttributes(Map<String, ?> attrs);
+	boolean update();
 
 }
