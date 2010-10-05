@@ -48,7 +48,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 					(TypeDeclaration) node.up().get(),
 					ClassFileConstants.AccInterface, node.up().up().get());
 			List<PropertyDefinition> props = properties(memberMap(
-					ast.memberValuePairs()).get("value"));
+					ast.memberValuePairs()).get("with"));
 			List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
 			for (PropertyDefinition p : props) {
 				MethodDeclaration getter = p.getter((TypeDeclaration) node.up()
