@@ -9,6 +9,14 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Active {
 
-	Property[] value();
+	Property[] with();
+
+	Association[] oneToMany() default {};
+
+	Association[] manyToOne() default {};
+
+	Association[] manyToMany() default {};
+
+	Association[] oneToOne() default {};
 
 }
