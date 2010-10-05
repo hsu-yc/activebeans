@@ -2,9 +2,7 @@ package org.activebeans;
 
 import java.util.Map;
 
-
-
-public interface SingularAssociation<T extends Base<?>> {
+public interface SingularAssociation<T extends Base> {
 
 	T get();
 
