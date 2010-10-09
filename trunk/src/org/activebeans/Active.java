@@ -11,12 +11,12 @@ public @interface Active {
 
 	Property[] with();
 
-	Association[] oneToMany() default {};
+	Association[] belongsTo() default {};
 
-	Association[] manyToOne() default {};
+	Association[] hasOne() default {};
 
-	Association[] manyToMany() default {};
+	Association[] hasMany() default {};
 
-	Association[] oneToOne() default {};
+	Association[] hasAndBelongsToMany() default {};
 
 }
