@@ -10,11 +10,15 @@ import org.activebeans.Property;
 	with = { 
 		@Property(name = "id", type = long.class),
 		@Property(name = "subject", type = String.class),
-		@Property(name = "created", type = Date.class)
+		@Property(name = "created", type = Date.class) 
 	},
-	oneToMany=@Association(type=Comment.class)
+	hasMany = @Association(type = Comment.class)
 )
 public class Post {
 	
-} 
- 
+	public static void main(String[] args) {
+		Post p;
+		
+	}
+	
+}
