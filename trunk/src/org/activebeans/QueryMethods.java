@@ -2,7 +2,7 @@ package org.activebeans;
 
 import java.util.Map;
 
-public interface QueryMethods<T extends Base> {
+public interface QueryMethods<T extends Model> {
 
 	FinderMethods<T> where(String where, Object... params);
 

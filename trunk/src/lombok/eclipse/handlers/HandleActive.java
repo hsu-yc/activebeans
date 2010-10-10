@@ -4,7 +4,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +16,8 @@ import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 
 import org.activebeans.Active;
-import org.activebeans.Base;
+import org.activebeans.Model;
+import org.activebeans.Models;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
@@ -50,85 +50,35 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 					.up().up().get();
 			TypeDeclaration activeItf = activeInterface(source,
 					(TypeDeclaration) node.up().get(),
-					ClassFileConstants.AccInterface, node.get());
+					ClassFileConstants.AccInterface
+							| ClassFileConstants.AccInterface, node.get());
 			List<PropertyDefinition> props = properties(memberMap(
 					ast.memberValuePairs()).get("with"));
 			List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
 			for (PropertyDefinition p : props) {
 				MethodDeclaration getter = p.getter(activeItf,
-						ClassFileConstants.AccPublic
-								| ClassFileConstants.AccAbstract
-								| ExtraCompilerModifiers.AccSemicolonBody,
-						node.get());
+						ExtraCompilerModifiers.AccSemicolonBody, node.get());
 				methods.add(getter);
 				MethodDeclaration setter = p.setter(activeItf,
-						ClassFileConstants.AccPublic
-								| ClassFileConstants.AccAbstract
-								| ExtraCompilerModifiers.AccSemicolonBody,
-						node.get());
+						ExtraCompilerModifiers.AccSemicolonBody, node.get());
 				methods.add(setter);
 			}
 			List<BelongsToDefinition> belongTos = belongsTos(memberMap(
 					ast.memberValuePairs()).get("belongsTo"));
 			for (BelongsToDefinition b : belongTos) {
 				MethodDeclaration getter = b.getter(activeItf,
-						ClassFileConstants.AccPublic
-								| ClassFileConstants.AccAbstract
-								| ExtraCompilerModifiers.AccSemicolonBody,
-						node.get());
+						ExtraCompilerModifiers.AccSemicolonBody, node.get());
 				methods.add(getter);
-				MethodDeclaration loader = b.loader(activeItf,
-						ClassFileConstants.AccPublic
-								| ClassFileConstants.AccAbstract
-								| ExtraCompilerModifiers.AccSemicolonBody,
-						node.get());
-				methods.add(loader);
 				MethodDeclaration setter = b.setter(activeItf,
-						ClassFileConstants.AccPublic
-								| ClassFileConstants.AccAbstract
-								| ExtraCompilerModifiers.AccSemicolonBody,
-						node.get());
+						ExtraCompilerModifiers.AccSemicolonBody, node.get());
 				methods.add(setter);
-				MethodDeclaration builder = b.builder(activeItf,
-						ClassFileConstants.AccPublic
-								| ClassFileConstants.AccAbstract
-								| ExtraCompilerModifiers.AccSemicolonBody,
-						node.get());
-				methods.add(builder);
-				MethodDeclaration creater = b.creater(activeItf,
-						ClassFileConstants.AccPublic
-								| ClassFileConstants.AccAbstract
-								| ExtraCompilerModifiers.AccSemicolonBody,
-						node.get());
-				methods.add(creater);
 			}
 			List<HasManyDefinition> hasManys = hasManys(memberMap(
 					ast.memberValuePairs()).get("hasMany"));
 			for (HasManyDefinition h : hasManys) {
 				MethodDeclaration getter = h.getter(activeItf,
-						ClassFileConstants.AccPublic
-								| ClassFileConstants.AccAbstract
-								| ExtraCompilerModifiers.AccSemicolonBody,
-						node.get());
+						ExtraCompilerModifiers.AccSemicolonBody, node.get());
 				methods.add(getter);
-				MethodDeclaration loader = h.loader(activeItf,
-						ClassFileConstants.AccPublic
-								| ClassFileConstants.AccAbstract
-								| ExtraCompilerModifiers.AccSemicolonBody,
-						node.get());
-				methods.add(loader);
-				MethodDeclaration setter = h.setter(activeItf,
-						ClassFileConstants.AccPublic
-								| ClassFileConstants.AccAbstract
-								| ExtraCompilerModifiers.AccSemicolonBody,
-						node.get());
-				methods.add(setter);
-				MethodDeclaration adder = h.adder(activeItf,
-						ClassFileConstants.AccPublic
-								| ClassFileConstants.AccAbstract
-								| ExtraCompilerModifiers.AccSemicolonBody,
-						node.get());
-				methods.add(adder);
 			}
 			activeItf.methods = methods
 					.toArray(new AbstractMethodDeclaration[0]);
@@ -146,7 +96,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			QualifiedTypeReference activeTypeRef = new QualifiedTypeReference(
 					activateQName, poss);
 			Eclipse.setGeneratedBy(activeTypeRef, node.get());
-			char[][] baseQName = Eclipse.fromQualifiedName(Base.class
+			char[][] baseQName = Eclipse.fromQualifiedName(Model.class
 					.getCanonicalName());
 			long[] poss2 = new long[baseQName.length];
 			Arrays.fill(poss2, node.get().sourceStart);
@@ -166,7 +116,11 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 				beanType.superInterfaces = superItfs
 						.toArray(new TypeReference[0]);
 			}
-
+			TypeDeclaration modelsInterf = modelsInterface(beanType,
+					ClassFileConstants.AccPublic
+							| ClassFileConstants.AccInterface, node.get());
+			injectType(beanType, modelsInterf);
+			node.up().add(modelsInterf, Kind.TYPE).recursiveSetHandled();
 		} catch (Exception e) {
 			StringWriter msg = new StringWriter();
 			e.printStackTrace(new PrintWriter(msg));
@@ -249,6 +203,149 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		interf.bodyStart = interf.declarationSourceStart = interf.sourceStart = source.sourceStart;
 		interf.bodyEnd = interf.declarationSourceEnd = interf.sourceEnd = source.sourceEnd;
 		return interf;
+	}
+
+	private static TypeDeclaration modelsInterface(TypeDeclaration bean,
+			int modifier, ASTNode source) {
+		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
+		Eclipse.setGeneratedBy(interf, source);
+		interf.name = "Models".toCharArray();
+		interf.modifiers = modifier;
+		char[][] superInterf = Eclipse.fromQualifiedName(Models.class
+				.getCanonicalName());
+		final TypeReference[][] typeArguments = new TypeReference[superInterf.length][];
+		long[] poss = new long[superInterf.length];
+		Arrays.fill(poss, source.sourceStart);
+		SingleTypeReference beanRef = new SingleTypeReference(bean.name,
+				source.sourceStart);
+		beanRef.sourceStart = source.sourceStart;
+		beanRef.sourceEnd = source.sourceEnd;
+		Eclipse.setGeneratedBy(beanRef, source);
+		typeArguments[superInterf.length - 1] = new TypeReference[] { beanRef };
+		ParameterizedQualifiedTypeReference superInterfRef = new ParameterizedQualifiedTypeReference(
+				superInterf, typeArguments, 0, poss);
+		superInterfRef.sourceStart = source.sourceStart;
+		superInterfRef.sourceEnd = source.sourceEnd;
+		Eclipse.setGeneratedBy(superInterfRef, source);
+		interf.superInterfaces = new TypeReference[] { superInterfRef };
+		SingleTypeReference interfRef = new SingleTypeReference(interf.name,
+				source.sourceStart);
+		interfRef.sourceStart = source.sourceStart;
+		interfRef.sourceEnd = source.sourceEnd;
+		Eclipse.setGeneratedBy(interfRef, source);
+		interf.methods = new MethodDeclaration[] {
+				covariantAllFinder(interf, interfRef,
+						ExtraCompilerModifiers.AccSemicolonBody, source),
+				covariantAllFinderWithOptions(interf, interfRef,
+						ExtraCompilerModifiers.AccSemicolonBody, source),
+				covariantAdder(interf, interfRef,
+						Eclipse.copyType(beanRef, source),
+						ExtraCompilerModifiers.AccSemicolonBody, source) };
+		interf.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+		interf.bodyStart = interf.declarationSourceStart = interf.sourceStart = source.sourceStart;
+		interf.bodyEnd = interf.declarationSourceEnd = interf.sourceEnd = source.sourceEnd;
+		return interf;
+	}
+
+	private static MethodDeclaration covariantAllFinder(TypeDeclaration parent,
+			TypeReference type, int modifier, ASTNode source) {
+		MethodDeclaration method = new MethodDeclaration(
+				parent.compilationResult);
+		Eclipse.setGeneratedBy(method, source);
+		method.modifiers = modifier;
+		method.returnType = Eclipse.copyType(type, source);
+		method.annotations = null;
+		method.arguments = null;
+		method.selector = ("all").toCharArray();
+		method.binding = null;
+		method.thrownExceptions = null;
+		method.typeParameters = null;
+		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
+		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
+		return method;
+	}
+
+	private static MethodDeclaration covariantAllFinderWithOptions(
+			TypeDeclaration parent, TypeReference type, int modifier,
+			ASTNode source) {
+		int pS = source.sourceStart, pE = source.sourceEnd;
+		long p = (long) pS << 32 | pE;
+		char[][] strQName = Eclipse.fromQualifiedName(String.class
+				.getCanonicalName());
+		long[] poss = new long[strQName.length];
+		QualifiedTypeReference strRef = new QualifiedTypeReference(strQName,
+				poss);
+		strRef.sourceStart = pS;
+		strRef.sourceEnd = pE;
+		Eclipse.setGeneratedBy(strRef, source);
+		char[][] argType = Eclipse.fromQualifiedName(Map.class
+				.getCanonicalName());
+		final TypeReference[][] typeArguments = new TypeReference[argType.length][];
+		long[] poss2 = new long[argType.length];
+		Arrays.fill(poss2, pS);
+		Wildcard wildcard = new Wildcard(Wildcard.UNBOUND);
+		wildcard.sourceStart = pS;
+		wildcard.sourceEnd = pE;
+		Eclipse.setGeneratedBy(wildcard, source);
+		typeArguments[argType.length - 1] = new TypeReference[] { strRef,
+				wildcard };
+		ParameterizedQualifiedTypeReference argTypeRef = new ParameterizedQualifiedTypeReference(
+				argType, typeArguments, 0, poss);
+		Eclipse.setGeneratedBy(argTypeRef, source);
+		Argument param = new Argument("options".toCharArray(), p, argTypeRef,
+				Modifier.FINAL);
+		param.sourceStart = pS;
+		param.sourceEnd = pE;
+		Eclipse.setGeneratedBy(param, source);
+		MethodDeclaration method = covariantAllFinder(parent, type, modifier,
+				source);
+		method.arguments = new Argument[] { param };
+		return method;
+	}
+
+	private static MethodDeclaration covariantAdder(TypeDeclaration parent,
+			TypeReference rtnType, TypeReference argType, int modifier,
+			ASTNode source) {
+		int pS = source.sourceStart, pE = source.sourceEnd;
+		long p = (long) pS << 32 | pE;
+		Argument arg = new Argument("model".toCharArray(), p, Eclipse.copyType(
+				argType, source), Modifier.FINAL);
+		arg.sourceStart = pS;
+		arg.sourceEnd = pE;
+		Eclipse.setGeneratedBy(arg, source);
+		MethodDeclaration method = new MethodDeclaration(
+				parent.compilationResult);
+		Eclipse.setGeneratedBy(method, source);
+		method.modifiers = modifier;
+		method.returnType = Eclipse.copyType(rtnType, source);
+		method.annotations = null;
+		method.arguments = new Argument[] { arg };
+		method.selector = ("add").toCharArray();
+		method.binding = null;
+		method.thrownExceptions = null;
+		method.typeParameters = null;
+		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
+		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
+		return method;
+	}
+
+	/**
+	 * Inserts a member type into an existing type.
+	 */
+	private static void injectType(TypeDeclaration parentType,
+			final TypeDeclaration memberType) {
+		if (parentType.memberTypes == null) {
+			parentType.memberTypes = new TypeDeclaration[1];
+			parentType.memberTypes[0] = memberType;
+		} else {
+			TypeDeclaration[] newArray = new TypeDeclaration[parentType.memberTypes.length + 1];
+			System.arraycopy(parentType.memberTypes, 0, newArray, 0,
+					parentType.memberTypes.length);
+			newArray[parentType.memberTypes.length] = memberType;
+			parentType.memberTypes = newArray;
+		}
 	}
 
 	static String capitalize(String name) {
@@ -378,108 +475,6 @@ class BelongsToDefinition implements Definition {
 		return method;
 	}
 
-	public MethodDeclaration loader(TypeDeclaration parent, int modifier,
-			ASTNode source) {
-		MethodDeclaration method = new MethodDeclaration(
-				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
-		method.modifiers = modifier;
-		method.returnType = Eclipse.copyType(type, source);
-		method.annotations = null;
-		method.arguments = null;
-		method.selector = ("get" + HandleActive.capitalize(name)).toCharArray();
-		method.binding = null;
-		method.thrownExceptions = null;
-		method.typeParameters = null;
-		int pS = source.sourceStart, pE = source.sourceEnd;
-		long p = (long) pS << 32 | pE;
-		Argument param = new Argument("forceReload".toCharArray(), p,
-				new SingleTypeReference("boolean".toCharArray(), p),
-				Modifier.FINAL);
-		param.sourceStart = pS;
-		param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
-		method.arguments = new Argument[] { param };
-		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
-		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
-		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
-		return method;
-	}
-
-	public MethodDeclaration builder(TypeDeclaration parent, int modifier,
-			ASTNode source) {
-		MethodDeclaration method = new MethodDeclaration(
-				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
-		method.modifiers = modifier;
-		method.returnType = Eclipse.copyType(type, source);
-		method.annotations = null;
-		method.arguments = null;
-		method.selector = ("build" + HandleActive.capitalize(name))
-				.toCharArray();
-		method.binding = null;
-		method.thrownExceptions = null;
-		method.typeParameters = null;
-		int pS = source.sourceStart, pE = source.sourceEnd;
-		long p = (long) pS << 32 | pE;
-		char[][] argName = Eclipse.fromQualifiedName(Map.class
-				.getCanonicalName());
-		final TypeReference[][] typeArguments = new TypeReference[argName.length][];
-		long[] poss = new long[argName.length];
-		Arrays.fill(poss, source.sourceStart);
-		typeArguments[argName.length - 1] = new TypeReference[] {
-				new SingleTypeReference("String".toCharArray(), p),
-				new Wildcard(Wildcard.UNBOUND) };
-		Argument param = new Argument("attributes".toCharArray(), p,
-				new ParameterizedQualifiedTypeReference(argName, typeArguments,
-						0, poss), Modifier.FINAL);
-		param.sourceStart = pS;
-		param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
-		method.arguments = new Argument[] { param };
-		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
-		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
-		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
-		return method;
-	}
-
-	public MethodDeclaration creater(TypeDeclaration parent, int modifier,
-			ASTNode source) {
-		MethodDeclaration method = new MethodDeclaration(
-				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
-		method.modifiers = modifier;
-		method.returnType = Eclipse.copyType(type, source);
-		method.annotations = null;
-		method.arguments = null;
-		method.selector = ("create" + HandleActive.capitalize(name))
-				.toCharArray();
-		method.binding = null;
-		method.thrownExceptions = null;
-		method.typeParameters = null;
-		int pS = source.sourceStart, pE = source.sourceEnd;
-		long p = (long) pS << 32 | pE;
-		char[][] argName = Eclipse.fromQualifiedName(Map.class
-				.getCanonicalName());
-		final TypeReference[][] typeArguments = new TypeReference[argName.length][];
-		long[] poss = new long[argName.length];
-		Arrays.fill(poss, source.sourceStart);
-		typeArguments[argName.length - 1] = new TypeReference[] {
-				new SingleTypeReference("String".toCharArray(), p),
-				new Wildcard(Wildcard.UNBOUND) };
-		Argument param = new Argument("attributes".toCharArray(), p,
-				new ParameterizedQualifiedTypeReference(argName, typeArguments,
-						0, poss), Modifier.FINAL);
-		param.sourceStart = pS;
-		param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
-		method.arguments = new Argument[] { param };
-		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
-		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
-		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
-		return method;
-	}
-
 	public MethodDeclaration setter(TypeDeclaration parent, int modifier,
 			ASTNode source) {
 		int pS = source.sourceStart, pE = source.sourceEnd;
@@ -520,11 +515,11 @@ class HasManyDefinition implements Definition {
 
 	private String name;
 
-	private TypeReference type;
+	private String qName;
 
 	public HasManyDefinition(TypeReference type) {
 		this.name = String.valueOf(type.getLastToken());
-		this.type = type;
+		this.qName = Eclipse.toQualifiedName(type.getTypeName());
 	}
 
 	public MethodDeclaration getter(TypeDeclaration parent, int modifier,
@@ -533,131 +528,17 @@ class HasManyDefinition implements Definition {
 				parent.compilationResult);
 		Eclipse.setGeneratedBy(method, source);
 		method.modifiers = modifier;
-		char[][] rtnType = Eclipse.fromQualifiedName(Collection.class
-				.getCanonicalName());
-		final TypeReference[][] typeArguments = new TypeReference[rtnType.length][];
+		char[][] rtnType = Eclipse.fromQualifiedName(qName + ".Models");
 		long[] poss = new long[rtnType.length];
 		Arrays.fill(poss, source.sourceStart);
-		typeArguments[rtnType.length - 1] = new TypeReference[] { Eclipse
-				.copyType(type, source) };
-		ParameterizedQualifiedTypeReference rtnTypeRef = new ParameterizedQualifiedTypeReference(
-				rtnType, typeArguments, 0, poss);
+		QualifiedTypeReference rtnTypeRef = new QualifiedTypeReference(rtnType,
+				poss);
 		Eclipse.setGeneratedBy(rtnTypeRef, source);
 		method.returnType = rtnTypeRef;
 		method.annotations = null;
 		method.arguments = null;
 		method.selector = ("get" + HandleActive.capitalize(name) + "s")
 				.toCharArray();
-		method.binding = null;
-		method.thrownExceptions = null;
-		method.typeParameters = null;
-		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
-		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
-		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
-		return method;
-	}
-
-	public MethodDeclaration loader(TypeDeclaration parent, int modifier,
-			ASTNode source) {
-		MethodDeclaration method = new MethodDeclaration(
-				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
-		method.modifiers = modifier;
-		char[][] rtnType = Eclipse.fromQualifiedName(Collection.class
-				.getCanonicalName());
-		final TypeReference[][] typeArguments = new TypeReference[rtnType.length][];
-		long[] poss = new long[rtnType.length];
-		Arrays.fill(poss, source.sourceStart);
-		typeArguments[rtnType.length - 1] = new TypeReference[] { Eclipse
-				.copyType(type, source) };
-		ParameterizedQualifiedTypeReference rtnTypeRef = new ParameterizedQualifiedTypeReference(
-				rtnType, typeArguments, 0, poss);
-		Eclipse.setGeneratedBy(rtnTypeRef, source);
-		method.returnType = rtnTypeRef;
-		method.annotations = null;
-		method.arguments = null;
-		method.selector = ("get" + HandleActive.capitalize(name) + "s")
-				.toCharArray();
-		method.binding = null;
-		method.thrownExceptions = null;
-		method.typeParameters = null;
-		int pS = source.sourceStart, pE = source.sourceEnd;
-		long p = (long) pS << 32 | pE;
-		Argument param = new Argument("forceReload".toCharArray(), p,
-				new SingleTypeReference("boolean".toCharArray(), p),
-				Modifier.FINAL);
-		param.sourceStart = pS;
-		param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
-		method.arguments = new Argument[] { param };
-		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
-		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
-		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
-		return method;
-	}
-
-	public MethodDeclaration setter(TypeDeclaration parent, int modifier,
-			ASTNode source) {
-		int pS = source.sourceStart, pE = source.sourceEnd;
-		long p = (long) pS << 32 | pE;
-		MethodDeclaration method = new MethodDeclaration(
-				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
-		method.modifiers = modifier;
-		method.returnType = TypeReference.baseTypeReference(TypeIds.T_void, 0);
-		method.returnType.sourceStart = pS;
-		method.returnType.sourceEnd = pE;
-		Eclipse.setGeneratedBy(method.returnType, source);
-		method.annotations = null;
-		char[][] rtnType = Eclipse.fromQualifiedName(Collection.class
-				.getCanonicalName());
-		final TypeReference[][] typeArguments = new TypeReference[rtnType.length][];
-		long[] poss = new long[rtnType.length];
-		Arrays.fill(poss, source.sourceStart);
-		typeArguments[rtnType.length - 1] = new TypeReference[] { Eclipse
-				.copyType(type, source) };
-		ParameterizedQualifiedTypeReference rtnTypeRef = new ParameterizedQualifiedTypeReference(
-				rtnType, typeArguments, 0, poss);
-		Eclipse.setGeneratedBy(rtnTypeRef, source);
-		Argument param = new Argument((name + "s").toCharArray(), p,
-				rtnTypeRef, Modifier.FINAL);
-		param.sourceStart = pS;
-		param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
-		method.arguments = new Argument[] { param };
-		method.selector = ("set" + HandleActive.capitalize(name) + "s")
-				.toCharArray();
-		method.binding = null;
-		method.thrownExceptions = null;
-		method.typeParameters = null;
-		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
-		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
-		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
-		return method;
-	}
-
-	public MethodDeclaration adder(TypeDeclaration parent, int modifier,
-			ASTNode source) {
-		int pS = source.sourceStart, pE = source.sourceEnd;
-		long p = (long) pS << 32 | pE;
-		MethodDeclaration method = new MethodDeclaration(
-				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
-		method.modifiers = modifier;
-		method.returnType = TypeReference.baseTypeReference(TypeIds.T_void, 0);
-		method.returnType.sourceStart = pS;
-		method.returnType.sourceEnd = pE;
-		Eclipse.setGeneratedBy(method.returnType, source);
-		method.annotations = null;
-		TypeReference argTypeRef = Eclipse.copyType(type, source);
-		// argTypeRef.bits |= ASTNode.IsVarArgs;
-		Argument param = new Argument(name.toCharArray(), p, argTypeRef,
-				Modifier.FINAL);
-		param.sourceStart = pS;
-		param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
-		method.arguments = new Argument[] { param };
-		method.selector = ("add" + HandleActive.capitalize(name)).toCharArray();
 		method.binding = null;
 		method.thrownExceptions = null;
 		method.typeParameters = null;

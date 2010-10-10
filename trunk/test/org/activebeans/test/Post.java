@@ -2,6 +2,8 @@ package org.activebeans.test;
 
 import java.util.Date;
 
+import javax.annotation.Generated;
+
 import org.activebeans.Active;
 import org.activebeans.Association;
 import org.activebeans.Property;
@@ -16,9 +18,23 @@ import org.activebeans.Property;
 )
 public class Post {
 	
-	public static void main(String[] args) {
-		Post p;
-		
+	@Generated("")
+	public static boolean destroyAll(){
+		return org.activebeans.ActiveBeans.destroy(Post.class);
+	}
+	
+	@Generated("")
+	public static Models all(java.util.Map<String, ?> conditions){
+		return Models.class.cast(org.activebeans.ActiveBeans.all(Post.class, conditions));
+	}
+	
+	@Generated("")
+	public static Models all(){
+		return Models.class.cast(org.activebeans.ActiveBeans.all(Post.class));
+	}
+	
+	public static Models popular(){
+		return null;
 	}
 	
 }

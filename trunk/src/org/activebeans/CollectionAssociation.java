@@ -3,7 +3,7 @@ package org.activebeans;
 import java.util.List;
 import java.util.Map;
 
-public interface CollectionAssociation<T extends Base> {
+public interface CollectionAssociation<T extends Model> {
 
 	List<T> get();
 
