@@ -1,52 +1,66 @@
 package org.activebeans;
 
-import java.util.List;
 import java.util.Map;
 
-public interface ActiveBeans {
+public class ActiveBeans {
 
-	<T extends Base> T first(Class<T> mapper);
+	public static <T extends Model> T build(Class<T> modelClass) {
+		return null;
+	}
 
-	<T extends Base> T last(Class<T> mapper);
+	public static <T extends Model> T build(Class<T> modelClass,
+			Map<String, ?> attrs) {
+		return null;
+	}
 
-	<T extends Base> T all(Class<T> mapper);
+	public static <T extends Model> T create(Class<T> modelClass) {
+		return null;
+	}
 
-	<T extends Base> T find(Class<T> mapper, Object id);
+	public static <T extends Model> T create(Class<T> modelClass,
+			Map<String, ?> attrs) {
+		return null;
+	}
 
-	<T extends Base> List<T> find(Class<T> mapper, Object... ids);
+	public static boolean destroy(Class<? extends Model> modelClass) {
+		return false;
+	}
 
-	<T extends Base> List<T> find_each(Class<T> mapper, Do<T> block);
+	public static boolean update(Class<? extends Model> modelClass,
+			Map<String, ?> attrs) {
+		return false;
+	}
 
-	<T extends Base> T of(Class<T> mapper, T obj);
+	public static <T extends Model> T get(Class<T> modelClass, Object key,
+			Object... keys) {
+		return null;
+	}
 
-	<T extends Base> T of(Class<T> mapper, Do<T> init);
+	public static <T extends Model> T first(Class<T> modelClass) {
+		return null;
+	}
 
-	<T extends Base> T of(Class<T> mapper);
+	public static <T extends Model> T first(Class<T> modelClass,
+			Map<String, ?> conditions) {
+		return null;
+	}
 
-	<T extends Base> T create(Class<T> mapper, T obj);
+	public static <T extends Model> T last(Class<T> modelClass) {
+		return null;
+	}
 
-	<T extends Base> List<T> create(Class<T> mapper, T... objs);
+	public static <T extends Model> T last(Class<T> modelClass,
+			Map<String, ?> conditions) {
+		return null;
+	}
 
-	<T extends Base> List<T> create(Class<T> mapper, Do<T> init, T obj);
+	public static <T extends Model> Models<T> all(Class<T> modelClass) {
+		return null;
+	}
 
-	<T extends Base> List<T> create(Class<T> mapper, Do<T> init, T... objs);
-
-	<T extends Base> FinderMethods<T> where(Class<T> mapper, String where,
-			Object... params);
-
-	<T extends Base> FinderMethods<T> where(Class<T> mapper, String where,
-			Map<String, ?> params);
-
-	<T extends Base> FinderMethods<T> where(Class<T> mapper,
-			Map<String, ?> params);
-
-	<T extends Base> QueryMethods<T> joins(Class<T> mapper, String attr);
-
-	<T extends Base> boolean exists(Class<T> mapper, Object... ids);
-
-	<T extends Base> boolean exists(Class<T> mapper, String where,
-			Object... params);
-
-	<T extends Base> boolean exists(Class<T> mapper, Map<String, ?> params);
+	public static <T extends Model> Models<T> all(Class<T> modelClass,
+			Map<String, ?> conditions) {
+		return null;
+	}
 
 }

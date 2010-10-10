@@ -10,6 +10,6 @@ public @interface Association {
 
 	String with() default "";
 
-	Class<? extends Base> type();
+	Class<? extends Model> type();
 
 }
