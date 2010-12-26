@@ -12,6 +12,7 @@ import java.util.Map;
 import lombok.core.AST.Kind;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.Eclipse;
+import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 
@@ -50,8 +51,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 					.up().up().get();
 			TypeDeclaration activeItf = activeInterface(source,
 					(TypeDeclaration) node.up().get(),
-					ClassFileConstants.AccInterface
-							| ClassFileConstants.AccInterface, node.get());
+					ClassFileConstants.AccInterface, node.get());
 			List<PropertyDefinition> props = properties(memberMap(
 					ast.memberValuePairs()).get("with"));
 			List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
@@ -118,7 +118,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			}
 			TypeDeclaration modelsInterf = modelsInterface(beanType,
 					ClassFileConstants.AccPublic
-							| ClassFileConstants.AccInterface, node.get());
+							| ClassFileConstants.AccInterface, node);
 			injectType(beanType, modelsInterf);
 			node.up().add(modelsInterf, Kind.TYPE).recursiveSetHandled();
 		} catch (Exception e) {
@@ -206,7 +206,8 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 	}
 
 	private static TypeDeclaration modelsInterface(TypeDeclaration bean,
-			int modifier, ASTNode source) {
+			int modifier, EclipseNode node) {
+		ASTNode source = node.get();
 		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
 		Eclipse.setGeneratedBy(interf, source);
 		interf.name = "Models".toCharArray();
@@ -233,14 +234,17 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		interfRef.sourceStart = source.sourceStart;
 		interfRef.sourceEnd = source.sourceEnd;
 		Eclipse.setGeneratedBy(interfRef, source);
-		interf.methods = new MethodDeclaration[] {
-				covariantAllFinder(interf, interfRef,
-						ExtraCompilerModifiers.AccSemicolonBody, source),
-				covariantAllFinderWithOptions(interf, interfRef,
-						ExtraCompilerModifiers.AccSemicolonBody, source),
-				covariantAdder(interf, interfRef,
-						Eclipse.copyType(beanRef, source),
-						ExtraCompilerModifiers.AccSemicolonBody, source) };
+		List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
+		methods.add(covariantAllFinder(interf, interfRef,
+				ExtraCompilerModifiers.AccSemicolonBody, source));
+		methods.add(covariantAllFinderWithOptions(interf, interfRef,
+				ExtraCompilerModifiers.AccSemicolonBody, source));
+		methods.add(covariantAdder(interf, interfRef,
+				Eclipse.copyType(beanRef, source),
+				ExtraCompilerModifiers.AccSemicolonBody, source));
+		methods.addAll(new FinderMethodRetriever(node.up())
+				.extractInterfaceMethods(interf, source));
+		interf.methods = methods.toArray(new MethodDeclaration[0]);
 		interf.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 		interf.bodyStart = interf.declarationSourceStart = interf.sourceStart = source.sourceStart;
 		interf.bodyEnd = interf.declarationSourceEnd = interf.sourceEnd = source.sourceEnd;
@@ -331,6 +335,13 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		return method;
 	}
 
+	/*
+	 * private static List<MethodDeclaration> associationFinders(TypeDeclaration
+	 * parent, TypeReference rtnType, TypeReference argType, int modifier,
+	 * ASTNode source) {
+	 * 
+	 * return null; }
+	 */
 	/**
 	 * Inserts a member type into an existing type.
 	 */
@@ -551,6 +562,72 @@ class HasManyDefinition implements Definition {
 	@Override
 	public List<String> methods() {
 		return null;
+	}
+
+}
+
+class FinderMethodRetriever extends EclipseASTAdapter {
+
+	private List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
+
+	FinderMethodRetriever(EclipseNode bean) {
+		bean.up().traverse(new EclipseASTAdapter() {
+			@Override
+			public void visitMethod(EclipseNode methodNode,
+					AbstractMethodDeclaration method) {
+				MethodDeclaration m;
+				if (method.isStatic()
+						&& (method.modifiers & ClassFileConstants.AccPublic) == 1
+						&& String.valueOf(
+								(m = (MethodDeclaration) method).returnType)
+								.equals("Models")) {
+					methods.add(m);
+				}
+			}
+		});
+	}
+
+	public List<MethodDeclaration> extractInterfaceMethods(
+			TypeDeclaration parent, ASTNode source) {
+		List<MethodDeclaration> interfMethods = new ArrayList<MethodDeclaration>();
+		for (MethodDeclaration m : methods) {
+			interfMethods.add(extractInterface(m, parent, source));
+		}
+		return interfMethods;
+	}
+
+	private static MethodDeclaration extractInterface(MethodDeclaration finder,
+			TypeDeclaration parent, ASTNode source) {
+		int pS = source.sourceStart, pE = source.sourceEnd;
+		long p = (long) pS << 32 | pE;
+		MethodDeclaration method = new MethodDeclaration(
+				parent.compilationResult);
+		Eclipse.setGeneratedBy(method, source);
+		method.modifiers = ExtraCompilerModifiers.AccSemicolonBody;
+		method.returnType = Eclipse.copyType(finder.returnType, source);
+		Eclipse.setGeneratedBy(method.returnType, source);
+		method.annotations = null;
+		Argument[] args = finder.arguments;
+		if (args != null) {
+			List<Argument> argList = new ArrayList<Argument>();
+			for (Argument arg : finder.arguments) {
+				Argument a = new Argument(arg.name, p, Eclipse.copyType(
+						arg.type, source), Modifier.FINAL);
+				a.sourceStart = pS;
+				a.sourceEnd = pE;
+				Eclipse.setGeneratedBy(a, source);
+				argList.add(a);
+			}
+			method.arguments = argList.toArray(new Argument[0]);
+		}
+		method.selector = finder.selector;
+		method.binding = null;
+		method.thrownExceptions = null;
+		method.typeParameters = null;
+		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
+		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
+		return method;
 	}
 
 }
