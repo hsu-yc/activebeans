@@ -1,6 +1,8 @@
 package org.activebeans.test;
 
+import org.activebeans.Active;
 import org.activebeans.ActiveBeans;
+import org.activebeans.ActiveIntrospector;
 import org.activebeans.test.model.Post;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,40 +11,58 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ActiveBeansTest {
 
-	private Post p;
+	private Class<Post> activeClass;
+
+	private Active activeAt;
+
+	private Class<?> activeInterf;
+
+	private Class<?> activeCollectionInterf;
 
 	@Before
-	public void init() {
-		p = ActiveBeans.build(Post.class);
+	public void init() throws ClassNotFoundException {
+		activeClass = Post.class;
+		activeAt = Post.class.getAnnotation(Active.class);
+		activeInterf = Class.forName(activeClass.getPackage().getName()
+				+ ".Active" + activeClass.getSimpleName());
+		activeCollectionInterf = Class.forName(activeClass.getCanonicalName()
+				+ "$Models");
 	}
 
 	@Test
-	public void notNull() {
-		assertNotNull(p);
+	public void activeIntrospector() {
+		ActiveIntrospector<Post> activeIntro = ActiveIntrospector
+				.of(activeClass);
+		assertEquals(activeInterf, activeIntro.getActiveInterface());
+		assertEquals(activeAt, activeIntro.getActiveAnnotation());
+		assertEquals(activeClass, activeIntro.getActiveClass());
+		assertEquals(activeCollectionInterf,
+				activeIntro.getActiveCollectionInterface());
 	}
 
 	@Test
-	public void noop() {
-		p.attributes(null);
-		assertFalse(p.destroy());
-		assertFalse(p.save());
-		assertFalse(p.update());
-		assertFalse(p.update(null));
-		assertNull(p.getComments());
-		assertNull(p.getCreated());
-		assertEquals(0L, p.getId());
-		assertNull(p.getSubject());
-		p.setCreated(null);
-		p.setId(0);
-		p.setSubject(null);
+	public void noOpInstance() {
+		Post activeInst = ActiveBeans.build(activeClass);
+		assertTrue(activeClass.isInstance(activeInst));
+		activeInst.attributes(null);
+		assertFalse(activeInst.destroy());
+		assertFalse(activeInst.save());
+		assertFalse(activeInst.update());
+		assertFalse(activeInst.update(null));
+		assertNull(activeInst.getComments());
+		assertNull(activeInst.getCreated());
+		assertEquals(0L, activeInst.getId());
+		assertNull(activeInst.getSubject());
+		activeInst.setCreated(null);
+		activeInst.setId(0);
+		activeInst.setSubject(null);
 	}
-
 	/*
 	 * @Mock private ActiveBeans activeBeans;
 	 * 

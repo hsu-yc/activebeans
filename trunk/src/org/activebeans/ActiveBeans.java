@@ -7,25 +7,10 @@ import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
-public class ActiveBeans {
+public final class ActiveBeans {
 
-	private static String activeInterfaceName(Class<?> modelClass) {
-		return modelClass.getPackage().getName() + ".Active"
-				+ modelClass.getSimpleName();
-	}
+	private ActiveBeans() {
 
-	@SuppressWarnings("unused")
-	private static Class<?> activeInterface(Class<?> modelClass) {
-		Class<?> interf = null;
-		Class<?>[] interfaces = modelClass.getInterfaces();
-		String activeInterfaceName = activeInterfaceName(modelClass);
-		for (Class<?> i : interfaces) {
-			if (i.getCanonicalName().equals(activeInterfaceName)) {
-				interf = i;
-				break;
-			}
-		}
-		return interf;
 	}
 
 	public static <T extends Model> T build(Class<T> modelClass) {
