@@ -1,10 +1,48 @@
 package org.activebeans.test;
 
+import org.activebeans.ActiveBeans;
+import org.activebeans.test.model.Post;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 @RunWith(MockitoJUnitRunner.class)
 public class ActiveBeansTest {
+
+	private Post p;
+
+	@Before
+	public void init() {
+		p = ActiveBeans.build(Post.class);
+	}
+
+	@Test
+	public void notNull() {
+		assertNotNull(p);
+	}
+
+	@Test
+	public void noop() {
+		p.attributes(null);
+		assertFalse(p.destroy());
+		assertFalse(p.save());
+		assertFalse(p.update());
+		assertFalse(p.update(null));
+		assertNull(p.getComments());
+		assertNull(p.getCreated());
+		assertEquals(0L, p.getId());
+		assertNull(p.getSubject());
+		p.setCreated(null);
+		p.setId(0);
+		p.setSubject(null);
+	}
+
 	/*
 	 * @Mock private ActiveBeans activeBeans;
 	 * 
