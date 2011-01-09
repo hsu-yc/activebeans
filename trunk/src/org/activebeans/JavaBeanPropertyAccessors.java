@@ -34,12 +34,12 @@ class JavaBeanPropertyAccessors implements PropertyAccessors {
 	}
 
 	@Override
-	public Method getter() {
+	public Method get() {
 		return propDesc.getReadMethod();
 	}
 
 	@Override
-	public Method setter() {
+	public Method set() {
 		return propDesc.getWriteMethod();
 	}
 

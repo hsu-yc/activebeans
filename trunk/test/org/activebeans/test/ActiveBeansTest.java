@@ -59,8 +59,8 @@ public class ActiveBeansTest {
 			PropertyDescriptor pd = new PropertyDescriptor(propName,
 					activeClass);
 			PropertyAccessors accessors = activeIntro.propertyAccessors(with);
-			assertEquals(pd.getReadMethod(), accessors.getter());
-			assertEquals(pd.getWriteMethod(), accessors.setter());
+			assertEquals(pd.getReadMethod(), accessors.get());
+			assertEquals(pd.getWriteMethod(), accessors.set());
 		}
 		Association[] belongsTos = activeAt.belongsTo();
 		List<Association> belongsToList = activeIntro.belongsTos();
