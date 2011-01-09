@@ -4,15 +4,14 @@ import org.activebeans.Active;
 import org.activebeans.Association;
 import org.activebeans.Property;
 
-
 @Active(
 	with = @Property(name = "id", type = long.class), 
-	belongsTo = @Association(type = Post.class)
+	belongsTo = @Association(with = Post.class)
 )
 public class Comment {
-	
-	public static Models popular(){
+
+	public static Models popular() {
 		return null;
 	}
-	
+
 }

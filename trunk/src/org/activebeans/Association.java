@@ -8,8 +8,8 @@ import java.lang.annotation.Target;
 @Target({})
 public @interface Association {
 
-	String with() default "";
+	Class<? extends Model> with();
 
-	Class<? extends Model> type();
+	String name() default "";
 
 }

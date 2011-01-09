@@ -157,7 +157,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			Map<String, Expression> propMembers = memberMap(activeBeanProp
 					.memberValuePairs());
 			belongsTos.add(new BelongsToDefinition(
-					((ClassLiteralAccess) propMembers.get("type")).type));
+					((ClassLiteralAccess) propMembers.get("with")).type));
 		} else if (activeBeanProps instanceof ArrayInitializer) {
 			ArrayInitializer propArray = (ArrayInitializer) activeBeanProps;
 			for (Expression propAnnotation : propArray.expressions) {
@@ -174,7 +174,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			Map<String, Expression> propMembers = memberMap(activeBeanProp
 					.memberValuePairs());
 			hasManys.add(new HasManyDefinition(
-					((ClassLiteralAccess) propMembers.get("type")).type));
+					((ClassLiteralAccess) propMembers.get("with")).type));
 		} else if (activeBeanProps instanceof ArrayInitializer) {
 			ArrayInitializer propArray = (ArrayInitializer) activeBeanProps;
 			for (Expression propAnnotation : propArray.expressions) {
