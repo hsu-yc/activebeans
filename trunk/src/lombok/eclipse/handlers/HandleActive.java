@@ -335,16 +335,6 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		return method;
 	}
 
-	/*
-	 * private static List<MethodDeclaration> associationFinders(TypeDeclaration
-	 * parent, TypeReference rtnType, TypeReference argType, int modifier,
-	 * ASTNode source) {
-	 * 
-	 * return null; }
-	 */
-	/**
-	 * Inserts a member type into an existing type.
-	 */
 	private static void injectType(TypeDeclaration parentType,
 			final TypeDeclaration memberType) {
 		if (parentType.memberTypes == null) {
