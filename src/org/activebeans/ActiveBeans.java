@@ -43,18 +43,18 @@ public final class ActiveBeans {
 
 	private static Object returnDefault(Class<?> type) {
 		Object rtn = null;
-		if (type == Boolean.TYPE) {
+		if (Boolean.TYPE.equals(type)) {
 			rtn = false;
-		} else if (type == Character.TYPE) {
+		} else if (Character.TYPE.equals(type)) {
 			rtn = '\u0000';
-		} else if (type == Byte.TYPE || type == Short.TYPE
-				|| type == Integer.TYPE) {
+		} else if (Byte.TYPE.equals(type) || Short.TYPE.equals(type)
+				|| Integer.TYPE.equals(type)) {
 			rtn = 0;
-		} else if (type == Long.TYPE) {
+		} else if (Long.TYPE.equals(type)) {
 			rtn = 0L;
-		} else if (type == Float.TYPE) {
+		} else if (Float.TYPE.equals(type)) {
 			rtn = 0.0f;
-		} else if (type == Double.TYPE) {
+		} else if (Double.TYPE.equals(type)) {
 			rtn = 0.0d;
 		}
 		return rtn;
