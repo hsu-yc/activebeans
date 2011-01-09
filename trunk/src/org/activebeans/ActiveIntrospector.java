@@ -21,6 +21,8 @@ public class ActiveIntrospector<T extends Model> {
 
 	private Map<Class<? extends Model>, Association> hasManyMap = new HashMap<Class<? extends Model>, Association>();
 
+	private Map<Property, PropertyAccessors> propAccessorMap = new HashMap<Property, PropertyAccessors>();
+
 	private static String interfName(Class<? extends Model> activeClass) {
 		return activeClass.getPackage().getName() + ".Active"
 				+ activeClass.getSimpleName();
@@ -52,6 +54,8 @@ public class ActiveIntrospector<T extends Model> {
 		collectionInterf = collectionInterf(clazz);
 		for (Property prop : at.with()) {
 			propMap.put(prop.name(), prop);
+			propAccessorMap.put(prop, new JavaBeanPropertyAccessors(interf,
+					prop));
 		}
 		for (Association belongsTo : at.belongsTo()) {
 			belongsToMap.put(belongsTo.with(), belongsTo);
@@ -66,44 +70,48 @@ public class ActiveIntrospector<T extends Model> {
 		return new ActiveIntrospector<U>(activeClass);
 	}
 
-	public Active getActiveAnnotation() {
+	public Active activeAnnotation() {
 		return at;
 	}
 
-	public Class<T> getActiveClass() {
+	public Class<T> activeClass() {
 		return clazz;
 	}
 
-	public Class<?> getActiveInterface() {
+	public Class<?> activeInterface() {
 		return interf;
 	}
 
-	public Class<? extends Models<T>> getActiveCollectionInterface() {
+	public Class<? extends Models<T>> activeCollectionInterface() {
 		return collectionInterf;
 	}
 
-	public Property getProperty(String name) {
+	public Property property(String name) {
 		return propMap.get(name);
 	}
 
-	public List<Property> getProperties() {
+	public List<Property> properties() {
 		return new ArrayList<Property>(propMap.values());
 	}
 
-	public Association getBelongsTo(Class<? extends Model> model) {
+	public Association belongsTo(Class<? extends Model> model) {
 		return belongsToMap.get(model);
 	}
 
-	public List<Association> getBelongsTos() {
+	public List<Association> belongsTos() {
 		return new ArrayList<Association>(belongsToMap.values());
 	}
 
-	public Association getHasMany(Class<? extends Model> model) {
+	public Association hasMany(Class<? extends Model> model) {
 		return hasManyMap.get(model);
 	}
 
-	public List<Association> getHasManys() {
+	public List<Association> hasManys() {
 		return new ArrayList<Association>(hasManyMap.values());
+	}
+
+	public PropertyAccessors propertyAccessors(Property prop) {
+		return propAccessorMap.get(prop);
 	}
 
 }

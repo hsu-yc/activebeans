@@ -1,5 +1,11 @@
 package org.activebeans.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
 import java.util.List;
 
 import org.activebeans.Active;
@@ -8,15 +14,12 @@ import org.activebeans.ActiveIntrospector;
 import org.activebeans.Association;
 import org.activebeans.Model;
 import org.activebeans.Property;
+import org.activebeans.PropertyAccessors;
 import org.activebeans.test.model.Post;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ActiveBeansTest {
@@ -40,35 +43,41 @@ public class ActiveBeansTest {
 	}
 
 	@Test
-	public void activeIntrospector() {
+	public void activeIntrospector() throws IntrospectionException {
 		ActiveIntrospector<?> activeIntro = ActiveIntrospector.of(activeClass);
-		assertEquals(activeInterf, activeIntro.getActiveInterface());
-		assertEquals(activeAt, activeIntro.getActiveAnnotation());
-		assertEquals(activeClass, activeIntro.getActiveClass());
+		assertEquals(activeInterf, activeIntro.activeInterface());
+		assertEquals(activeAt, activeIntro.activeAnnotation());
+		assertEquals(activeClass, activeIntro.activeClass());
 		assertEquals(activeCollectionInterf,
-				activeIntro.getActiveCollectionInterface());
+				activeIntro.activeCollectionInterface());
 		Property[] withs = activeAt.with();
-		List<Property> props = activeIntro.getProperties();
+		List<Property> props = activeIntro.properties();
 		assertEquals(withs.length, props.size());
 		for (Property with : withs) {
-			assertTrue(with == activeIntro.getProperty(with.name()));
+			String propName = with.name();
+			assertEquals(with, activeIntro.property(propName));
+			PropertyDescriptor pd = new PropertyDescriptor(propName,
+					activeClass);
+			PropertyAccessors accessors = activeIntro.propertyAccessors(with);
+			assertEquals(pd.getReadMethod(), accessors.getter());
+			assertEquals(pd.getWriteMethod(), accessors.setter());
 		}
 		Association[] belongsTos = activeAt.belongsTo();
-		List<Association> belongsToList = activeIntro.getBelongsTos();
+		List<Association> belongsToList = activeIntro.belongsTos();
 		assertEquals(belongsTos.length, belongsToList.size());
 		for (Association belongsTo : belongsTos) {
-			assertTrue(belongsTo == activeIntro.getBelongsTo(belongsTo.with()));
+			assertEquals(belongsTo, activeIntro.belongsTo(belongsTo.with()));
 		}
 		Association[] hasManys = activeAt.hasMany();
-		List<Association> hasManysList = activeIntro.getHasManys();
+		List<Association> hasManysList = activeIntro.hasManys();
 		assertEquals(hasManys.length, hasManysList.size());
 		for (Association hasMany : hasManys) {
-			assertTrue(hasMany == activeIntro.getHasMany(hasMany.with()));
+			assertEquals(hasMany, activeIntro.hasMany(hasMany.with()));
 		}
 	}
 
 	@Test
-	public void noOpInstance() {
+	public void noopInstance() {
 		Model activeInst = ActiveBeans.build(activeClass);
 		assertTrue(activeClass.isInstance(activeInst));
 		activeInst.attributes(null);
