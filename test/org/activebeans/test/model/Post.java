@@ -11,9 +11,9 @@ import org.activebeans.Property;
 		@Property(name = "id", type = long.class),
 		@Property(name = "subject", type = String.class),
 		@Property(name = "created", type = Date.class) 
-	},
-	hasMany = @Association(type = Comment.class)
+	}, 
+	hasMany = @Association(with = Comment.class)
 )
 public class Post {
-	
+
 }
