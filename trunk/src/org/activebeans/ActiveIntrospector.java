@@ -21,9 +21,11 @@ public class ActiveIntrospector<T extends Model> {
 
 	private Map<Class<? extends Model>, Association> hasManyMap = new HashMap<Class<? extends Model>, Association>();
 
-	private Map<Property, PropertyAccessors> propAccessorMap = new HashMap<Property, PropertyAccessors>();
+	private Map<Property, PropertyAccessors> accessorMap = new HashMap<Property, PropertyAccessors>();
 
-	private Map<Association, BelongsToMethods> belongsToMethodMap = new HashMap<Association, BelongsToMethods>();
+	private Map<Association, BelongsToAssociationMethods> belongsToMethodMap = new HashMap<Association, BelongsToAssociationMethods>();
+
+	private Map<Association, HasManyAssociationMethods> hasManyMethodMap = new HashMap<Association, HasManyAssociationMethods>();
 
 	private static String interfName(Class<? extends Model> activeClass) {
 		return activeClass.getPackage().getName() + ".Active"
@@ -56,16 +58,18 @@ public class ActiveIntrospector<T extends Model> {
 		collectionInterf = collectionInterf(clazz);
 		for (Property prop : at.with()) {
 			propMap.put(prop.name(), prop);
-			propAccessorMap.put(prop, new JavaBeanPropertyAccessors(interf,
+			accessorMap.put(prop, new JavaBeanPropertyAccessors(interf,
 					prop));
 		}
 		for (Association belongsTo : at.belongsTo()) {
 			belongsToMap.put(belongsTo.with(), belongsTo);
-			belongsToMethodMap.put(belongsTo, new JavaBeanBelongsToMethods(
+			belongsToMethodMap.put(belongsTo, new JavaBeanBelongsToAssociationMethods(
 					interf, belongsTo));
 		}
 		for (Association hasMany : at.hasMany()) {
 			hasManyMap.put(hasMany.with(), hasMany);
+			hasManyMethodMap.put(hasMany, new JavaBeanHasManyAssociationMethods(interf,
+					hasMany));
 		}
 	}
 
@@ -114,12 +118,16 @@ public class ActiveIntrospector<T extends Model> {
 		return new ArrayList<Association>(hasManyMap.values());
 	}
 
-	public PropertyAccessors propertyAccessors(Property prop) {
-		return propAccessorMap.get(prop);
+	public PropertyAccessors accessors(Property prop) {
+		return accessorMap.get(prop);
 	}
 
-	public BelongsToMethods belongsToMethods(Association assoc) {
+	public BelongsToAssociationMethods belongsToMethods(Association assoc) {
 		return belongsToMethodMap.get(assoc);
+	}
+
+	public HasManyAssociationMethods hasManyMethods(Association assoc) {
+		return hasManyMethodMap.get(assoc);
 	}
 
 }

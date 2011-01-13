@@ -5,13 +5,13 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 
-class JavaBeanBelongsToMethods implements BelongsToMethods {
+class JavaBeanBelongsToAssociationMethods implements BelongsToAssociationMethods {
 
 	private Association belongsTo;
 
 	private PropertyDescriptor propDesc;
 
-	public JavaBeanBelongsToMethods(Class<?> activeInterf, Association assoc) {
+	public JavaBeanBelongsToAssociationMethods(Class<?> activeInterf, Association assoc) {
 		belongsTo = assoc;
 		try {
 			for (PropertyDescriptor pd : Introspector.getBeanInfo(activeInterf)
@@ -25,7 +25,7 @@ class JavaBeanBelongsToMethods implements BelongsToMethods {
 		}
 		if (propDesc == null) {
 			throw new ActiveBeansException(
-					"java bean property methods not found");
+					"java bean belongs-to association methods not found");
 		}
 	}
 

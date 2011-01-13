@@ -25,7 +25,7 @@ class JavaBeanPropertyAccessors implements PropertyAccessors {
 		}
 		if (propDesc == null) {
 			throw new ActiveBeansException(
-					"java bean property methods not found");
+					"java bean property accessors not found");
 		}
 	}
 
