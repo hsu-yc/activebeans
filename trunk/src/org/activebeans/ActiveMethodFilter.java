@@ -7,7 +7,7 @@ import java.util.Set;
 
 import javassist.util.proxy.MethodFilter;
 
-class ActiveMethodFilter<T extends Model> implements MethodFilter {
+public class ActiveMethodFilter<T extends Model> implements MethodFilter {
 
 	private Set<Method> methods = new HashSet<Method>();
 
