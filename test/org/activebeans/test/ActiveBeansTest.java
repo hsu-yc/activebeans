@@ -13,7 +13,8 @@ import org.activebeans.Active;
 import org.activebeans.ActiveBeans;
 import org.activebeans.ActiveIntrospector;
 import org.activebeans.Association;
-import org.activebeans.BelongsToMethods;
+import org.activebeans.BelongsToAssociationMethods;
+import org.activebeans.HasManyAssociationMethods;
 import org.activebeans.Model;
 import org.activebeans.Property;
 import org.activebeans.PropertyAccessors;
@@ -66,14 +67,15 @@ public class ActiveBeansTest {
 			assertEquals(with, activeIntro.property(propName));
 			PropertyDescriptor pd = new PropertyDescriptor(propName,
 					activeClass);
-			PropertyAccessors accessors = activeIntro.propertyAccessors(with);
+			PropertyAccessors accessors = activeIntro.accessors(with);
 			assertEquals(pd.getReadMethod(), accessors.get());
 			assertEquals(pd.getWriteMethod(), accessors.set());
 		}
 	}
 
 	@Test
-	public void associationIntrospection() throws IntrospectionException {
+	public void belongsToAssociationIntrospection()
+			throws IntrospectionException {
 		Association[] belongsTos = activeAt.belongsTo();
 		List<Association> belongsToList = activeIntro.belongsTos();
 		assertEquals(belongsTos.length, belongsToList.size());
@@ -82,15 +84,25 @@ public class ActiveBeansTest {
 			PropertyDescriptor pd = new PropertyDescriptor(
 					Introspector.decapitalize(belongsTo.with().getSimpleName()),
 					activeClass);
-			BelongsToMethods methods = activeIntro.belongsToMethods(belongsTo);
+			BelongsToAssociationMethods methods = activeIntro.belongsToMethods(belongsTo);
 			assertEquals(pd.getReadMethod(), methods.retrieve());
 			assertEquals(pd.getWriteMethod(), methods.assign());
 		}
+	}
+
+	@Test
+	public void hasManyAssociationIntrospection() throws IntrospectionException {
 		Association[] hasManys = activeAt.hasMany();
 		List<Association> hasManysList = activeIntro.hasManys();
 		assertEquals(hasManys.length, hasManysList.size());
 		for (Association hasMany : hasManys) {
 			assertEquals(hasMany, activeIntro.hasMany(hasMany.with()));
+			String typeName = hasMany.with().getSimpleName();
+			PropertyDescriptor pd = new PropertyDescriptor(
+					Introspector.decapitalize(typeName) + "s", activeClass,
+					"get" + typeName + "s", null);
+			HasManyAssociationMethods methods = activeIntro.hasManyMethods(hasMany);
+			assertEquals(pd.getReadMethod(), methods.retrieve());
 		}
 	}
 
