@@ -61,7 +61,8 @@ public class ActiveBeansTest {
 	public void propertyIntrospection() throws IntrospectionException {
 		Property[] withs = activeAt.with();
 		List<Property> props = activeIntro.properties();
-		assertEquals(withs.length, props.size());
+		int propCount = withs.length;
+		assertEquals(propCount, props.size());
 		for (Property with : withs) {
 			String propName = with.name();
 			assertEquals(with, activeIntro.property(propName));
@@ -71,6 +72,7 @@ public class ActiveBeansTest {
 			assertEquals(pd.getReadMethod(), accessors.get());
 			assertEquals(pd.getWriteMethod(), accessors.set());
 		}
+		assertEquals(propCount, activeIntro.accessors().size());
 	}
 
 	@Test
@@ -78,32 +80,38 @@ public class ActiveBeansTest {
 			throws IntrospectionException {
 		Association[] belongsTos = activeAt.belongsTo();
 		List<Association> belongsToList = activeIntro.belongsTos();
-		assertEquals(belongsTos.length, belongsToList.size());
+		int assocCount = belongsTos.length;
+		assertEquals(assocCount, belongsToList.size());
 		for (Association belongsTo : belongsTos) {
 			assertEquals(belongsTo, activeIntro.belongsTo(belongsTo.with()));
 			PropertyDescriptor pd = new PropertyDescriptor(
 					Introspector.decapitalize(belongsTo.with().getSimpleName()),
 					activeClass);
-			BelongsToAssociationMethods methods = activeIntro.belongsToMethods(belongsTo);
+			BelongsToAssociationMethods methods = activeIntro
+					.belongsToMethods(belongsTo);
 			assertEquals(pd.getReadMethod(), methods.retrieve());
 			assertEquals(pd.getWriteMethod(), methods.assign());
 		}
+		assertEquals(assocCount, activeIntro.belongsToMethods().size());
 	}
 
 	@Test
 	public void hasManyAssociationIntrospection() throws IntrospectionException {
 		Association[] hasManys = activeAt.hasMany();
 		List<Association> hasManysList = activeIntro.hasManys();
-		assertEquals(hasManys.length, hasManysList.size());
+		int assocCount = hasManys.length;
+		assertEquals(assocCount, hasManysList.size());
 		for (Association hasMany : hasManys) {
 			assertEquals(hasMany, activeIntro.hasMany(hasMany.with()));
 			String typeName = hasMany.with().getSimpleName();
 			PropertyDescriptor pd = new PropertyDescriptor(
 					Introspector.decapitalize(typeName) + "s", activeClass,
 					"get" + typeName + "s", null);
-			HasManyAssociationMethods methods = activeIntro.hasManyMethods(hasMany);
+			HasManyAssociationMethods methods = activeIntro
+					.hasManyMethods(hasMany);
 			assertEquals(pd.getReadMethod(), methods.retrieve());
 		}
+		assertEquals(assocCount, activeIntro.hasManyMethods().size());
 	}
 
 	@Test
@@ -116,134 +124,5 @@ public class ActiveBeansTest {
 		assertFalse(activeInst.update());
 		assertFalse(activeInst.update(null));
 	}
-	/*
-	 * @Mock private ActiveBeans activeBeans;
-	 * 
-	 * @Mock private QueryMethods<UserMapper> queryMethods;
-	 * 
-	 * @Mock private UserMapper userMap;
-	 * 
-	 * @Mock private GroupMapper groupMap;
-	 * 
-	 * @Mock private BelongsTo<GroupMapper> belongsTo;
-	 * 
-	 * private Map<String, Object> params;
-	 * 
-	 * private User user;
-	 * 
-	 * @Before public void init() { params = Collections.emptyMap(); user = new
-	 * User(); }
-	 * 
-	 * @Test public void createByHash() {
-	 * 
-	 * @SuppressWarnings("unused") UserMapper u =
-	 * activeBeans.of(UserMapper.class, user); }
-	 * 
-	 * @Test public void createByBlockInitialization() {
-	 * 
-	 * @SuppressWarnings("unused") UserMapper u =
-	 * activeBeans.of(UserMapper.class, new Do<User>() {
-	 * 
-	 * @Override public User block(User t) { t.setAge(0); t.setName(""); return
-	 * t; } }); }
-	 * 
-	 * @Test public void createByBareObject() {
-	 * when(activeBeans.of(UserMapper.class)).thenReturn(userMap);
-	 * when(userMap.get()).thenReturn(new User()); Base<User> arUser =
-	 * activeBeans.of(UserMapper.class); User u = arUser.get(); u.setAge(0);
-	 * u.setName(""); }
-	 * 
-	 * @Test public void specifyConditionsBySQLWithOrdinalParams() {
-	 * activeBeans.where(UserMapper.class, "name = ? and age = ?", "", 0); }
-	 * 
-	 * @Test public void specifyConditionsBySQLWithNamedParam() {
-	 * activeBeans.where(UserMapper.class, "name = :name and age = :age",
-	 * params); }
-	 * 
-	 * @Test public void specifyConditionsByHashToUseEqualityWithSqlAnd() {
-	 * activeBeans.where(UserMapper.class, params); }
-	 * 
-	 * @Test public void specifyConditionsByHashToUseRange() {
-	 * activeBeans.where(UserMapper.class, Collections.singletonMap("grade", new
-	 * Range<Integer>() {
-	 * 
-	 * @Override public Integer start() { return 10; }
-	 * 
-	 * @Override public Integer end() { return 30; } })); }
-	 * 
-	 * @Test public void specifyConditionsByHashToUseIn() {
-	 * activeBeans.where(UserMapper.class, Collections.singletonMap("grade",
-	 * Arrays.asList(1, 3, 5))); }
-	 * 
-	 * @Test public void specifyJoinTableConditionByNestedHash() {
-	 * when(activeBeans.joins(eq(UserMapper.class), anyString())).thenReturn(
-	 * queryMethods); activeBeans.joins(UserMapper.class, "schools").where(
-	 * Collections.singletonMap("schools", Collections.singletonMap("type",
-	 * "public"))); }
-	 * 
-	 * @Test public void specifyJoinTableConditionByNestedKeysInHash() {
-	 * when(activeBeans.joins(eq(UserMapper.class), anyString())).thenReturn(
-	 * queryMethods); activeBeans.joins(UserMapper.class, "schools").where(
-	 * Collections.singletonMap("schools.type", "public")); }
-	 * 
-	 * @Test public void queryAttributes() {
-	 * when(activeBeans.of(UserMapper.class)).thenReturn(userMap);
-	 * 
-	 * @SuppressWarnings("unused") boolean iaPresent =
-	 * activeBeans.of(UserMapper.class) .isPresent("age"); }
-	 * 
-	 * @Test public void accessAttributeBeforeTypeCast() {
-	 * when(activeBeans.of(UserMapper.class)).thenReturn(userMap);
-	 * 
-	 * @SuppressWarnings("unused") Object ageBeforeTypeCast =
-	 * activeBeans.of(UserMapper.class) .beforeTypeCast("age"); }
-	 * 
-	 * @Test public void findByDynamicAttributes() {
-	 * when(activeBeans.of(UserMapper.class)).thenReturn(userMap);
-	 * 
-	 * @SuppressWarnings("unused") List<UserMapper> uList =
-	 * activeBeans.of(UserMapper.class) .findByAgeAndName(0, ""); }
-	 * 
-	 * @Test public void findByDynamicAttributesOnRelations() {
-	 * when(activeBeans.of(UserMapper.class)).thenReturn(userMap);
-	 * when(userMap.group()).thenReturn(belongsTo);
-	 * when(belongsTo.get()).thenReturn(groupMap);
-	 * 
-	 * @SuppressWarnings("unused") List<GroupMapper> gList =
-	 * activeBeans.of(UserMapper.class).group() .get().findByName(""); }
-	 * 
-	 * @Test public void findOrCreateByDynamicAttributes() {
-	 * when(activeBeans.of(UserMapper.class)).thenReturn(userMap);
-	 * 
-	 * @SuppressWarnings("unused") UserMapper u =
-	 * activeBeans.of(UserMapper.class) .findOrCreateByName(""); }
-	 * 
-	 * @Test public void findOrCreateByDynamicAttributesWithHashInitialization()
-	 * { when(activeBeans.of(UserMapper.class)).thenReturn(userMap);
-	 * 
-	 * @SuppressWarnings("unused") UserMapper u =
-	 * activeBeans.of(UserMapper.class) .findOrCreateByName(params); }
-	 * 
-	 * @Test public void findOrInitializeByDynamicAttributes() {
-	 * when(activeBeans.of(UserMapper.class)).thenReturn(userMap);
-	 * 
-	 * @SuppressWarnings("unused") UserMapper u =
-	 * activeBeans.of(UserMapper.class) .findOrInitializeByName(""); }
-	 * 
-	 * @Test public void
-	 * findOrCreateByDynamicAttributesWithBlockInitialization() {
-	 * when(activeBeans.of(UserMapper.class)).thenReturn(userMap);
-	 * 
-	 * @SuppressWarnings("unused") UserMapper u =
-	 * activeBeans.of(UserMapper.class) .findOrInitializeByName(new Do<User>() {
-	 * 
-	 * @Override public User block(User t) { t.setAge(0); return t; } }); }
-	 * 
-	 * @Test public void associateByBelongingTo() {
-	 * when(activeBeans.of(UserMapper.class)).thenReturn(userMap);
-	 * when(userMap.group()).thenReturn(belongsTo);
-	 * 
-	 * @SuppressWarnings("unused") GroupMapper group =
-	 * activeBeans.of(UserMapper.class).group().get(); }
-	 */
+
 }
