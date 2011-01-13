@@ -58,18 +58,17 @@ public class ActiveIntrospector<T extends Model> {
 		collectionInterf = collectionInterf(clazz);
 		for (Property prop : at.with()) {
 			propMap.put(prop.name(), prop);
-			accessorMap.put(prop, new JavaBeanPropertyAccessors(interf,
-					prop));
+			accessorMap.put(prop, new JavaBeanPropertyAccessors(interf, prop));
 		}
 		for (Association belongsTo : at.belongsTo()) {
 			belongsToMap.put(belongsTo.with(), belongsTo);
-			belongsToMethodMap.put(belongsTo, new JavaBeanBelongsToAssociationMethods(
-					interf, belongsTo));
+			belongsToMethodMap.put(belongsTo,
+					new JavaBeanBelongsToAssociationMethods(interf, belongsTo));
 		}
 		for (Association hasMany : at.hasMany()) {
 			hasManyMap.put(hasMany.with(), hasMany);
-			hasManyMethodMap.put(hasMany, new JavaBeanHasManyAssociationMethods(interf,
-					hasMany));
+			hasManyMethodMap.put(hasMany,
+					new JavaBeanHasManyAssociationMethods(interf, hasMany));
 		}
 	}
 
@@ -122,12 +121,26 @@ public class ActiveIntrospector<T extends Model> {
 		return accessorMap.get(prop);
 	}
 
+	public List<PropertyAccessors> accessors() {
+		return new ArrayList<PropertyAccessors>(accessorMap.values());
+	}
+
 	public BelongsToAssociationMethods belongsToMethods(Association assoc) {
 		return belongsToMethodMap.get(assoc);
 	}
 
+	public List<BelongsToAssociationMethods> belongsToMethods() {
+		return new ArrayList<BelongsToAssociationMethods>(
+				belongsToMethodMap.values());
+	}
+
 	public HasManyAssociationMethods hasManyMethods(Association assoc) {
 		return hasManyMethodMap.get(assoc);
+	}
+
+	public List<HasManyAssociationMethods> hasManyMethods() {
+		return new ArrayList<HasManyAssociationMethods>(
+				hasManyMethodMap.values());
 	}
 
 }
