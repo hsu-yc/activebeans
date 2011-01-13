@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.beans.IntrospectionException;
+import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import org.activebeans.Active;
 import org.activebeans.ActiveBeans;
 import org.activebeans.ActiveIntrospector;
 import org.activebeans.Association;
+import org.activebeans.BelongsToMethods;
 import org.activebeans.Model;
 import org.activebeans.Property;
 import org.activebeans.PropertyAccessors;
@@ -32,6 +34,8 @@ public class ActiveBeansTest {
 
 	private Class<?> activeCollectionInterf;
 
+	private ActiveIntrospector<?> activeIntro;
+
 	@Before
 	public void init() throws ClassNotFoundException {
 		activeClass = Post.class;
@@ -40,16 +44,20 @@ public class ActiveBeansTest {
 				+ ".Active" + activeClass.getSimpleName());
 		activeCollectionInterf = Class.forName(activeClass.getName()
 				+ "$Models");
+		activeIntro = ActiveIntrospector.of(activeClass);
 	}
 
 	@Test
-	public void activeIntrospector() throws IntrospectionException {
-		ActiveIntrospector<?> activeIntro = ActiveIntrospector.of(activeClass);
+	public void typeIntrospection() {
 		assertEquals(activeInterf, activeIntro.activeInterface());
 		assertEquals(activeAt, activeIntro.activeAnnotation());
 		assertEquals(activeClass, activeIntro.activeClass());
 		assertEquals(activeCollectionInterf,
 				activeIntro.activeCollectionInterface());
+	}
+
+	@Test
+	public void propertyIntrospection() throws IntrospectionException {
 		Property[] withs = activeAt.with();
 		List<Property> props = activeIntro.properties();
 		assertEquals(withs.length, props.size());
@@ -62,11 +70,21 @@ public class ActiveBeansTest {
 			assertEquals(pd.getReadMethod(), accessors.get());
 			assertEquals(pd.getWriteMethod(), accessors.set());
 		}
+	}
+
+	@Test
+	public void associationIntrospection() throws IntrospectionException {
 		Association[] belongsTos = activeAt.belongsTo();
 		List<Association> belongsToList = activeIntro.belongsTos();
 		assertEquals(belongsTos.length, belongsToList.size());
 		for (Association belongsTo : belongsTos) {
 			assertEquals(belongsTo, activeIntro.belongsTo(belongsTo.with()));
+			PropertyDescriptor pd = new PropertyDescriptor(
+					Introspector.decapitalize(belongsTo.with().getSimpleName()),
+					activeClass);
+			BelongsToMethods methods = activeIntro.belongsToMethods(belongsTo);
+			assertEquals(pd.getReadMethod(), methods.retrieve());
+			assertEquals(pd.getWriteMethod(), methods.assign());
 		}
 		Association[] hasManys = activeAt.hasMany();
 		List<Association> hasManysList = activeIntro.hasManys();
@@ -77,7 +95,7 @@ public class ActiveBeansTest {
 	}
 
 	@Test
-	public void noopInstance() {
+	public void noopInstantiation() {
 		Model activeInst = ActiveBeans.build(activeClass);
 		assertTrue(activeClass.isInstance(activeInst));
 		activeInst.attributes(null);

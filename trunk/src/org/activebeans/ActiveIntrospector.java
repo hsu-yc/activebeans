@@ -23,6 +23,8 @@ public class ActiveIntrospector<T extends Model> {
 
 	private Map<Property, PropertyAccessors> propAccessorMap = new HashMap<Property, PropertyAccessors>();
 
+	private Map<Association, BelongsToMethods> belongsToMethodMap = new HashMap<Association, BelongsToMethods>();
+
 	private static String interfName(Class<? extends Model> activeClass) {
 		return activeClass.getPackage().getName() + ".Active"
 				+ activeClass.getSimpleName();
@@ -59,6 +61,8 @@ public class ActiveIntrospector<T extends Model> {
 		}
 		for (Association belongsTo : at.belongsTo()) {
 			belongsToMap.put(belongsTo.with(), belongsTo);
+			belongsToMethodMap.put(belongsTo, new JavaBeanBelongsToMethods(
+					interf, belongsTo));
 		}
 		for (Association hasMany : at.hasMany()) {
 			hasManyMap.put(hasMany.with(), hasMany);
@@ -112,6 +116,10 @@ public class ActiveIntrospector<T extends Model> {
 
 	public PropertyAccessors propertyAccessors(Property prop) {
 		return propAccessorMap.get(prop);
+	}
+
+	public BelongsToMethods belongsToMethods(Association assoc) {
+		return belongsToMethodMap.get(assoc);
 	}
 
 }
