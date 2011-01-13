@@ -3,7 +3,6 @@ package org.activebeans;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
@@ -13,15 +12,10 @@ public final class ActiveBeans {
 
 	}
 
-	public static <T extends Model> T build(Class<T> modelClass) {
+	public static <T extends Model> T build(Class<T> activeClass) {
 		ProxyFactory f = new ProxyFactory();
-		f.setSuperclass(modelClass);
-		f.setFilter(new MethodFilter() {
-			@Override
-			public boolean isHandled(Method m) {
-				return true;
-			}
-		});
+		f.setSuperclass(activeClass);
+		f.setFilter(ActiveMethodFilter.of(activeClass));
 		MethodHandler mi = new MethodHandler() {
 			public Object invoke(Object self, Method m, Method proceed,
 					Object[] args) throws Throwable {
@@ -35,7 +29,7 @@ public final class ActiveBeans {
 			}
 		};
 		try {
-			return modelClass.cast(f.create(new Class[0], new Object[0], mi));
+			return activeClass.cast(f.create(new Class[0], new Object[0], mi));
 		} catch (Throwable t) {
 			throw new ActiveBeansException(t);
 		}
