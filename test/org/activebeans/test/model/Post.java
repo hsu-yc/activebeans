@@ -16,4 +16,12 @@ import org.activebeans.Property;
 )
 public class Post {
 
+	public void hello(){
+		
+	}
+	
+	public void world(){
+		
+	}
+	
 }

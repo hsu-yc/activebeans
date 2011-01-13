@@ -7,11 +7,15 @@ import static org.junit.Assert.assertTrue;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.activebeans.Active;
 import org.activebeans.ActiveBeans;
 import org.activebeans.ActiveIntrospector;
+import org.activebeans.ActiveMethodFilter;
 import org.activebeans.Association;
 import org.activebeans.BelongsToAssociationMethods;
 import org.activebeans.HasManyAssociationMethods;
@@ -112,6 +116,19 @@ public class ActiveBeansTest {
 			assertEquals(pd.getReadMethod(), methods.retrieve());
 		}
 		assertEquals(assocCount, activeIntro.hasManyMethods().size());
+	}
+
+	@Test
+	public void methodFilter() {
+		ActiveMethodFilter<? extends Model> filter = ActiveMethodFilter
+				.of(activeClass);
+		List<Method> handledMathods = new ArrayList<Method>();
+		handledMathods.addAll(Arrays.asList(activeInterf.getMethods()));
+		handledMathods.addAll(Arrays.asList(Model.class.getMethods()));
+		for (Method method : activeClass.getMethods()) {
+			assertEquals(handledMathods.contains(method),
+					filter.isHandled(method));
+		}
 	}
 
 	@Test
