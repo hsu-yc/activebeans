@@ -151,6 +151,14 @@ public class ActiveBeansTest {
 	}
 
 	@Test
+	public void belongsToAssociationMethods() {
+		Comment comment = ActiveBeans.build(Comment.class);
+		Post post = ActiveBeans.build(Post.class);
+		comment.setPost(post);
+		assertEquals(post, comment.getPost());
+	}
+
+	@Test
 	public void noopInstantiation() {
 		Model activeInst = ActiveBeans.build(activeClass);
 		assertTrue(activeClass.isInstance(activeInst));
