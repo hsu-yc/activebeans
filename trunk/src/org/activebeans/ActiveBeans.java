@@ -1,9 +1,7 @@
 package org.activebeans;
 
-import java.lang.reflect.Method;
 import java.util.Map;
 
-import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
 public final class ActiveBeans {
@@ -16,42 +14,12 @@ public final class ActiveBeans {
 		ProxyFactory f = new ProxyFactory();
 		f.setSuperclass(activeClass);
 		f.setFilter(ActiveMethodFilter.of(activeClass));
-		MethodHandler mi = new MethodHandler() {
-			public Object invoke(Object self, Method m, Method proceed,
-					Object[] args) throws Throwable {
-				Object rtn = null;
-				if (proceed != null) {
-					rtn = proceed.invoke(self, args);
-				} else {
-					rtn = returnDefault(m.getReturnType());
-				}
-				return rtn;
-			}
-		};
 		try {
-			return activeClass.cast(f.create(new Class[0], new Object[0], mi));
-		} catch (Throwable t) {
-			throw new ActiveBeansException(t);
+			return activeClass.cast(f.create(new Class[0], new Object[0],
+					ActiveMethodHandler.of(activeClass)));
+		} catch (Exception e) {
+			throw new ActiveBeansException(e);
 		}
-	}
-
-	private static Object returnDefault(Class<?> type) {
-		Object rtn = null;
-		if (Boolean.TYPE.equals(type)) {
-			rtn = false;
-		} else if (Character.TYPE.equals(type)) {
-			rtn = '\u0000';
-		} else if (Byte.TYPE.equals(type) || Short.TYPE.equals(type)
-				|| Integer.TYPE.equals(type)) {
-			rtn = 0;
-		} else if (Long.TYPE.equals(type)) {
-			rtn = 0L;
-		} else if (Float.TYPE.equals(type)) {
-			rtn = 0.0f;
-		} else if (Double.TYPE.equals(type)) {
-			rtn = 0.0d;
-		}
-		return rtn;
 	}
 
 	public static <T extends Model> T build(Class<T> modelClass,

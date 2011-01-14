@@ -10,6 +10,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.activebeans.Active;
@@ -22,6 +23,7 @@ import org.activebeans.HasManyAssociationMethods;
 import org.activebeans.Model;
 import org.activebeans.Property;
 import org.activebeans.PropertyAccessors;
+import org.activebeans.test.model.Comment;
 import org.activebeans.test.model.Post;
 import org.junit.Before;
 import org.junit.Test;
@@ -129,6 +131,23 @@ public class ActiveBeansTest {
 			assertEquals(handledMathods.contains(method),
 					filter.isHandled(method));
 		}
+	}
+
+	@Test
+	public void propertyAccessors() {
+		Post post = ActiveBeans.build(Post.class);
+		long id = 1;
+		post.setId(id);
+		assertEquals(id, post.getId());
+		String subject = "foo";
+		post.setSubject(subject);
+		assertEquals(subject, post.getSubject());
+		Date created = new Date();
+		post.setCreated(created);
+		assertEquals(created, post.getCreated());
+		Comment comment = ActiveBeans.build(Comment.class);
+		comment.setId(id);
+		assertEquals(id, comment.getId());
 	}
 
 	@Test
