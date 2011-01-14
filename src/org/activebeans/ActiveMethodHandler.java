@@ -10,18 +10,29 @@ public class ActiveMethodHandler<T extends Model> implements MethodHandler {
 
 	private ActiveIntrospector<T> intro;
 
-	private Map<Method, Property> getterMap = new HashMap<Method, Property>();
+	private Map<Method, Property> propGetterMap = new HashMap<Method, Property>();
 
-	private Map<Method, Property> setterMap = new HashMap<Method, Property>();
+	private Map<Method, Property> propSetterMap = new HashMap<Method, Property>();
 
 	private Map<Property, Object> propMap = new HashMap<Property, Object>();
+
+	private Map<Method, Association> belongsToGetterMap = new HashMap<Method, Association>();
+
+	private Map<Method, Association> belongsToSetterMap = new HashMap<Method, Association>();
+
+	private Map<Association, Object> belongsToMap = new HashMap<Association, Object>();
 
 	private ActiveMethodHandler(Class<T> activeClass) {
 		intro = ActiveIntrospector.of(activeClass);
 		for (PropertyAccessors accessor : intro.accessors()) {
 			Property prop = accessor.property();
-			getterMap.put(accessor.get(), prop);
-			setterMap.put(accessor.set(), prop);
+			propGetterMap.put(accessor.get(), prop);
+			propSetterMap.put(accessor.set(), prop);
+		}
+		for (BelongsToAssociationMethods methods : intro.belongsToMethods()) {
+			Association assoc = methods.association();
+			belongsToGetterMap.put(methods.retrieve(), assoc);
+			belongsToSetterMap.put(methods.assign(), assoc);
 		}
 	}
 
@@ -36,10 +47,15 @@ public class ActiveMethodHandler<T extends Model> implements MethodHandler {
 		Object rtn = null;
 		if (proceed != null) {
 			rtn = proceed.invoke(self, args);
-		} else if (getterMap.containsKey(method)) {
-			rtn = propMap.get(getterMap.get(method));
-		} else if (setterMap.containsKey(method)) {
-			propMap.put(setterMap.get(method), args[0]);
+		} else if (propGetterMap.containsKey(method)) {
+			rtn = propMap.get(propGetterMap.get(method));
+		} else if (propSetterMap.containsKey(method)) {
+			propMap.put(propSetterMap.get(method), args[0]);
+			rtn = Void.TYPE;
+		} else if (belongsToGetterMap.containsKey(method)) {
+			rtn = belongsToMap.get(belongsToGetterMap.get(method));
+		} else if (belongsToSetterMap.containsKey(method)) {
+			belongsToMap.put(belongsToSetterMap.get(method), args[0]);
 			rtn = Void.TYPE;
 		} else {
 			rtn = defaultValue(method.getReturnType());
