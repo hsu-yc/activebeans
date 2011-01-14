@@ -29,6 +29,7 @@ class JavaBeanPropertyAccessors implements PropertyAccessors {
 		}
 	}
 
+	@Override
 	public Property property() {
 		return property;
 	}
