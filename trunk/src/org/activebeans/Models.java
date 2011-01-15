@@ -2,7 +2,17 @@ package org.activebeans;
 
 import java.util.Map;
 
-public interface Models<T extends Model> extends Model, Iterable<T> {
+public interface Models<T extends Model> extends Iterable<T> {
+
+	boolean save();
+
+	boolean update();
+
+	boolean update(Map<String, ?> attrs);
+
+	void attributes(Map<String, ?> attrs);
+
+	boolean destroy();
 
 	T build();
 

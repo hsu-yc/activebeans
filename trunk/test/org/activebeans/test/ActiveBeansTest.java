@@ -1,9 +1,5 @@
 package org.activebeans.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -24,11 +20,18 @@ import org.activebeans.Model;
 import org.activebeans.Property;
 import org.activebeans.PropertyAccessors;
 import org.activebeans.test.model.Comment;
+import org.activebeans.test.model.Comment.Models;
 import org.activebeans.test.model.Post;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ActiveBeansTest {
@@ -159,14 +162,45 @@ public class ActiveBeansTest {
 	}
 
 	@Test
-	public void noopInstantiation() {
-		Model activeInst = ActiveBeans.build(activeClass);
-		assertTrue(activeClass.isInstance(activeInst));
-		activeInst.attributes(null);
-		assertFalse(activeInst.destroy());
-		assertFalse(activeInst.save());
-		assertFalse(activeInst.update());
-		assertFalse(activeInst.update(null));
+	public void hasManyAssociationMethods() {
+		Post post = ActiveBeans.build(Post.class);
+		Models comments = post.getComments();
+		assertNotNull(comments);
 	}
 
+	@Test
+	public void noopModel() {
+		Model model = ActiveBeans.build(activeClass);
+		assertTrue(activeClass.isInstance(model));
+		model.attributes(null);
+		assertFalse(model.destroy());
+		assertFalse(model.save());
+		assertFalse(model.update());
+		assertFalse(model.update(null));
+	}
+
+	@Test
+	public void noopModels() {
+		Post post = ActiveBeans.build(Post.class);
+		Models comments = post.getComments();
+		assertNull(comments.add(null));
+		assertNull(comments.all());
+		assertNull(comments.all(null));
+		comments.attributes(null);
+		assertNull(comments.build());
+		assertNull(comments.build(null));
+		assertNull(comments.create());
+		assertNull(comments.create(null));
+		assertFalse(comments.destroy());
+		assertNull(comments.first());
+		assertNull(comments.first(null));
+		assertNull(comments.get(null));
+		assertNull(comments.iterator());
+		assertNull(comments.last());
+		assertNull(comments.last(null));
+		assertNull(comments.popular());
+		assertFalse(comments.save());
+		assertFalse(comments.update());
+		assertFalse(comments.update(null));
+	}
 }
