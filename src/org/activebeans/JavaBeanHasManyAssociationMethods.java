@@ -13,7 +13,8 @@ class JavaBeanHasManyAssociationMethods implements HasManyAssociationMethods {
 
 	private Method retrieve;
 
-	public JavaBeanHasManyAssociationMethods(Class<?> activeInterf, Association assoc) {
+	public JavaBeanHasManyAssociationMethods(Class<?> activeInterf,
+			Association assoc) {
 		hasMany = assoc;
 		try {
 			for (PropertyDescriptor pd : Introspector.getBeanInfo(activeInterf)
@@ -35,6 +36,11 @@ class JavaBeanHasManyAssociationMethods implements HasManyAssociationMethods {
 			throw new ActiveBeansException(
 					"java bean has-many association methods not found");
 		}
+	}
+
+	@Override
+	public Association association() {
+		return hasMany;
 	}
 
 	@Override

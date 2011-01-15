@@ -1,10 +1,13 @@
 package org.activebeans;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
+import javassist.util.proxy.ProxyFactory;
 
 public class ActiveMethodHandler<T extends Model> implements MethodHandler {
 
@@ -22,6 +25,10 @@ public class ActiveMethodHandler<T extends Model> implements MethodHandler {
 
 	private Map<Association, Object> belongsToMap = new HashMap<Association, Object>();
 
+	private Map<Method, Association> hasManyGetterMap = new HashMap<Method, Association>();
+
+	private Map<Association, Models<? extends Model>> hasManyMap = new HashMap<Association, Models<? extends Model>>();
+
 	private ActiveMethodHandler(Class<T> activeClass) {
 		intro = ActiveIntrospector.of(activeClass);
 		for (PropertyAccessors accessor : intro.accessors()) {
@@ -33,6 +40,9 @@ public class ActiveMethodHandler<T extends Model> implements MethodHandler {
 			Association assoc = methods.association();
 			belongsToGetterMap.put(methods.retrieve(), assoc);
 			belongsToSetterMap.put(methods.assign(), assoc);
+		}
+		for (HasManyAssociationMethods methods : intro.hasManyMethods()) {
+			hasManyGetterMap.put(methods.retrieve(), methods.association());
 		}
 	}
 
@@ -57,6 +67,32 @@ public class ActiveMethodHandler<T extends Model> implements MethodHandler {
 		} else if (belongsToSetterMap.containsKey(method)) {
 			belongsToMap.put(belongsToSetterMap.get(method), args[0]);
 			rtn = Void.TYPE;
+		} else if (hasManyGetterMap.containsKey(method)) {
+			Association hasMany = hasManyGetterMap.get(method);
+			Models<? extends Model> models = hasManyMap.get(hasMany);
+			if (models == null) {
+				Class<? extends Models<? extends Model>> collectionInterface = ActiveIntrospector
+						.of(hasMany.with()).activeCollectionInterface();
+				ProxyFactory f = new ProxyFactory();
+				f.setInterfaces(new Class[] { collectionInterface });
+				f.setFilter(new MethodFilter() {
+					@Override
+					public boolean isHandled(Method m) {
+						return !isCovariantReturn(m);
+					}
+				});
+				models = collectionInterface.cast(f.create(new Class[0],
+						new Object[0], new MethodHandler() {
+							@Override
+							public Object invoke(Object self, Method method,
+									Method proceed, Object[] args)
+									throws Throwable {
+								return defaultValue(method.getReturnType());
+							}
+						}));
+				hasManyMap.put(hasMany, models);
+				rtn = models;
+			}
 		} else {
 			rtn = defaultValue(method.getReturnType());
 		}
@@ -80,6 +116,12 @@ public class ActiveMethodHandler<T extends Model> implements MethodHandler {
 			rtn = 0.0d;
 		}
 		return rtn;
+	}
+
+	private static boolean isCovariantReturn(Method m) {
+		return m.getDeclaringClass().equals(Models.class)
+				&& Arrays.asList(new String[] { "add", "all" }).contains(
+						m.getName());
 	}
 
 }
