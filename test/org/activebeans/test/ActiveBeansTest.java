@@ -1,5 +1,12 @@
 package org.activebeans.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -8,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+
+import javax.sql.DataSource;
 
 import org.activebeans.Active;
 import org.activebeans.ActiveBeans;
@@ -27,12 +36,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 @RunWith(MockitoJUnitRunner.class)
 public class ActiveBeansTest {
 
@@ -46,6 +49,8 @@ public class ActiveBeansTest {
 
 	private ActiveIntrospector<?> activeIntro;
 
+	private DataSource ds;
+
 	@Before
 	public void init() throws ClassNotFoundException {
 		activeClass = Post.class;
@@ -55,6 +60,7 @@ public class ActiveBeansTest {
 		activeCollectionInterf = Class.forName(activeClass.getName()
 				+ "$Models");
 		activeIntro = ActiveIntrospector.of(activeClass);
+		ds = DataSourceTest.getDataSource();
 	}
 
 	@Test
@@ -203,4 +209,11 @@ public class ActiveBeansTest {
 		assertFalse(comments.update());
 		assertFalse(comments.update(null));
 	}
+
+	@Test
+	public void setup() {
+		ActiveBeans.setup("test", ds);
+		assertSame(ds, ActiveBeans.repository());
+	}
+
 }

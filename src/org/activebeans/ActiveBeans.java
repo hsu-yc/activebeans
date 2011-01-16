@@ -1,13 +1,35 @@
 package org.activebeans;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javassist.util.proxy.ProxyFactory;
 
+import javax.sql.DataSource;
+
 public final class ActiveBeans {
+
+	private static DataSource defaultContext;
+
+	private static Map<String, DataSource> dataSourceMap = new HashMap<String, DataSource>();
 
 	private ActiveBeans() {
 
+	}
+
+	public static void setup(String context, DataSource ds) {
+		if (dataSourceMap.isEmpty()) {
+			defaultContext = ds;
+		}
+		dataSourceMap.put(context, ds);
+	}
+
+	public static DataSource repository(String context) {
+		return dataSourceMap.get(context);
+	}
+
+	public static DataSource repository() {
+		return defaultContext;
 	}
 
 	public static <T extends Model> T build(Class<T> activeClass) {
