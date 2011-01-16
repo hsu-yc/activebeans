@@ -20,6 +20,7 @@ import javax.sql.DataSource;
 
 import org.activebeans.Active;
 import org.activebeans.ActiveBeans;
+import org.activebeans.ActiveBeansUtils;
 import org.activebeans.ActiveIntrospector;
 import org.activebeans.ActiveMethodFilter;
 import org.activebeans.Association;
@@ -214,6 +215,14 @@ public class ActiveBeansTest {
 	public void setup() {
 		ActiveBeans.setup("test", ds);
 		assertSame(ds, ActiveBeans.repository());
+	}
+
+	@Test
+	public void camelCaseToUnderscore() {
+		assertEquals("hello_world",
+				ActiveBeansUtils.camelCaseToUnderscore("helloWorld"));
+		assertEquals("foo_bar",
+				ActiveBeansUtils.camelCaseToUnderscore("FooBar"));
 	}
 
 }
