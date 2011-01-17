@@ -225,4 +225,9 @@ public class ActiveBeansTest {
 				ActiveBeansUtils.camelCaseToUnderscore("FooBar"));
 	}
 
+	@Test
+	public void activeBeansDiscovery() {
+		assertTrue(ActiveIntrospector.activeClasses().containsAll(
+				Arrays.asList(new Class[] { Post.class, Comment.class })));
+	}
 }

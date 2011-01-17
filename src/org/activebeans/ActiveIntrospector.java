@@ -2,8 +2,13 @@ package org.activebeans;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import com.impetus.annovention.ClasspathDiscoverer;
+import com.impetus.annovention.listener.ClassAnnotationDiscoveryListener;
 
 public class ActiveIntrospector<T extends Model> {
 
@@ -75,6 +80,32 @@ public class ActiveIntrospector<T extends Model> {
 	public static <U extends Model> ActiveIntrospector<U> of(
 			Class<U> activeClass) {
 		return new ActiveIntrospector<U>(activeClass);
+	}
+
+	public static <U extends Model> Set<Class<U>> activeClasses() {
+		ClasspathDiscoverer disc = new ClasspathDiscoverer();
+		final Set<Class<U>> classes = new HashSet<Class<U>>();
+		disc.addAnnotationListener(new ClassAnnotationDiscoveryListener() {
+			@Override
+			public String[] supportedAnnotations() {
+				return new String[] { Active.class.getName() };
+			}
+
+			@Override
+			public void discovered(String clazz, String at) {
+				try {
+					@SuppressWarnings("rawtypes")
+					Class rawClass = Class.forName(clazz);
+					@SuppressWarnings("unchecked")
+					Class<U> activeClass = rawClass;
+					classes.add(activeClass);
+				} catch (ClassNotFoundException e) {
+					throw new ActiveBeansException(e);
+				}
+			}
+		});
+		disc.discover();
+		return classes;
 	}
 
 	public Active activeAnnotation() {
