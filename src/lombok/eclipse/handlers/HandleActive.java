@@ -34,6 +34,7 @@ import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference
 import org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.StringLiteral;
+import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Wildcard;
@@ -52,8 +53,12 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			TypeDeclaration activeItf = activeInterface(source,
 					(TypeDeclaration) node.up().get(),
 					ClassFileConstants.AccInterface, node.get());
-			List<PropertyDefinition> props = properties(memberMap(
-					ast.memberValuePairs()).get("with"));
+			Expression activeBeanProps = memberMap(ast.memberValuePairs()).get(
+					"with");
+			if (!valdateAtLeastOneKey(activeBeanProps)) {
+				node.addError("You MUST configure at least one key property on your bean.");
+			}
+			List<PropertyDefinition> props = properties(activeBeanProps);
 			List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
 			for (PropertyDefinition p : props) {
 				MethodDeclaration getter = p.getter(activeItf,
@@ -127,6 +132,24 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			node.addWarning(msg.toString());
 		}
 		return true;
+	}
+
+	private static boolean valdateAtLeastOneKey(Expression activeBeanProps) {
+		boolean hasKeys = false;
+		if (activeBeanProps instanceof Annotation) {
+			Annotation activeBeanProp = (Annotation) activeBeanProps;
+			Map<String, Expression> propMembers = memberMap(activeBeanProp
+					.memberValuePairs());
+			hasKeys = propMembers.get("key") instanceof TrueLiteral;
+		} else if (activeBeanProps instanceof ArrayInitializer) {
+			ArrayInitializer propArray = (ArrayInitializer) activeBeanProps;
+			for (Expression propAnnotation : propArray.expressions) {
+				if (hasKeys = valdateAtLeastOneKey(propAnnotation)) {
+					break;
+				}
+			}
+		}
+		return hasKeys;
 	}
 
 	private static List<PropertyDefinition> properties(
