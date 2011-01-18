@@ -12,4 +12,8 @@ public @interface Property {
 
 	Class<?> type();
 
+	boolean key() default false;
+
+	boolean autoIncrement() default false;
+
 }

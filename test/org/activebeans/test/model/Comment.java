@@ -5,7 +5,10 @@ import org.activebeans.Association;
 import org.activebeans.Property;
 
 @Active(
-	with = @Property(name = "id", type = long.class), 
+	with = {
+		@Property(name = "id", type = long.class, key=true, autoIncrement=true),
+		@Property(name = "body", type = String.class)
+	},
 	belongsTo = @Association(with = Post.class)
 )
 public class Comment {

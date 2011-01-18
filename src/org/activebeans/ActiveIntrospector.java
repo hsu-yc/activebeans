@@ -1,6 +1,7 @@
 package org.activebeans;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +32,8 @@ public class ActiveIntrospector<T extends Model> {
 	private Map<Association, BelongsToAssociationMethods> belongsToMethodMap = new HashMap<Association, BelongsToAssociationMethods>();
 
 	private Map<Association, HasManyAssociationMethods> hasManyMethodMap = new HashMap<Association, HasManyAssociationMethods>();
+
+	private List<Property> keys = new ArrayList<Property>();
 
 	private static String interfName(Class<? extends Model> activeClass) {
 		return activeClass.getPackage().getName() + ".Active"
@@ -64,6 +67,9 @@ public class ActiveIntrospector<T extends Model> {
 		for (Property prop : at.with()) {
 			propMap.put(prop.name(), prop);
 			accessorMap.put(prop, new JavaBeanPropertyAccessors(interf, prop));
+			if (prop.key()) {
+				keys.add(prop);
+			}
 		}
 		for (Association belongsTo : at.belongsTo()) {
 			belongsToMap.put(belongsTo.with(), belongsTo);
@@ -172,6 +178,10 @@ public class ActiveIntrospector<T extends Model> {
 	public List<HasManyAssociationMethods> hasManyMethods() {
 		return new ArrayList<HasManyAssociationMethods>(
 				hasManyMethodMap.values());
+	}
+
+	public List<Property> keys() {
+		return Collections.unmodifiableList(keys);
 	}
 
 }

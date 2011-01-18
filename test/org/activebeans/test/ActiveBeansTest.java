@@ -230,4 +230,13 @@ public class ActiveBeansTest {
 		assertTrue(ActiveIntrospector.activeClasses().containsAll(
 				Arrays.asList(new Class[] { Post.class, Comment.class })));
 	}
+
+	@Test
+	public void keys() {
+		ActiveIntrospector<Post> pIntro = ActiveIntrospector.of(Post.class);
+		List<Property> keys = pIntro.keys();
+		assertEquals(1, keys.size());
+		assertEquals(pIntro.property("id"), keys.get(0));
+	}
+
 }

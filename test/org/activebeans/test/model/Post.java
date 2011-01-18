@@ -8,7 +8,7 @@ import org.activebeans.Property;
 
 @Active(
 	with = { 
-		@Property(name = "id", type = long.class),
+		@Property(name = "id", type = long.class, key=true, autoIncrement=true),
 		@Property(name = "subject", type = String.class),
 		@Property(name = "created", type = Date.class) 
 	}, 
