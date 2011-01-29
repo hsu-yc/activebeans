@@ -5,6 +5,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.sql.Date;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,8 +17,10 @@ import org.activebeans.ActiveBeans;
 import org.activebeans.ActiveBeansUtils;
 import org.activebeans.ActiveIntrospector;
 import org.activebeans.ActiveMethodFilter;
+import org.activebeans.ActiveTypeMapper;
 import org.activebeans.Association;
 import org.activebeans.BelongsToAssociationMethods;
+import org.activebeans.Column;
 import org.activebeans.HasManyAssociationMethods;
 import org.activebeans.Model;
 import org.activebeans.Property;
@@ -239,4 +242,19 @@ public class ActiveBeansTest {
 		assertEquals(pIntro.property("id"), keys.get(0));
 	}
 
+	@Test
+	public void column() {
+		String name = "id";
+		int jdbcType = Types.INTEGER;
+		String sqlTypeName = ActiveTypeMapper.sqlTypeName(jdbcType);
+		Column.Builder col = new Column.Builder(name, jdbcType);
+		assertEquals(name + " " + sqlTypeName + " null", col.build()
+				.definition());
+		assertEquals(name + " " + sqlTypeName + " not null", col.notNull(true)
+				.build().definition());
+		assertEquals(name + " " + sqlTypeName + " null auto_increment", col
+				.notNull(false).autoIncrement(true).build().definition());
+		assertEquals(name + " " + sqlTypeName + " not null auto_increment", col
+				.notNull(true).build().definition());
+	}
 }
