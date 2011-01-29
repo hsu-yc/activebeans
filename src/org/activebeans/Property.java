@@ -16,4 +16,6 @@ public @interface Property {
 
 	boolean autoIncrement() default false;
 
+	boolean required() default false;
+
 }
