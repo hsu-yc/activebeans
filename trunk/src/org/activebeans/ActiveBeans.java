@@ -7,7 +7,7 @@ import javassist.util.proxy.ProxyFactory;
 
 import javax.sql.DataSource;
 
-public final class ActiveBeans {
+public class ActiveBeans {
 
 	private static DataSource defaultContext;
 
