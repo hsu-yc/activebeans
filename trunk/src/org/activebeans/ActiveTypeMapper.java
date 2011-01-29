@@ -74,8 +74,12 @@ public class ActiveTypeMapper {
 		return jdbcTypeMap.get(javaType);
 	}
 
-	public static String sqlTypeName(int jdbcType) {
+	public static String toSqlTypeName(int jdbcType) {
 		return sqlTypeNameMap.get(jdbcType);
+	}
+
+	public static String toSqlTypeName(Class<?> javaType) {
+		return toSqlTypeName(toJdbcType(javaType));
 	}
 
 }
