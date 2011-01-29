@@ -1,5 +1,8 @@
 package org.activebeans;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +28,34 @@ public final class ActiveBeansUtils {
 			toks.add(tok.toLowerCase());
 		}
 		return join(toks.toArray(), "_", 0, toks.size());
+	}
+
+	public static void close(ResultSet rs) {
+		if (rs != null) {
+			try {
+				rs.close();
+			} catch (SQLException e) {
+				throw new ActiveBeansException(e);
+			}
+		}
+	}
+
+	public static void close(Connection conn) {
+		if (conn != null) {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				throw new ActiveBeansException(e);
+			}
+		}
+	}
+
+	public static void close(ResultSet rs, Connection conn) {
+		try {
+			close(rs);
+		} finally {
+			close(conn);
+		}
 	}
 
 	private static String[] splitByCharacterType(String str, boolean camelCase) {
