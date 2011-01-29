@@ -1,6 +1,6 @@
 package org.activebeans.test.model;
 
-import java.util.Date;
+import java.sql.Date;
 
 import org.activebeans.Active;
 import org.activebeans.Association;

@@ -38,19 +38,16 @@ public class DataSourceTest {
 	}
 
 	@Test
-	public void typeNames() throws SQLException, IllegalAccessException {
-		for (Integer type : ActiveTypeMapper.jdbcTypes()) {
-			assertNotNull(intro.typeName(type));
-		}
+	public void jdbcTypes() {
+		assertTrue(intro.jdbcTypes().containsAll(ActiveTypeMapper.jdbcTypes()));
 	}
 
 	@Test
-	public void javaTypes() throws SQLException, IllegalAccessException {
-		Set<Integer> jdbcTypes = intro.jdbcTypes();
-		Set<Class<?>> javaTypes = ActiveTypeMapper.javaTypes();
-		for (Class<?> javaType : javaTypes) {
-			assertTrue(jdbcTypes
-					.contains(ActiveTypeMapper.toJdbcType(javaType)));
+	public void sqlTypeNames() {
+		Set<String> sqlTypeNames = intro.sqlTypeNames();
+		for (Integer jdbcType : ActiveTypeMapper.jdbcTypes()) {
+			assertTrue(sqlTypeNames.contains(ActiveTypeMapper
+					.sqlTypeName(jdbcType)));
 		}
 	}
 
