@@ -47,7 +47,7 @@ public class DataSourceTest {
 		Set<String> sqlTypeNames = intro.sqlTypeNames();
 		for (Integer jdbcType : ActiveTypeMapper.jdbcTypes()) {
 			assertTrue(sqlTypeNames.contains(ActiveTypeMapper
-					.sqlTypeName(jdbcType)));
+					.toSqlTypeName(jdbcType)));
 		}
 	}
 
