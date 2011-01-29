@@ -1,19 +1,12 @@
 package org.activebeans.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -36,6 +29,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ActiveBeansTest {
@@ -152,7 +152,7 @@ public class ActiveBeansTest {
 		String subject = "foo";
 		post.setSubject(subject);
 		assertEquals(subject, post.getSubject());
-		Date created = new Date();
+		Date created = new Date(System.currentTimeMillis());
 		post.setCreated(created);
 		assertEquals(created, post.getCreated());
 		Comment comment = ActiveBeans.build(Comment.class);
