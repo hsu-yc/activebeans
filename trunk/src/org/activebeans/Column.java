@@ -4,7 +4,7 @@ public class Column {
 
 	private final String name;
 
-	private final int jdbcType;
+	private final DataType type;
 
 	private final boolean notNull;
 
@@ -12,25 +12,27 @@ public class Column {
 
 	private final boolean autoIncrement;
 
-	private String definition;
+	private final int length;
+
+	private final String definition;
 
 	private Column(Builder builder) {
 		name = builder.name;
-		jdbcType = builder.jdbcType;
+		type = builder.type;
 		notNull = builder.notNull;
 		key = builder.key;
 		autoIncrement = builder.autoIncrement;
-		definition = name + " " + ActiveTypeMapper.sqlTypeName(jdbcType)
-				+ (notNull ? " not" : "") + " null"
-				+ (autoIncrement ? " auto_increment" : "");
+		length = builder.length;
+		definition = name + " " + type.definition() + (notNull ? " not" : "")
+				+ " null" + (autoIncrement ? " auto_increment" : "");
 	}
 
 	public String name() {
 		return name;
 	}
 
-	public int jdbcType() {
-		return jdbcType;
+	public DataType type() {
+		return type;
 	}
 
 	public boolean notNull() {
@@ -45,6 +47,10 @@ public class Column {
 		return autoIncrement;
 	}
 
+	public int length() {
+		return length;
+	}
+
 	public String definition() {
 		return definition;
 	}
@@ -53,7 +59,7 @@ public class Column {
 
 		private final String name;
 
-		private final int jdbcType;
+		private final DataType type;
 
 		private boolean notNull;
 
@@ -61,9 +67,11 @@ public class Column {
 
 		private boolean autoIncrement;
 
-		public Builder(String name, int jdbcType) {
+		private int length;
+
+		public Builder(String name, DataType type) {
 			this.name = name;
-			this.jdbcType = jdbcType;
+			this.type = type;
 		}
 
 		public Builder notNull(boolean val) {
@@ -78,6 +86,11 @@ public class Column {
 
 		public Builder autoIncrement(boolean val) {
 			autoIncrement = val;
+			return this;
+		}
+
+		public Builder length(int val) {
+			length = val;
 			return this;
 		}
 

@@ -21,10 +21,12 @@ import org.activebeans.ActiveTypeMapper;
 import org.activebeans.Association;
 import org.activebeans.BelongsToAssociationMethods;
 import org.activebeans.Column;
+import org.activebeans.DataType;
 import org.activebeans.HasManyAssociationMethods;
 import org.activebeans.Model;
 import org.activebeans.Property;
 import org.activebeans.PropertyAccessors;
+import org.activebeans.Table;
 import org.activebeans.test.model.Comment;
 import org.activebeans.test.model.Comment.Models;
 import org.activebeans.test.model.Post;
@@ -243,18 +245,61 @@ public class ActiveBeansTest {
 	}
 
 	@Test
+	public void dataType() {
+		String name = ActiveTypeMapper.sqlTypeName(Types.DECIMAL);
+		assertEquals(name, new DataType(name).definition());
+		int len = 10;
+		assertEquals(name + "(" + len + ")",
+				new DataType(name, len).definition());
+		int decimals = 4;
+		assertEquals(name + "(" + len + ", " + decimals + ")", new DataType(
+				name, len, decimals).definition());
+	}
+
+	@Test
 	public void column() {
+		DataType dataType = new DataType(
+				ActiveTypeMapper.sqlTypeName(Types.INTEGER));
+		String dataTypeDef = dataType.definition();
 		String name = "id";
-		int jdbcType = Types.INTEGER;
-		String sqlTypeName = ActiveTypeMapper.sqlTypeName(jdbcType);
-		Column.Builder col = new Column.Builder(name, jdbcType);
-		assertEquals(name + " " + sqlTypeName + " null", col.build()
+		Column.Builder col = new Column.Builder(name, dataType);
+		assertEquals(name + " " + dataTypeDef + " null", col.build()
 				.definition());
-		assertEquals(name + " " + sqlTypeName + " not null", col.notNull(true)
+		assertEquals(name + " " + dataTypeDef + " not null", col.notNull(true)
 				.build().definition());
-		assertEquals(name + " " + sqlTypeName + " null auto_increment", col
+		assertEquals(name + " " + dataTypeDef + " null auto_increment", col
 				.notNull(false).autoIncrement(true).build().definition());
-		assertEquals(name + " " + sqlTypeName + " not null auto_increment", col
+		assertEquals(name + " " + dataTypeDef + " not null auto_increment", col
 				.notNull(true).build().definition());
+	}
+
+	@Test
+	public void table() {
+		String tableName = "test";
+		String create = "create table if not exists " + tableName + "(";
+		Column name = new Column.Builder("name", new DataType(
+				ActiveTypeMapper.sqlTypeName(Types.VARCHAR), 50)).build();
+		String nameDef = name.definition();
+		assertEquals(create + nameDef + ")",
+				new Table(tableName, name).definition());
+		Column date = new Column.Builder("create_date", new DataType(
+				ActiveTypeMapper.sqlTypeName(Types.DATE))).build();
+		String dateDef = date.definition();
+		assertEquals(create + nameDef + ", " + dateDef + ")", new Table(
+				tableName, name, date).definition());
+		Column id = new Column.Builder("id", new DataType(
+				ActiveTypeMapper.sqlTypeName(Types.INTEGER))).key(true).build();
+		String idDef = id.definition();
+		assertEquals(create + idDef + ", " + nameDef + ", " + dateDef
+				+ ", primary key(" + id.name() + "))", new Table(tableName, id,
+				name, date).definition());
+		Column id2 = new Column.Builder("id2", new DataType(
+				ActiveTypeMapper.sqlTypeName(Types.INTEGER))).key(true).build();
+		Table table = new Table(tableName, id, id2, name, date);
+		assertEquals(
+				create + idDef + ", " + id2.definition() + ", " + nameDef
+						+ ", " + dateDef + ", primary key(" + id.name() + ", "
+						+ id2.name() + "))", table.definition());
+		assertEquals("drop table if exists " + tableName, table.dropStatement());
 	}
 }
