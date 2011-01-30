@@ -18,4 +18,6 @@ public @interface Property {
 
 	boolean required() default false;
 
+	int length() default 0;
+
 }
