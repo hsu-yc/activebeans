@@ -31,7 +31,6 @@ import org.activebeans.Model;
 import org.activebeans.Property;
 import org.activebeans.PropertyAccessors;
 import org.activebeans.Table;
-import org.activebeans.test.DataSourceTest.DataSourceBlock;
 import org.activebeans.test.model.Comment;
 import org.activebeans.test.model.Comment.Models;
 import org.activebeans.test.model.Post;
@@ -311,37 +310,35 @@ public class ActiveBeansTest {
 	public void migration() throws SQLException {
 		ActiveMigration<?> migr = ActiveMigration.of(Comment.class);
 		final Table table = migr.table();
-		DataSourceTest.doDataSourceBlock(new DataSourceBlock() {
-			@Override
-			public void execute(Connection conn) throws SQLException {
-				Statement createStmt = null;
-				Statement dropStmt = null;
-				ResultSet cols = null;
-				ResultSet tables = null;
-				try {
-					createStmt = conn.createStatement();
-					createStmt.execute(table.createStatment());
-					DatabaseMetaData metaData = conn.getMetaData();
-					String talbeName = table.name();
-					cols = metaData.getColumns(null, null, talbeName, null);
-					List<String> dbCols = new ArrayList<String>();
-					while (cols.next()) {
-						dbCols.add(cols.getString("COLUMN_NAME"));
-					}
-					List<String> defCols = new ArrayList<String>();
-					for (Column col : table.columns()) {
-						defCols.add(col.name());
-					}
-					assertTrue(dbCols.containsAll(defCols));
-					dropStmt = conn.createStatement();
-					dropStmt.execute(table.dropStatement());
-					tables = metaData.getTables(null, null, talbeName, null);
-					assertFalse(tables.next());
-				} finally {
-					ActiveBeansUtils.close(cols, tables);
-					ActiveBeansUtils.close(createStmt, dropStmt);
-				}
+		Connection conn = null;
+		Statement createStmt = null;
+		Statement dropStmt = null;
+		ResultSet cols = null;
+		ResultSet tables = null;
+		try {
+			conn = DataSourceTest.getDataSource().getConnection();
+			createStmt = conn.createStatement();
+			createStmt.execute(table.createStatment());
+			DatabaseMetaData metaData = conn.getMetaData();
+			String talbeName = table.name();
+			cols = metaData.getColumns(null, null, talbeName, null);
+			List<String> dbCols = new ArrayList<String>();
+			while (cols.next()) {
+				dbCols.add(cols.getString("COLUMN_NAME"));
 			}
-		});
+			List<String> defCols = new ArrayList<String>();
+			for (Column col : table.columns()) {
+				defCols.add(col.name());
+			}
+			assertTrue(dbCols.containsAll(defCols));
+			dropStmt = conn.createStatement();
+			dropStmt.execute(table.dropStatement());
+			tables = metaData.getTables(null, null, talbeName, null);
+			assertFalse(tables.next());
+		} finally {
+			ActiveBeansUtils.close(cols, tables);
+			ActiveBeansUtils.close(createStmt, dropStmt);
+			ActiveBeansUtils.close(conn);
+		}
 	}
 }
