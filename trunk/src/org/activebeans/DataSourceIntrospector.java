@@ -30,7 +30,8 @@ public class DataSourceIntrospector {
 		} catch (SQLException e) {
 			throw new ActiveBeansException(e);
 		} finally {
-			ActiveBeansUtils.close(rs, conn);
+			ActiveBeansUtils.close(rs);
+			ActiveBeansUtils.close(conn);
 		}
 	}
 

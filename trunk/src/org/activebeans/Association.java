@@ -12,4 +12,6 @@ public @interface Association {
 
 	String name() default "";
 
+	boolean required() default false;
+
 }

@@ -15,10 +15,9 @@ public class Table {
 
 	private String dropStatement;
 
-	public Table(String name, Column col, Column... moreCols) {
+	public Table(String name, List<Column> columns) {
 		this.name = name;
-		cols.add(col);
-		cols.addAll(Arrays.asList(moreCols));
+		cols.addAll(columns);
 		definition = "create table if not exists " + name + "(";
 		List<Column> keys = new ArrayList<Column>();
 		for (int i = 0; i < cols.size(); i++) {
@@ -37,6 +36,10 @@ public class Table {
 		dropStatement = "drop table if exists " + name;
 	}
 
+	public Table(String name, Column... columns) {
+		this(name, Arrays.asList(columns));
+	}
+
 	public String name() {
 		return name;
 	}
@@ -45,7 +48,7 @@ public class Table {
 		return Collections.unmodifiableList(cols);
 	}
 
-	public String definition() {
+	public String createStatment() {
 		return definition;
 	}
 

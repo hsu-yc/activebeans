@@ -1,6 +1,6 @@
 package org.activebeans;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -8,17 +8,21 @@ public class DataType {
 
 	private String name;
 
-	private List<?> params;
+	private List<Object> params = new ArrayList<Object>();
 
 	private String definition;
 
-	public DataType(String name, Object... params) {
+	public DataType(String name, Object... ps) {
 		this.name = name;
-		this.params = Arrays.asList(params);
+		for (Object p : ps) {
+			if (p != null) {
+				params.add(p);
+			}
+		}
 		definition = name;
-		int paramLen = params.length;
+		int paramLen = params.size();
 		for (int i = 0; i < paramLen; i++) {
-			definition += (i == 0 ? "(" : ", ") + params[i]
+			definition += (i == 0 ? "(" : ", ") + params.get(i)
 					+ (i == paramLen - 1 ? ")" : "");
 		}
 	}
