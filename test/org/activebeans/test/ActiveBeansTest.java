@@ -4,7 +4,12 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,6 +21,7 @@ import org.activebeans.ActiveBeans;
 import org.activebeans.ActiveBeansUtils;
 import org.activebeans.ActiveIntrospector;
 import org.activebeans.ActiveMethodFilter;
+import org.activebeans.ActiveMigration;
 import org.activebeans.Association;
 import org.activebeans.BelongsToAssociationMethods;
 import org.activebeans.Column;
@@ -25,6 +31,7 @@ import org.activebeans.Model;
 import org.activebeans.Property;
 import org.activebeans.PropertyAccessors;
 import org.activebeans.Table;
+import org.activebeans.test.DataSourceTest.DataSourceBlock;
 import org.activebeans.test.model.Comment;
 import org.activebeans.test.model.Comment.Models;
 import org.activebeans.test.model.Post;
@@ -278,25 +285,63 @@ public class ActiveBeansTest {
 				.build();
 		String nameDef = name.definition();
 		assertEquals(create + nameDef + ")",
-				new Table(tableName, name).definition());
+				new Table(tableName, name).createStatment());
 		Column date = new Column.Builder("create_date", new DataType("date"))
 				.build();
 		String dateDef = date.definition();
 		assertEquals(create + nameDef + ", " + dateDef + ")", new Table(
-				tableName, name, date).definition());
+				tableName, name, date).createStatment());
 		Column id = new Column.Builder("id", new DataType("int")).key(true)
 				.build();
 		String idDef = id.definition();
 		assertEquals(create + idDef + ", " + nameDef + ", " + dateDef
 				+ ", primary key(" + id.name() + "))", new Table(tableName, id,
-				name, date).definition());
+				name, date).createStatment());
 		Column id2 = new Column.Builder("id2", new DataType("int")).key(true)
 				.build();
 		Table table = new Table(tableName, id, id2, name, date);
 		assertEquals(
 				create + idDef + ", " + id2.definition() + ", " + nameDef
 						+ ", " + dateDef + ", primary key(" + id.name() + ", "
-						+ id2.name() + "))", table.definition());
+						+ id2.name() + "))", table.createStatment());
 		assertEquals("drop table if exists " + tableName, table.dropStatement());
+	}
+
+	@Test
+	public void migration() throws SQLException {
+		ActiveMigration<?> migr = ActiveMigration.of(Comment.class);
+		final Table table = migr.table();
+		DataSourceTest.doDataSourceBlock(new DataSourceBlock() {
+			@Override
+			public void execute(Connection conn) throws SQLException {
+				Statement createStmt = null;
+				Statement dropStmt = null;
+				ResultSet cols = null;
+				ResultSet tables = null;
+				try {
+					createStmt = conn.createStatement();
+					createStmt.execute(table.createStatment());
+					DatabaseMetaData metaData = conn.getMetaData();
+					String talbeName = table.name();
+					cols = metaData.getColumns(null, null, talbeName, null);
+					List<String> dbCols = new ArrayList<String>();
+					while (cols.next()) {
+						dbCols.add(cols.getString("COLUMN_NAME"));
+					}
+					List<String> defCols = new ArrayList<String>();
+					for (Column col : table.columns()) {
+						defCols.add(col.name());
+					}
+					assertTrue(dbCols.containsAll(defCols));
+					dropStmt = conn.createStatement();
+					dropStmt.execute(table.dropStatement());
+					tables = metaData.getTables(null, null, talbeName, null);
+					assertFalse(tables.next());
+				} finally {
+					ActiveBeansUtils.close(cols, tables);
+					ActiveBeansUtils.close(createStmt, dropStmt);
+				}
+			}
+		});
 	}
 }

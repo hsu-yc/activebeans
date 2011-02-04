@@ -12,8 +12,6 @@ public class Column {
 
 	private final boolean autoIncrement;
 
-	private final int length;
-
 	private final String definition;
 
 	private Column(Builder builder) {
@@ -22,7 +20,6 @@ public class Column {
 		notNull = builder.notNull;
 		key = builder.key;
 		autoIncrement = builder.autoIncrement;
-		length = builder.length;
 		definition = name + " " + type.definition() + (notNull ? " not" : "")
 				+ " null" + (autoIncrement ? " auto_increment" : "");
 	}
@@ -47,10 +44,6 @@ public class Column {
 		return autoIncrement;
 	}
 
-	public int length() {
-		return length;
-	}
-
 	public String definition() {
 		return definition;
 	}
@@ -66,8 +59,6 @@ public class Column {
 		private boolean key;
 
 		private boolean autoIncrement;
-
-		private int length;
 
 		public Builder(String name, DataType type) {
 			this.name = name;
@@ -86,11 +77,6 @@ public class Column {
 
 		public Builder autoIncrement(boolean val) {
 			autoIncrement = val;
-			return this;
-		}
-
-		public Builder length(int val) {
-			length = val;
 			return this;
 		}
 

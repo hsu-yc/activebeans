@@ -49,7 +49,7 @@ public class DataSourceTest {
 		}
 	}
 
-	public static DataSource getDataSource() {
+	static DataSource getDataSource() {
 		MysqlDataSource ds = new MysqlDataSource();
 		ds.setUser("root");
 		ds.setPassword("root");
@@ -58,8 +58,7 @@ public class DataSourceTest {
 		return ds;
 	}
 
-	public static void doDataSourceBlock(DataSourceBlock tpl)
-			throws SQLException {
+	static void doDataSourceBlock(DataSourceBlock tpl) throws SQLException {
 		DataSource ds = getDataSource();
 		Connection conn = null;
 		try {
