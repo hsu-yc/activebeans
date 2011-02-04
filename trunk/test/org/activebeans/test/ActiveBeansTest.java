@@ -5,7 +5,6 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.sql.Date;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,7 +16,6 @@ import org.activebeans.ActiveBeans;
 import org.activebeans.ActiveBeansUtils;
 import org.activebeans.ActiveIntrospector;
 import org.activebeans.ActiveMethodFilter;
-import org.activebeans.ActiveTypeMapper;
 import org.activebeans.Association;
 import org.activebeans.BelongsToAssociationMethods;
 import org.activebeans.Column;
@@ -246,7 +244,7 @@ public class ActiveBeansTest {
 
 	@Test
 	public void dataType() {
-		String name = ActiveTypeMapper.sqlTypeName(Types.DECIMAL);
+		String name = "decimal";
 		assertEquals(name, new DataType(name).definition());
 		int len = 10;
 		assertEquals(name + "(" + len + ")",
@@ -258,8 +256,7 @@ public class ActiveBeansTest {
 
 	@Test
 	public void column() {
-		DataType dataType = new DataType(
-				ActiveTypeMapper.sqlTypeName(Types.INTEGER));
+		DataType dataType = new DataType("int");
 		String dataTypeDef = dataType.definition();
 		String name = "id";
 		Column.Builder col = new Column.Builder(name, dataType);
@@ -277,24 +274,24 @@ public class ActiveBeansTest {
 	public void table() {
 		String tableName = "test";
 		String create = "create table if not exists " + tableName + "(";
-		Column name = new Column.Builder("name", new DataType(
-				ActiveTypeMapper.sqlTypeName(Types.VARCHAR), 50)).build();
+		Column name = new Column.Builder("name", new DataType("varchar", 50))
+				.build();
 		String nameDef = name.definition();
 		assertEquals(create + nameDef + ")",
 				new Table(tableName, name).definition());
-		Column date = new Column.Builder("create_date", new DataType(
-				ActiveTypeMapper.sqlTypeName(Types.DATE))).build();
+		Column date = new Column.Builder("create_date", new DataType("date"))
+				.build();
 		String dateDef = date.definition();
 		assertEquals(create + nameDef + ", " + dateDef + ")", new Table(
 				tableName, name, date).definition());
-		Column id = new Column.Builder("id", new DataType(
-				ActiveTypeMapper.sqlTypeName(Types.INTEGER))).key(true).build();
+		Column id = new Column.Builder("id", new DataType("int")).key(true)
+				.build();
 		String idDef = id.definition();
 		assertEquals(create + idDef + ", " + nameDef + ", " + dateDef
 				+ ", primary key(" + id.name() + "))", new Table(tableName, id,
 				name, date).definition());
-		Column id2 = new Column.Builder("id2", new DataType(
-				ActiveTypeMapper.sqlTypeName(Types.INTEGER))).key(true).build();
+		Column id2 = new Column.Builder("id2", new DataType("int")).key(true)
+				.build();
 		Table table = new Table(tableName, id, id2, name, date);
 		assertEquals(
 				create + idDef + ", " + id2.definition() + ", " + nameDef

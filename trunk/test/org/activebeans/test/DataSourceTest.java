@@ -2,6 +2,7 @@ package org.activebeans.test;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.sql.DataSource;
@@ -38,16 +39,13 @@ public class DataSourceTest {
 	}
 
 	@Test
-	public void jdbcTypes() {
-		assertTrue(intro.jdbcTypes().containsAll(ActiveTypeMapper.jdbcTypes()));
-	}
-
-	@Test
 	public void sqlTypeNames() {
-		Set<String> sqlTypeNames = intro.sqlTypeNames();
-		for (Integer jdbcType : ActiveTypeMapper.jdbcTypes()) {
-			assertTrue(sqlTypeNames.contains(ActiveTypeMapper
-					.sqlTypeName(jdbcType)));
+		Set<String> sqlTypeNames = new HashSet<String>();
+		for (String sqlTypeName : intro.sqlTypeNames()) {
+			sqlTypeNames.add(sqlTypeName.toLowerCase());
+		}
+		for (String sqlTypeName : ActiveTypeMapper.sqlTypeNames()) {
+			assertTrue(sqlTypeNames.contains(sqlTypeName.toLowerCase()));
 		}
 	}
 
