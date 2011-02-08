@@ -5,9 +5,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.Date;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -25,6 +23,7 @@ import org.activebeans.ActiveMigration;
 import org.activebeans.Association;
 import org.activebeans.BelongsToAssociationMethods;
 import org.activebeans.Column;
+import org.activebeans.DataSourceIntrospector;
 import org.activebeans.DataType;
 import org.activebeans.HasManyAssociationMethods;
 import org.activebeans.Model;
@@ -310,33 +309,25 @@ public class ActiveBeansTest {
 	public void migration() throws SQLException {
 		ActiveMigration<?> migr = ActiveMigration.of(Comment.class);
 		final Table table = migr.table();
+		DataSource ds = DataSourceTest.getDataSource();
 		Connection conn = null;
 		Statement createStmt = null;
 		Statement dropStmt = null;
-		ResultSet cols = null;
-		ResultSet tables = null;
 		try {
-			conn = DataSourceTest.getDataSource().getConnection();
+			conn = ds.getConnection();
 			createStmt = conn.createStatement();
 			createStmt.execute(table.createStatment());
-			DatabaseMetaData metaData = conn.getMetaData();
-			String talbeName = table.name();
-			cols = metaData.getColumns(null, null, talbeName, null);
-			List<String> dbCols = new ArrayList<String>();
-			while (cols.next()) {
-				dbCols.add(cols.getString("COLUMN_NAME"));
-			}
+			String tableName = table.name();
 			List<String> defCols = new ArrayList<String>();
 			for (Column col : table.columns()) {
 				defCols.add(col.name());
 			}
-			assertTrue(dbCols.containsAll(defCols));
+			DataSourceIntrospector dsIntro = new DataSourceIntrospector(ds);
+			assertTrue(dsIntro.columns(tableName).containsAll(defCols));
 			dropStmt = conn.createStatement();
 			dropStmt.execute(table.dropStatement());
-			tables = metaData.getTables(null, null, talbeName, null);
-			assertFalse(tables.next());
+			assertFalse(dsIntro.tables().contains(tableName));
 		} finally {
-			ActiveBeansUtils.close(cols, tables);
 			ActiveBeansUtils.close(createStmt, dropStmt);
 			ActiveBeansUtils.close(conn);
 		}
