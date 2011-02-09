@@ -282,7 +282,7 @@ public class ActiveBeansTest {
 	}
 
 	@Test
-	public void table() {
+	public void createTable() {
 		String tableName = "test";
 		String create = "create table if not exists " + tableName + "(";
 		Column name = new Column.Builder("name", new DataType("varchar", 50))
@@ -353,4 +353,17 @@ public class ActiveBeansTest {
 		assertTrue(Collections.disjoint(dsIntro.tables(), tableNames));
 	}
 
+	@Test
+	public void alterTable() {
+		Column id = new Column.Builder("id", new DataType("int")).key(true)
+				.build();
+		Column name = new Column.Builder("name", new DataType("varchar"))
+				.build();
+		Table table = new Table("test", id, name);
+		String alter = "alter table " + table.name();
+		assertEquals(alter + " add column " + id.definition(),
+				table.alterStatement(id));
+		assertEquals(alter + " add column " + id.definition() + ", add column "
+				+ name.definition(), table.alterStatement(id, name));
+	}
 }

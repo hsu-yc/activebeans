@@ -11,29 +11,32 @@ public class Table {
 
 	private List<Column> cols = new ArrayList<Column>();
 
-	private String definition;
+	private String createStatement;
 
 	private String dropStatement;
+
+	private String alterTable;
 
 	public Table(String name, List<Column> columns) {
 		this.name = name;
 		cols.addAll(columns);
-		definition = "create table if not exists " + name + "(";
+		createStatement = "create table if not exists " + name + "(";
 		List<Column> keys = new ArrayList<Column>();
 		for (int i = 0; i < cols.size(); i++) {
 			Column c = cols.get(i);
-			definition += (i == 0 ? "" : ", ") + c.definition();
+			createStatement += (i == 0 ? "" : ", ") + c.definition();
 			if (c.key()) {
 				keys.add(c);
 			}
 		}
 		int numOfKeys = keys.size();
 		for (int i = 0; i < numOfKeys; i++) {
-			definition += (i == 0 ? ", primary key(" : ", ")
+			createStatement += (i == 0 ? ", primary key(" : ", ")
 					+ keys.get(i).name() + (i == numOfKeys - 1 ? ")" : "");
 		}
-		definition += ")";
+		createStatement += ")";
 		dropStatement = "drop table if exists " + name;
+		alterTable = "alter table " + name;
 	}
 
 	public Table(String name, Column... columns) {
@@ -49,11 +52,24 @@ public class Table {
 	}
 
 	public String createStatment() {
-		return definition;
+		return createStatement;
 	}
 
 	public String dropStatement() {
 		return dropStatement;
+	}
+
+	public String alterStatement(List<Column> cols) {
+		String alterStmt = alterTable;
+		for (int i = 0; i < cols.size(); i++) {
+			alterStmt += (i == 0 ? "" : ",") + " add column "
+					+ cols.get(i).definition();
+		}
+		return alterStmt;
+	}
+
+	public String alterStatement(Column... cols) {
+		return alterStatement(Arrays.asList(cols));
 	}
 
 }
