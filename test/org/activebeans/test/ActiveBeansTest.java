@@ -51,7 +51,7 @@ public class ActiveBeansTest {
 
 	private static DataSource ds;
 
-	private static Class<? extends Model> activeClass;
+	private static Class<Post> activeClass;
 
 	private static Active activeAt;
 
