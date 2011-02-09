@@ -5,9 +5,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.sql.DataSource;
 
 public final class ActiveBeansUtils {
 
@@ -62,6 +65,28 @@ public final class ActiveBeansUtils {
 				}
 			}
 		}
+	}
+
+	public static void executeSql(DataSource ds, List<String> stmts) {
+		Connection conn = null;
+		Statement stmt = null;
+		try {
+			conn = ds.getConnection();
+			stmt = conn.createStatement();
+			for (String s : stmts) {
+				stmt.addBatch(s);
+			}
+			stmt.executeBatch();
+		} catch (SQLException e) {
+			throw new ActiveBeansException(e);
+		} finally {
+			ActiveBeansUtils.close(stmt);
+			ActiveBeansUtils.close(conn);
+		}
+	}
+
+	public static void executeSql(DataSource ds, String... stmts) {
+		executeSql(ds, Arrays.asList(stmts));
 	}
 
 	private static String[] splitByCharacterType(String str, boolean camelCase) {
