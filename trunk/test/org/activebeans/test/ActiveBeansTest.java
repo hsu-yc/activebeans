@@ -254,7 +254,7 @@ public class ActiveBeansTest {
 	}
 
 	@Test
-	public void dataType() {
+	public void dataTypeDefinition() {
 		String name = "decimal";
 		assertEquals(name, new DataType(name).definition());
 		int len = 10;
@@ -266,7 +266,7 @@ public class ActiveBeansTest {
 	}
 
 	@Test
-	public void column() {
+	public void columnDefinition() {
 		DataType dataType = new DataType("int");
 		String dataTypeDef = dataType.definition();
 		String name = "id";
@@ -282,7 +282,7 @@ public class ActiveBeansTest {
 	}
 
 	@Test
-	public void createTable() {
+	public void createAndDropTableStatements() {
 		String tableName = "test";
 		String create = "create table if not exists " + tableName + "(";
 		Column name = new Column.Builder("name", new DataType("varchar", 50))
@@ -312,8 +312,8 @@ public class ActiveBeansTest {
 	}
 
 	@Test
-	public void migration() throws SQLException {
-		ActiveMigration<?> migr = ActiveMigration.of(Comment.class);
+	public void createAndDropTable() throws SQLException {
+		ActiveMigration<?> migr = ActiveMigration.of(Comment.class, ds);
 		final Table table = migr.table();
 		ActiveBeansUtils.executeSql(ds, table.createStatment());
 		String tableName = table.name();
@@ -328,7 +328,7 @@ public class ActiveBeansTest {
 
 	@Test
 	public void migrateOne() {
-		Table table = ActiveMigration.of(activeClass).table();
+		Table table = ActiveMigration.of(activeClass, ds).table();
 		ActiveBeans.migrate(activeClass);
 		String tableName = table.name();
 		assertTrue(dsIntro.tables().contains(tableName));
@@ -338,26 +338,23 @@ public class ActiveBeansTest {
 
 	@Test
 	public void migrateAll() {
-		List<Table> tables = new ArrayList<Table>();
 		List<String> tableNames = new ArrayList<String>();
 		List<String> dropStmts = new ArrayList<String>();
 		for (Class<Model> clazz : activeClasses) {
-			Table table = ActiveMigration.of(clazz).table();
-			tables.add(table);
+			Table table = ActiveMigration.of(clazz, ds).table();
 			tableNames.add(table.name());
 			dropStmts.add(table.dropStatement());
 		}
 		ActiveBeans.autoMigrate();
 		assertTrue(dsIntro.tables().containsAll(tableNames));
 		ActiveBeansUtils.executeSql(ds, dropStmts);
-		assertTrue(Collections.disjoint(dsIntro.tables(), tableNames));
 	}
 
 	@Test
-	public void alterTable() {
+	public void alterTableStatement() {
 		Column id = new Column.Builder("id", new DataType("int")).key(true)
 				.build();
-		Column name = new Column.Builder("name", new DataType("varchar"))
+		Column name = new Column.Builder("name", new DataType("varchar", 50))
 				.build();
 		Table table = new Table("test", id, name);
 		String alter = "alter table " + table.name();
@@ -366,4 +363,81 @@ public class ActiveBeansTest {
 		assertEquals(alter + " add column " + id.definition() + ", add column "
 				+ name.definition(), table.alterStatement(id, name));
 	}
+
+	@Test
+	public void alterTable() {
+		Column id = new Column.Builder("id", new DataType("int")).key(true)
+				.build();
+		Column name = new Column.Builder("name", new DataType("varchar", 50))
+				.build();
+		Table table = new Table("test", id);
+		ActiveBeansUtils.executeSql(ds, table.createStatment());
+		String tableName = table.name();
+		List<String> cols = dsIntro.columns(tableName);
+		assertEquals(1, cols.size());
+		assertEquals(id.name(), cols.get(0));
+		ActiveBeansUtils.executeSql(ds, table.alterStatement(name));
+		List<String> updatedCols = dsIntro.columns(tableName);
+		assertEquals(2, updatedCols.size());
+		assertTrue(updatedCols.containsAll(Arrays.asList(new String[] {
+				id.name(), name.name() })));
+		ActiveBeansUtils.executeSql(ds, table.dropStatement());
+	}
+
+	@Test
+	public void upgradeOne() {
+		ActiveMigration<? extends Model> migr = ActiveMigration.of(activeClass,
+				ds);
+		Table activeTable = migr.table();
+		List<String> colNames = new ArrayList<String>();
+		List<Column> cols = activeTable.columns();
+		for (Column c : cols) {
+			colNames.add(c.name());
+		}
+		String tableName = activeTable.name();
+		Table currentTable = new Table(tableName, cols.get(0));
+		int colSize = cols.size();
+		assertEquals(colSize, migr.alterColumns().size());
+		assertEquals(activeTable.createStatment(), migr.alterStatement());
+		ActiveBeansUtils.executeSql(ds, currentTable.createStatment());
+		List<Column> alterCols = migr.alterColumns();
+		assertEquals(colSize - currentTable.columns().size(), alterCols.size());
+		assertEquals(activeTable.alterStatement(alterCols),
+				migr.alterStatement());
+		assertFalse(dsIntro.columns(tableName).containsAll(colNames));
+		ActiveBeans.upgrade(activeClass);
+		assertTrue(dsIntro.columns(tableName).containsAll(colNames));
+		ActiveBeansUtils.executeSql(ds, activeTable.dropStatement());
+	}
+
+	@Test
+	public void upgradeAll() {
+		List<Table> tables = new ArrayList<Table>();
+		List<String> tableNames = new ArrayList<String>();
+		List<String> dropStmts = new ArrayList<String>();
+		for (Class<Model> clazz : activeClasses) {
+			Table table = ActiveMigration.of(clazz, ds).table();
+			tables.add(table);
+			tableNames.add(table.name());
+			dropStmts.add(table.dropStatement());
+		}
+		ActiveBeansUtils.executeSql(ds, dropStmts);
+		assertTrue(Collections.disjoint(dsIntro.tables(), tableNames));
+		ActiveBeans.autoUpgrade();
+		assertTrue(dsIntro.tables().containsAll(tableNames));
+		Table table = tables.get(0);
+		String dropStmt = table.dropStatement();
+		ActiveBeansUtils.executeSql(ds, dropStmt);
+		ActiveBeans.autoUpgrade();
+		assertTrue(dsIntro.tables().containsAll(tableNames));
+		ActiveBeansUtils.executeSql(ds, dropStmt);
+		ActiveBeansUtils.executeSql(ds, new Table(table.name(), table.columns()
+				.get(0)).createStatment());
+		ActiveBeans.autoUpgrade();
+		assertTrue(dsIntro.tables().containsAll(tableNames));
+		ActiveBeans.autoUpgrade();
+		assertTrue(dsIntro.tables().containsAll(tableNames));
+		ActiveBeansUtils.executeSql(ds, dropStmts);
+	}
+
 }
