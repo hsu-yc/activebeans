@@ -38,7 +38,7 @@ public class ActiveBeans {
 	}
 
 	public static void migrate(Class<? extends Model> activeClass) {
-		Table table = ActiveMigration.of(activeClass).table();
+		Table table = ActiveMigration.of(activeClass, defaultDs).table();
 		ActiveBeansUtils.executeSql(defaultDs, table.dropStatement(),
 				table.createStatment());
 	}
@@ -46,10 +46,30 @@ public class ActiveBeans {
 	public static void autoMigrate() {
 		List<String> stmts = new ArrayList<String>();
 		for (Class<Model> clazz : ActiveIntrospector.activeClasses()) {
-			ActiveMigration<Model> migr = ActiveMigration.of(clazz);
+			ActiveMigration<Model> migr = ActiveMigration.of(clazz, defaultDs);
 			Table table = migr.table();
 			stmts.add(table.dropStatement());
 			stmts.add(table.createStatment());
+		}
+		ActiveBeansUtils.executeSql(defaultDs, stmts);
+	}
+
+	public static void upgrade(Class<? extends Model> activeClass) {
+		String alterStmt = ActiveMigration.of(activeClass, defaultDs)
+				.alterStatement();
+		if (alterStmt != null) {
+			ActiveBeansUtils.executeSql(defaultDs, alterStmt);
+		}
+	}
+
+	public static void autoUpgrade() {
+		List<String> stmts = new ArrayList<String>();
+		for (Class<Model> clazz : ActiveIntrospector.activeClasses()) {
+			String alterStmt = ActiveMigration.of(clazz, defaultDs)
+					.alterStatement();
+			if (alterStmt != null) {
+				stmts.add(alterStmt);
+			}
 		}
 		ActiveBeansUtils.executeSql(defaultDs, stmts);
 	}

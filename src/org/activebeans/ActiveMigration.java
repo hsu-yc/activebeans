@@ -3,6 +3,8 @@ package org.activebeans;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sql.DataSource;
+
 public class ActiveMigration<T extends Model> {
 
 	private static final String ASSOCIATION_SUFFIX = "_id";
@@ -11,7 +13,10 @@ public class ActiveMigration<T extends Model> {
 
 	private Table table;
 
-	private ActiveMigration(Class<T> activeClass) {
+	private DataSourceIntrospector dsIntro;
+
+	private ActiveMigration(Class<T> activeClass, DataSource ds) {
+		dsIntro = new DataSourceIntrospector(ds);
 		this.activeClass = activeClass;
 		String tableName = ActiveBeansUtils.camelCaseToUnderscore(activeClass
 				.getSimpleName());
@@ -53,8 +58,9 @@ public class ActiveMigration<T extends Model> {
 		table = new Table(tableName, cols);
 	}
 
-	public static <U extends Model> ActiveMigration<U> of(Class<U> activeClass) {
-		return new ActiveMigration<U>(activeClass);
+	public static <U extends Model> ActiveMigration<U> of(Class<U> activeClass,
+			DataSource ds) {
+		return new ActiveMigration<U>(activeClass, ds);
 	}
 
 	public Table table() {
@@ -63,6 +69,35 @@ public class ActiveMigration<T extends Model> {
 
 	public Class<T> activeClass() {
 		return activeClass;
+	}
+
+	public List<Column> alterColumns() {
+		List<Column> alterCols;
+		String tableName = table.name();
+		List<Column> activeCols = table.columns();
+		if (!dsIntro.tables().contains(tableName)) {
+			alterCols = activeCols;
+		} else {
+			alterCols = new ArrayList<Column>();
+			List<String> dbCols = dsIntro.columns(tableName);
+			for (Column c : activeCols) {
+				if (!dbCols.contains(c.name())) {
+					alterCols.add(c);
+				}
+			}
+		}
+		return alterCols;
+	}
+
+	public String alterStatement() {
+		String stmt = null;
+		List<Column> alterCols = alterColumns();
+		if (!dsIntro.tables().contains(table.name())) {
+			stmt = table.createStatment();
+		} else if (!alterCols.isEmpty()) {
+			stmt = table.alterStatement(alterColumns());
+		}
+		return stmt;
 	}
 
 }
