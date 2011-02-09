@@ -1,6 +1,8 @@
 package org.activebeans;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javassist.util.proxy.ProxyFactory;
@@ -9,7 +11,9 @@ import javax.sql.DataSource;
 
 public class ActiveBeans {
 
-	private static DataSource defaultContext;
+	private static String defaultContext;
+
+	private static DataSource defaultDs;
 
 	private static Map<String, DataSource> dataSourceMap = new HashMap<String, DataSource>();
 
@@ -18,8 +22,9 @@ public class ActiveBeans {
 	}
 
 	public static void setup(String context, DataSource ds) {
-		if (dataSourceMap.isEmpty()) {
-			defaultContext = ds;
+		if (dataSourceMap.isEmpty() || context.equals(defaultContext)) {
+			defaultContext = context;
+			defaultDs = ds;
 		}
 		dataSourceMap.put(context, ds);
 	}
@@ -29,7 +34,24 @@ public class ActiveBeans {
 	}
 
 	public static DataSource repository() {
-		return defaultContext;
+		return defaultDs;
+	}
+
+	public static void migrate(Class<? extends Model> activeClass) {
+		Table table = ActiveMigration.of(activeClass).table();
+		ActiveBeansUtils.executeSql(defaultDs, table.dropStatement(),
+				table.createStatment());
+	}
+
+	public static void autoMigrate() {
+		List<String> stmts = new ArrayList<String>();
+		for (Class<Model> clazz : ActiveIntrospector.activeClasses()) {
+			ActiveMigration<Model> migr = ActiveMigration.of(clazz);
+			Table table = migr.table();
+			stmts.add(table.dropStatement());
+			stmts.add(table.createStatment());
+		}
+		ActiveBeansUtils.executeSql(defaultDs, stmts);
 	}
 
 	public static <T extends Model> T build(Class<T> activeClass) {

@@ -1,16 +1,23 @@
 package org.activebeans.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -33,35 +40,34 @@ import org.activebeans.Table;
 import org.activebeans.test.model.Comment;
 import org.activebeans.test.model.Comment.Models;
 import org.activebeans.test.model.Post;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-
-@RunWith(MockitoJUnitRunner.class)
 public class ActiveBeansTest {
 
-	private Class<? extends Model> activeClass;
+	private static final String TEST_CONTEXT = "test";
 
-	private Active activeAt;
+	private static Set<Class<Model>> activeClasses;
 
-	private Class<?> activeInterf;
+	private static DataSource ds;
 
-	private Class<?> activeCollectionInterf;
+	private static Class<? extends Model> activeClass;
 
-	private ActiveIntrospector<?> activeIntro;
+	private static Active activeAt;
 
-	private DataSource ds;
+	private static Class<?> activeInterf;
 
-	@Before
-	public void init() throws ClassNotFoundException {
+	private static Class<?> activeCollectionInterf;
+
+	private static ActiveIntrospector<?> activeIntro;
+
+	private static DataSourceIntrospector dsIntro;
+
+	@BeforeClass
+	public static void staticInit() throws ClassNotFoundException {
+		ds = DataSourceTest.getDataSource();
+		ActiveBeans.setup(TEST_CONTEXT, ds);
+		activeClasses = ActiveIntrospector.activeClasses();
 		activeClass = Post.class;
 		activeAt = activeClass.getAnnotation(Active.class);
 		activeInterf = Class.forName(activeClass.getPackage().getName()
@@ -69,7 +75,7 @@ public class ActiveBeansTest {
 		activeCollectionInterf = Class.forName(activeClass.getName()
 				+ "$Models");
 		activeIntro = ActiveIntrospector.of(activeClass);
-		ds = DataSourceTest.getDataSource();
+		dsIntro = new DataSourceIntrospector(ds);
 	}
 
 	@Test
@@ -221,7 +227,7 @@ public class ActiveBeansTest {
 
 	@Test
 	public void setup() {
-		ActiveBeans.setup("test", ds);
+		ActiveBeans.setup(TEST_CONTEXT, ds);
 		assertSame(ds, ActiveBeans.repository());
 	}
 
@@ -235,8 +241,8 @@ public class ActiveBeansTest {
 
 	@Test
 	public void activeBeansDiscovery() {
-		assertTrue(ActiveIntrospector.activeClasses().containsAll(
-				Arrays.asList(new Class[] { Post.class, Comment.class })));
+		assertTrue(activeClasses.containsAll(Arrays.asList(new Class[] {
+				Post.class, Comment.class })));
 	}
 
 	@Test
@@ -309,27 +315,42 @@ public class ActiveBeansTest {
 	public void migration() throws SQLException {
 		ActiveMigration<?> migr = ActiveMigration.of(Comment.class);
 		final Table table = migr.table();
-		DataSource ds = DataSourceTest.getDataSource();
-		Connection conn = null;
-		Statement createStmt = null;
-		Statement dropStmt = null;
-		try {
-			conn = ds.getConnection();
-			createStmt = conn.createStatement();
-			createStmt.execute(table.createStatment());
-			String tableName = table.name();
-			List<String> defCols = new ArrayList<String>();
-			for (Column col : table.columns()) {
-				defCols.add(col.name());
-			}
-			DataSourceIntrospector dsIntro = new DataSourceIntrospector(ds);
-			assertTrue(dsIntro.columns(tableName).containsAll(defCols));
-			dropStmt = conn.createStatement();
-			dropStmt.execute(table.dropStatement());
-			assertFalse(dsIntro.tables().contains(tableName));
-		} finally {
-			ActiveBeansUtils.close(createStmt, dropStmt);
-			ActiveBeansUtils.close(conn);
+		ActiveBeansUtils.executeSql(ds, table.createStatment());
+		String tableName = table.name();
+		List<String> defCols = new ArrayList<String>();
+		for (Column col : table.columns()) {
+			defCols.add(col.name());
 		}
+		assertTrue(dsIntro.columns(tableName).containsAll(defCols));
+		ActiveBeansUtils.executeSql(ds, table.dropStatement());
+		assertFalse(dsIntro.tables().contains(tableName));
 	}
+
+	@Test
+	public void migrateOne() {
+		Table table = ActiveMigration.of(activeClass).table();
+		ActiveBeans.migrate(activeClass);
+		String tableName = table.name();
+		assertTrue(dsIntro.tables().contains(tableName));
+		ActiveBeansUtils.executeSql(ds, table.dropStatement());
+		assertFalse(dsIntro.tables().contains(tableName));
+	}
+
+	@Test
+	public void migrateAll() {
+		List<Table> tables = new ArrayList<Table>();
+		List<String> tableNames = new ArrayList<String>();
+		List<String> dropStmts = new ArrayList<String>();
+		for (Class<Model> clazz : activeClasses) {
+			Table table = ActiveMigration.of(clazz).table();
+			tables.add(table);
+			tableNames.add(table.name());
+			dropStmts.add(table.dropStatement());
+		}
+		ActiveBeans.autoMigrate();
+		assertTrue(dsIntro.tables().containsAll(tableNames));
+		ActiveBeansUtils.executeSql(ds, dropStmts);
+		assertTrue(Collections.disjoint(dsIntro.tables(), tableNames));
+	}
+
 }
