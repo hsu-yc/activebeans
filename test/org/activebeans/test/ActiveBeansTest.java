@@ -47,7 +47,7 @@ public class ActiveBeansTest {
 
 	private static final String TEST_CONTEXT = "test";
 
-	private static Set<Class<Model>> activeClasses;
+	private static Set<Class<? extends Model<?>>> activeClasses;
 
 	private static DataSource ds;
 
@@ -146,7 +146,7 @@ public class ActiveBeansTest {
 
 	@Test
 	public void methodFilter() {
-		ActiveMethodFilter<? extends Model> filter = ActiveMethodFilter
+		ActiveMethodFilter<? extends Model<?>> filter = ActiveMethodFilter
 				.of(activeClass);
 		List<Method> handledMathods = new ArrayList<Method>();
 		handledMathods.addAll(Arrays.asList(activeInterf.getMethods()));
@@ -191,9 +191,9 @@ public class ActiveBeansTest {
 
 	@Test
 	public void noopModel() {
-		Model model = ActiveBeans.build(activeClass);
+		Model<?> model = ActiveBeans.build(activeClass);
 		assertTrue(activeClass.isInstance(model));
-		model.attributes(null);
+		assertNull(model.attrs(null));
 		assertFalse(model.destroy());
 		assertFalse(model.save());
 		assertFalse(model.update());
@@ -207,7 +207,7 @@ public class ActiveBeansTest {
 		assertNull(comments.add(null));
 		assertNull(comments.all());
 		assertNull(comments.all(null));
-		comments.attributes(null);
+		assertNull(comments.attrs(null));
 		assertNull(comments.build());
 		assertNull(comments.build(null));
 		assertNull(comments.create());
@@ -340,7 +340,9 @@ public class ActiveBeansTest {
 	public void migrateAll() {
 		List<String> tableNames = new ArrayList<String>();
 		List<String> dropStmts = new ArrayList<String>();
-		for (Class<Model> clazz : activeClasses) {
+		for (@SuppressWarnings("rawtypes")
+		Class<? extends Model> clazz : activeClasses) {
+			@SuppressWarnings("unchecked")
 			Table table = ActiveMigration.of(clazz, ds).table();
 			tableNames.add(table.name());
 			dropStmts.add(table.dropStatement());
@@ -386,8 +388,8 @@ public class ActiveBeansTest {
 
 	@Test
 	public void upgradeOne() {
-		ActiveMigration<? extends Model> migr = ActiveMigration.of(activeClass,
-				ds);
+		ActiveMigration<? extends Model<?>> migr = ActiveMigration.of(
+				activeClass, ds);
 		Table activeTable = migr.table();
 		List<String> colNames = new ArrayList<String>();
 		List<Column> cols = activeTable.columns();
@@ -415,7 +417,9 @@ public class ActiveBeansTest {
 		List<Table> tables = new ArrayList<Table>();
 		List<String> tableNames = new ArrayList<String>();
 		List<String> dropStmts = new ArrayList<String>();
-		for (Class<Model> clazz : activeClasses) {
+		for (@SuppressWarnings("rawtypes")
+		Class<? extends Model> clazz : activeClasses) {
+			@SuppressWarnings("unchecked")
 			Table table = ActiveMigration.of(clazz, ds).table();
 			tables.add(table);
 			tableNames.add(table.name());

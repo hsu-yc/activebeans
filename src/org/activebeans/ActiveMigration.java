@@ -5,7 +5,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-public class ActiveMigration<T extends Model> {
+public class ActiveMigration<T extends Model<T>> {
 
 	private static final String ASSOCIATION_SUFFIX = "_id";
 
@@ -37,8 +37,10 @@ public class ActiveMigration<T extends Model> {
 					.notNull(key || prop.required()).build());
 		}
 		for (Association belongsTo : ai.belongsTos()) {
+			@SuppressWarnings("rawtypes")
 			Class<? extends Model> belongsToClazz = belongsTo.with();
 			boolean notNull = belongsTo.required();
+			@SuppressWarnings("unchecked")
 			ActiveIntrospector<?> btci = ActiveIntrospector.of(belongsToClazz);
 			for (Property prop : btci.keys()) {
 				Class<?> type = prop.type();
@@ -58,8 +60,8 @@ public class ActiveMigration<T extends Model> {
 		table = new Table(tableName, cols);
 	}
 
-	public static <U extends Model> ActiveMigration<U> of(Class<U> activeClass,
-			DataSource ds) {
+	public static <U extends Model<U>> ActiveMigration<U> of(
+			Class<U> activeClass, DataSource ds) {
 		return new ActiveMigration<U>(activeClass, ds);
 	}
 

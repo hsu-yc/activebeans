@@ -2,7 +2,7 @@ package org.activebeans;
 
 import java.util.Map;
 
-public interface Models<T extends Model> extends Iterable<T> {
+public interface Models<T extends Model<T>> extends Iterable<T> {
 
 	boolean save();
 
@@ -10,7 +10,7 @@ public interface Models<T extends Model> extends Iterable<T> {
 
 	boolean update(Map<String, ?> attrs);
 
-	void attributes(Map<String, ?> attrs);
+	Models<T> attrs(Conditions<T> cond);
 
 	boolean destroy();
 
