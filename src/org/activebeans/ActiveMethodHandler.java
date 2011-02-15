@@ -123,8 +123,8 @@ public class ActiveMethodHandler<T extends Model<T>> implements MethodHandler {
 
 	private static boolean isCovariantReturn(Method m) {
 		return m.getDeclaringClass().equals(Models.class)
-				&& Arrays.asList(new String[] { "add", "all" }).contains(
-						m.getName());
+				&& Arrays.asList(new String[] { "add", "all", "attrs" })
+						.contains(m.getName());
 	}
 
 }
