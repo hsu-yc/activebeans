@@ -16,6 +16,7 @@ import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 
 import org.activebeans.Active;
+import org.activebeans.Conditions;
 import org.activebeans.Model;
 import org.activebeans.Models;
 import org.eclipse.jdt.core.dom.Modifier;
@@ -36,7 +37,6 @@ import org.eclipse.jdt.internal.compiler.ast.StringLiteral;
 import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
-import org.eclipse.jdt.internal.compiler.ast.Wildcard;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
 import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
@@ -269,8 +269,12 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		methods.add(covariantAllFinder(interf, interfRef,
 				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.add(covariantAllFinderWithOptions(interf, interfRef,
+				Eclipse.copyType(beanRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.add(covariantAdder(interf, interfRef,
+				Eclipse.copyType(beanRef, source),
+				ExtraCompilerModifiers.AccSemicolonBody, source));
+		methods.add(covariantAttrsMethod(interf, interfRef,
 				Eclipse.copyType(beanRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.addAll(new FinderMethodRetriever(node.up())
@@ -291,7 +295,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		method.returnType = Eclipse.copyType(type, source);
 		method.annotations = null;
 		method.arguments = null;
-		method.selector = ("all").toCharArray();
+		method.selector = "all".toCharArray();
 		method.binding = null;
 		method.thrownExceptions = null;
 		method.typeParameters = null;
@@ -302,29 +306,16 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 	}
 
 	private static MethodDeclaration covariantAllFinderWithOptions(
-			TypeDeclaration parent, TypeReference type, int modifier,
-			ASTNode source) {
+			TypeDeclaration parent, TypeReference type, TypeReference beanType,
+			int modifier, ASTNode source) {
 		int pS = source.sourceStart, pE = source.sourceEnd;
 		long p = (long) pS << 32 | pE;
-		char[][] strQName = Eclipse.fromQualifiedName(String.class
-				.getCanonicalName());
-		long[] poss = new long[strQName.length];
-		QualifiedTypeReference strRef = new QualifiedTypeReference(strQName,
-				poss);
-		strRef.sourceStart = pS;
-		strRef.sourceEnd = pE;
-		Eclipse.setGeneratedBy(strRef, source);
-		char[][] argType = Eclipse.fromQualifiedName(Map.class
+		char[][] argType = Eclipse.fromQualifiedName(Conditions.class
 				.getCanonicalName());
 		final TypeReference[][] typeArguments = new TypeReference[argType.length][];
-		long[] poss2 = new long[argType.length];
-		Arrays.fill(poss2, pS);
-		Wildcard wildcard = new Wildcard(Wildcard.UNBOUND);
-		wildcard.sourceStart = pS;
-		wildcard.sourceEnd = pE;
-		Eclipse.setGeneratedBy(wildcard, source);
-		typeArguments[argType.length - 1] = new TypeReference[] { strRef,
-				wildcard };
+		long[] poss = new long[argType.length];
+		Arrays.fill(poss, pS);
+		typeArguments[argType.length - 1] = new TypeReference[] { beanType };
 		ParameterizedQualifiedTypeReference argTypeRef = new ParameterizedQualifiedTypeReference(
 				argType, typeArguments, 0, poss);
 		Eclipse.setGeneratedBy(argTypeRef, source);
@@ -356,7 +347,43 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		method.returnType = Eclipse.copyType(rtnType, source);
 		method.annotations = null;
 		method.arguments = new Argument[] { arg };
-		method.selector = ("add").toCharArray();
+		method.selector = "add".toCharArray();
+		method.binding = null;
+		method.thrownExceptions = null;
+		method.typeParameters = null;
+		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
+		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
+		return method;
+	}
+
+	private static MethodDeclaration covariantAttrsMethod(
+			TypeDeclaration parent, TypeReference type, TypeReference beanType,
+			int modifier, ASTNode source) {
+		int pS = source.sourceStart, pE = source.sourceEnd;
+		long p = (long) pS << 32 | pE;
+		char[][] argType = Eclipse.fromQualifiedName(Conditions.class
+				.getCanonicalName());
+		final TypeReference[][] typeArguments = new TypeReference[argType.length][];
+		long[] poss = new long[argType.length];
+		Arrays.fill(poss, pS);
+		typeArguments[argType.length - 1] = new TypeReference[] { beanType };
+		ParameterizedQualifiedTypeReference argTypeRef = new ParameterizedQualifiedTypeReference(
+				argType, typeArguments, 0, poss);
+		Eclipse.setGeneratedBy(argTypeRef, source);
+		Argument param = new Argument("options".toCharArray(), p, argTypeRef,
+				Modifier.FINAL);
+		param.sourceStart = pS;
+		param.sourceEnd = pE;
+		Eclipse.setGeneratedBy(param, source);
+		MethodDeclaration method = new MethodDeclaration(
+				parent.compilationResult);
+		Eclipse.setGeneratedBy(method, source);
+		method.modifiers = modifier;
+		method.returnType = Eclipse.copyType(type, source);
+		method.annotations = null;
+		method.arguments = new Argument[] { param };
+		method.selector = "attrs".toCharArray();
 		method.binding = null;
 		method.thrownExceptions = null;
 		method.typeParameters = null;

@@ -1,6 +1,5 @@
 package org.activebeans;
 
-import java.util.Map;
 
 public interface Models<T extends Model<T>> extends Iterable<T> {
 
@@ -8,7 +7,7 @@ public interface Models<T extends Model<T>> extends Iterable<T> {
 
 	boolean update();
 
-	boolean update(Map<String, ?> attrs);
+	boolean update(Conditions<T> cond);
 
 	Models<T> attrs(Conditions<T> cond);
 
@@ -16,26 +15,26 @@ public interface Models<T extends Model<T>> extends Iterable<T> {
 
 	T build();
 
-	T build(Map<String, ?> attrs);
+	T build(Conditions<T> cond);
 
 	T create();
 
-	T create(Map<String, ?> attrs);
+	T create(Conditions<T> cond);
 
 	T get(Object key, Object... keys);
 
 	T first();
 
-	T first(Map<String, ?> conditions);
+	T first(Conditions<T> cond);
 
 	T last();
 
-	T last(Map<String, ?> conditions);
+	T last(Conditions<T> cond);
 
 	Models<T> add(T model);
 
 	Models<T> all();
 
-	Models<T> all(Map<String, ?> conditions);
+	Models<T> all(Conditions<T> cond);
 
 }
