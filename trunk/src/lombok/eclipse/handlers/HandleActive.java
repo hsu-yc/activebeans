@@ -4,7 +4,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,23 +100,32 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			QualifiedTypeReference activeTypeRef = new QualifiedTypeReference(
 					activateQName, poss);
 			Eclipse.setGeneratedBy(activeTypeRef, node.get());
-			char[][] baseQName = Eclipse.fromQualifiedName(Model.class
-					.getCanonicalName());
-			long[] poss2 = new long[baseQName.length];
-			Arrays.fill(poss2, node.get().sourceStart);
-			QualifiedTypeReference baseTypeRef = new QualifiedTypeReference(
-					baseQName, poss2);
-			Eclipse.setGeneratedBy(baseTypeRef, node.get());
 			TypeDeclaration beanType = (TypeDeclaration) node.up().get();
+			char[][] modelInterf = Eclipse.fromQualifiedName(Model.class
+					.getCanonicalName());
+			final TypeReference[][] typeArguments = new TypeReference[modelInterf.length][];
+			long[] poss3 = new long[modelInterf.length];
+			Arrays.fill(poss3, node.get().sourceStart);
+			SingleTypeReference beanRef = new SingleTypeReference(
+					beanType.name, node.get().sourceStart);
+			beanRef.sourceStart = node.get().sourceStart;
+			beanRef.sourceEnd = node.get().sourceEnd;
+			Eclipse.setGeneratedBy(beanRef, node.get());
+			typeArguments[modelInterf.length - 1] = new TypeReference[] { beanRef };
+			ParameterizedQualifiedTypeReference modelInterfRef = new ParameterizedQualifiedTypeReference(
+					modelInterf, typeArguments, 0, poss3);
+			modelInterfRef.sourceStart = node.get().sourceStart;
+			modelInterfRef.sourceEnd = node.get().sourceEnd;
+			Eclipse.setGeneratedBy(modelInterfRef, source);
 			beanType.modifiers |= ClassFileConstants.AccAbstract;
 			if (beanType.superInterfaces == null) {
 				beanType.superInterfaces = new TypeReference[] { activeTypeRef,
-						baseTypeRef };
+						modelInterfRef };
 			} else {
 				List<TypeReference> superItfs = new ArrayList<TypeReference>(
 						Arrays.asList(beanType.superInterfaces));
 				superItfs.add(activeTypeRef);
-				superItfs.add(baseTypeRef);
+				superItfs.add(modelInterfRef);
 				beanType.superInterfaces = superItfs
 						.toArray(new TypeReference[0]);
 			}
@@ -378,13 +386,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 
 }
 
-interface Definition {
-
-	List<String> methods();
-
-}
-
-class PropertyDefinition implements Definition {
+class PropertyDefinition {
 
 	private List<String> methods = new ArrayList<String>();
 
@@ -462,14 +464,9 @@ class PropertyDefinition implements Definition {
 		return method;
 	}
 
-	@Override
-	public List<String> methods() {
-		return Collections.unmodifiableList(methods);
-	}
-
 }
 
-class BelongsToDefinition implements Definition {
+class BelongsToDefinition {
 
 	private String name;
 
@@ -528,14 +525,9 @@ class BelongsToDefinition implements Definition {
 		return method;
 	}
 
-	@Override
-	public List<String> methods() {
-		return null;
-	}
-
 }
 
-class HasManyDefinition implements Definition {
+class HasManyDefinition {
 
 	private String name;
 
@@ -570,11 +562,6 @@ class HasManyDefinition implements Definition {
 		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
 		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
 		return method;
-	}
-
-	@Override
-	public List<String> methods() {
-		return null;
 	}
 
 }

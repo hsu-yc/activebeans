@@ -11,7 +11,7 @@ import java.util.Set;
 import com.impetus.annovention.ClasspathDiscoverer;
 import com.impetus.annovention.listener.ClassAnnotationDiscoveryListener;
 
-public class ActiveIntrospector<T extends Model> {
+public class ActiveIntrospector<T extends Model<T>> {
 
 	private Active at;
 
@@ -23,9 +23,9 @@ public class ActiveIntrospector<T extends Model> {
 
 	private Map<String, Property> propMap = new HashMap<String, Property>();
 
-	private Map<Class<? extends Model>, Association> belongsToMap = new HashMap<Class<? extends Model>, Association>();
+	private Map<Class<? extends Model<?>>, Association> belongsToMap = new HashMap<Class<? extends Model<?>>, Association>();
 
-	private Map<Class<? extends Model>, Association> hasManyMap = new HashMap<Class<? extends Model>, Association>();
+	private Map<Class<? extends Model<?>>, Association> hasManyMap = new HashMap<Class<? extends Model<?>>, Association>();
 
 	private Map<Property, PropertyAccessors> accessorMap = new HashMap<Property, PropertyAccessors>();
 
@@ -35,22 +35,22 @@ public class ActiveIntrospector<T extends Model> {
 
 	private List<Property> keys = new ArrayList<Property>();
 
-	private static String interfName(Class<? extends Model> activeClass) {
+	private static String interfName(Class<? extends Model<?>> activeClass) {
 		return activeClass.getPackage().getName() + ".Active"
 				+ activeClass.getSimpleName();
 	}
 
 	private static String collectionInterfName(
-			Class<? extends Model> activeClass) {
+			Class<? extends Model<?>> activeClass) {
 		return activeClass.getName() + "$Models";
 	}
 
-	private static Class<?> interf(Class<? extends Model> activeClass) {
+	private static Class<?> interf(Class<? extends Model<?>> activeClass) {
 		return ActiveBeansUtils.classNameMap(activeClass.getInterfaces()).get(
 				interfName(activeClass));
 	}
 
-	private static <T extends Model> Class<? extends Models<T>> collectionInterf(
+	private static <T extends Model<T>> Class<? extends Models<T>> collectionInterf(
 			Class<T> activeClass) {
 		@SuppressWarnings("unchecked")
 		Class<? extends Models<T>> clazz = (Class<? extends Models<T>>) ActiveBeansUtils
@@ -83,14 +83,14 @@ public class ActiveIntrospector<T extends Model> {
 		}
 	}
 
-	public static <U extends Model> ActiveIntrospector<U> of(
+	public static <U extends Model<U>> ActiveIntrospector<U> of(
 			Class<U> activeClass) {
 		return new ActiveIntrospector<U>(activeClass);
 	}
 
-	public static <U extends Model> Set<Class<U>> activeClasses() {
+	public static Set<Class<? extends Model<?>>> activeClasses() {
 		ClasspathDiscoverer disc = new ClasspathDiscoverer();
-		final Set<Class<U>> classes = new HashSet<Class<U>>();
+		final Set<Class<? extends Model<?>>> classes = new HashSet<Class<? extends Model<?>>>();
 		disc.addAnnotationListener(new ClassAnnotationDiscoveryListener() {
 			@Override
 			public String[] supportedAnnotations() {
@@ -103,7 +103,7 @@ public class ActiveIntrospector<T extends Model> {
 					@SuppressWarnings("rawtypes")
 					Class rawClass = Class.forName(clazz);
 					@SuppressWarnings("unchecked")
-					Class<U> activeClass = rawClass;
+					Class<Model<?>> activeClass = rawClass;
 					classes.add(activeClass);
 				} catch (ClassNotFoundException e) {
 					throw new ActiveBeansException(e);
@@ -138,7 +138,7 @@ public class ActiveIntrospector<T extends Model> {
 		return new ArrayList<Property>(propMap.values());
 	}
 
-	public Association belongsTo(Class<? extends Model> model) {
+	public Association belongsTo(Class<? extends Model<?>> model) {
 		return belongsToMap.get(model);
 	}
 
@@ -146,7 +146,7 @@ public class ActiveIntrospector<T extends Model> {
 		return new ArrayList<Association>(belongsToMap.values());
 	}
 
-	public Association hasMany(Class<? extends Model> model) {
+	public Association hasMany(Class<? extends Model<?>> model) {
 		return hasManyMap.get(model);
 	}
 
