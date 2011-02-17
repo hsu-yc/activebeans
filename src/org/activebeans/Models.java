@@ -1,7 +1,7 @@
 package org.activebeans;
 
 
-public interface Models<T extends Model<T>> extends Iterable<T> {
+public interface Models<T extends Model<T, ?>> extends Iterable<T> {
 
 	boolean save();
 

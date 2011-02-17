@@ -5,7 +5,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-public class ActiveMigration<T extends Model<T>> {
+public class ActiveMigration<T extends Model<T, ?>> {
 
 	private static final String ASSOCIATION_SUFFIX = "_id";
 
@@ -60,7 +60,7 @@ public class ActiveMigration<T extends Model<T>> {
 		table = new Table(tableName, cols);
 	}
 
-	public static <U extends Model<U>> ActiveMigration<U> of(
+	public static <U extends Model<U, ?>> ActiveMigration<U> of(
 			Class<U> activeClass, DataSource ds) {
 		return new ActiveMigration<U>(activeClass, ds);
 	}
