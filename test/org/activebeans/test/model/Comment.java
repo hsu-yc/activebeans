@@ -6,7 +6,7 @@ import org.activebeans.Property;
 
 @Active(
 	with = {
-		@Property(name = "id", type = long.class, key=true, autoIncrement=true),
+		@Property(name = "id", type = Long.class, key=true, autoIncrement=true),
 		@Property(name = "body", type = String.class)
 	},
 	belongsTo = @Association(with = Post.class)
@@ -16,17 +16,5 @@ public class Comment {
 	public static Models popular() {
 		return null;
 	}
-	
-	/*
-	public interface Options {
-		
-		SingularOption<Options, Long> id();
-		
-		SingularOption<Options, String> body();
-		
-		SingularOption<Options, Post.Options> post();
-		
-	}
-	*/
 
 }

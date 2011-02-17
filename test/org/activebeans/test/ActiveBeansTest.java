@@ -159,7 +159,7 @@ public class ActiveBeansTest {
 	@Test
 	public void propertyAccessors() {
 		Post post = ActiveBeans.build(Post.class);
-		long id = 1;
+		Long id = 1L;
 		post.setId(id);
 		assertEquals(id, post.getId());
 		String subject = "foo";
