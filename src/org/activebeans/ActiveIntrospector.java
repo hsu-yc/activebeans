@@ -19,7 +19,7 @@ public class ActiveIntrospector<T extends Model<T, ?>> {
 
 	private Class<?> interf;
 
-	private Class<? extends Models<T>> collectionInterf;
+	private Class<? extends Models<T, ?>> collectionInterf;
 
 	private Map<String, Property> propMap = new HashMap<String, Property>();
 
@@ -50,10 +50,10 @@ public class ActiveIntrospector<T extends Model<T, ?>> {
 				interfName(activeClass));
 	}
 
-	private static <T extends Model<T, ?>> Class<? extends Models<T>> collectionInterf(
+	private static <T extends Model<T, ?>> Class<? extends Models<T, ?>> collectionInterf(
 			Class<T> activeClass) {
 		@SuppressWarnings("unchecked")
-		Class<? extends Models<T>> clazz = (Class<? extends Models<T>>) ActiveBeansUtils
+		Class<? extends Models<T, ?>> clazz = (Class<? extends Models<T, ?>>) ActiveBeansUtils
 				.classNameMap(activeClass.getDeclaredClasses()).get(
 						collectionInterfName(activeClass));
 		return clazz;
@@ -126,7 +126,7 @@ public class ActiveIntrospector<T extends Model<T, ?>> {
 		return interf;
 	}
 
-	public Class<? extends Models<T>> activeCollectionInterface() {
+	public Class<? extends Models<T, ?>> activeCollectionInterface() {
 		return collectionInterf;
 	}
 

@@ -137,12 +137,12 @@ public class ActiveBeans {
 		return null;
 	}
 
-	public static <T extends Models<U>, U extends Model<U, ?>> T all(
+	public static <T extends Models<U, ?>, U extends Model<U, ?>> T all(
 			Class<T> modelsClass) {
 		return null;
 	}
 
-	public static <T extends Models<U>, U extends Model<U, ?>> T all(
+	public static <T extends Models<U, ?>, U extends Model<U, ?>> T all(
 			Class<T> modelsClass, Map<String, ?> conditions) {
 		return null;
 	}

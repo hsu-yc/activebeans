@@ -141,9 +141,9 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 				beanType.superInterfaces = superItfs
 						.toArray(new TypeReference[0]);
 			}
-			TypeDeclaration modelsInterf = modelsInterface(beanType,
-					ClassFileConstants.AccPublic
-							| ClassFileConstants.AccInterface, node);
+			TypeDeclaration modelsInterf = modelsInterface(beanType, 
+				Eclipse.copyType(optionsRef, node.get()),
+				ClassFileConstants.AccPublic | ClassFileConstants.AccInterface, node);
 			injectType(beanType, modelsInterf);
 			injectType(beanType, optionsInterf);
 			node.up().add(modelsInterf, Kind.TYPE).recursiveSetHandled();
@@ -250,7 +250,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 	}
 
 	private static TypeDeclaration modelsInterface(TypeDeclaration bean,
-			int modifier, EclipseNode node) {
+			TypeReference optionsRef, int modifier, EclipseNode node) {
 		ASTNode source = node.get();
 		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
 		Eclipse.setGeneratedBy(interf, source);
@@ -266,7 +266,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		beanRef.sourceStart = source.sourceStart;
 		beanRef.sourceEnd = source.sourceEnd;
 		Eclipse.setGeneratedBy(beanRef, source);
-		typeArguments[superInterf.length - 1] = new TypeReference[] { beanRef };
+		typeArguments[superInterf.length - 1] = new TypeReference[] { beanRef, optionsRef };
 		ParameterizedQualifiedTypeReference superInterfRef = new ParameterizedQualifiedTypeReference(
 				superInterf, typeArguments, 0, poss);
 		superInterfRef.sourceStart = source.sourceStart;
@@ -288,7 +288,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 				Eclipse.copyType(beanRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.add(covariantAttrsMethod(interf, interfRef,
-				Eclipse.copyType(beanRef, source),
+				Eclipse.copyType(optionsRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.addAll(new FinderMethodRetriever(node.up())
 				.extractInterfaceMethods(interf, source));
@@ -384,20 +384,11 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 	}
 
 	private static MethodDeclaration covariantAttrsMethod(
-			TypeDeclaration parent, TypeReference type, TypeReference beanType,
+			TypeDeclaration parent, TypeReference type, TypeReference optionsType,
 			int modifier, ASTNode source) {
 		int pS = source.sourceStart, pE = source.sourceEnd;
 		long p = (long) pS << 32 | pE;
-		char[][] argType = Eclipse.fromQualifiedName(Conditions.class
-				.getCanonicalName());
-		final TypeReference[][] typeArguments = new TypeReference[argType.length][];
-		long[] poss = new long[argType.length];
-		Arrays.fill(poss, pS);
-		typeArguments[argType.length - 1] = new TypeReference[] { beanType };
-		ParameterizedQualifiedTypeReference argTypeRef = new ParameterizedQualifiedTypeReference(
-				argType, typeArguments, 0, poss);
-		Eclipse.setGeneratedBy(argTypeRef, source);
-		Argument param = new Argument("options".toCharArray(), p, argTypeRef,
+		Argument param = new Argument("options".toCharArray(), p, optionsType,
 				Modifier.FINAL);
 		param.sourceStart = pS;
 		param.sourceEnd = pE;
