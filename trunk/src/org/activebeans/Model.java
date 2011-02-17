@@ -1,15 +1,15 @@
 package org.activebeans;
 
 
-public interface Model<T extends Model<T>> {
+public interface Model<T extends Model<T, U>, U> {
 
 	boolean save();
 
 	boolean update();
 
-	boolean update(Conditions<T> attrs);
+	boolean update(U attrs);
 
-	T attrs(Conditions<T> attrs);
+	T attrs(U attrs);
 
 	boolean destroy();
 

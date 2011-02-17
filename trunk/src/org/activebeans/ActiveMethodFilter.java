@@ -7,7 +7,7 @@ import java.util.Set;
 
 import javassist.util.proxy.MethodFilter;
 
-public class ActiveMethodFilter<T extends Model<T>> implements MethodFilter {
+public class ActiveMethodFilter<T extends Model<T, ?>> implements MethodFilter {
 
 	private Set<Method> methods = new HashSet<Method>();
 
@@ -28,7 +28,7 @@ public class ActiveMethodFilter<T extends Model<T>> implements MethodFilter {
 		methods.addAll(Arrays.asList(Model.class.getMethods()));
 	}
 
-	public static <U extends Model<U>> ActiveMethodFilter<U> of(
+	public static <U extends Model<U, ?>> ActiveMethodFilter<U> of(
 			Class<U> activeClass) {
 		return new ActiveMethodFilter<U>(activeClass);
 	}

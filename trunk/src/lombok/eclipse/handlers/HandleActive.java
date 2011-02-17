@@ -107,11 +107,23 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			long[] poss3 = new long[modelInterf.length];
 			Arrays.fill(poss3, node.get().sourceStart);
 			SingleTypeReference beanRef = new SingleTypeReference(
-					beanType.name, node.get().sourceStart);
+					 beanType.name, node.get().sourceStart);
 			beanRef.sourceStart = node.get().sourceStart;
 			beanRef.sourceEnd = node.get().sourceEnd;
 			Eclipse.setGeneratedBy(beanRef, node.get());
-			typeArguments[modelInterf.length - 1] = new TypeReference[] { beanRef };
+			TypeDeclaration optionsInterf = optionsInterface(beanType,
+					ClassFileConstants.AccPublic
+							| ClassFileConstants.AccInterface, node);
+			char[][] qualifiedOptionsName = Eclipse.fromQualifiedName(
+				Eclipse.toQualifiedName(source.currentPackage.tokens) + "." +
+				String.valueOf(beanType.name) + "." +String.valueOf(optionsInterf.name));
+			long[] poss2 = new long[qualifiedOptionsName.length];
+			Arrays.fill(poss2, node.get().sourceStart);
+			QualifiedTypeReference optionsRef = new QualifiedTypeReference(qualifiedOptionsName, poss2);
+			optionsRef.sourceStart = node.get().sourceStart;
+			optionsRef.sourceEnd = node.get().sourceEnd;
+			Eclipse.setGeneratedBy(optionsRef, node.get());
+			typeArguments[modelInterf.length - 1] = new TypeReference[] { beanRef, optionsRef };
 			ParameterizedQualifiedTypeReference modelInterfRef = new ParameterizedQualifiedTypeReference(
 					modelInterf, typeArguments, 0, poss3);
 			modelInterfRef.sourceStart = node.get().sourceStart;
@@ -133,6 +145,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 					ClassFileConstants.AccPublic
 							| ClassFileConstants.AccInterface, node);
 			injectType(beanType, modelsInterf);
+			injectType(beanType, optionsInterf);
 			node.up().add(modelsInterf, Kind.TYPE).recursiveSetHandled();
 		} catch (Exception e) {
 			StringWriter msg = new StringWriter();
@@ -280,6 +293,19 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		methods.addAll(new FinderMethodRetriever(node.up())
 				.extractInterfaceMethods(interf, source));
 		interf.methods = methods.toArray(new MethodDeclaration[0]);
+		interf.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+		interf.bodyStart = interf.declarationSourceStart = interf.sourceStart = source.sourceStart;
+		interf.bodyEnd = interf.declarationSourceEnd = interf.sourceEnd = source.sourceEnd;
+		return interf;
+	}
+	
+	private static TypeDeclaration optionsInterface(TypeDeclaration bean,
+			int modifier, EclipseNode node) {
+		ASTNode source = node.get();
+		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
+		Eclipse.setGeneratedBy(interf, source);
+		interf.name = "Options".toCharArray();
+		interf.modifiers = modifier;
 		interf.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 		interf.bodyStart = interf.declarationSourceStart = interf.sourceStart = source.sourceStart;
 		interf.bodyEnd = interf.declarationSourceEnd = interf.sourceEnd = source.sourceEnd;

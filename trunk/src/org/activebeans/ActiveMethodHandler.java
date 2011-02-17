@@ -9,7 +9,7 @@ import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
-public class ActiveMethodHandler<T extends Model<T>> implements MethodHandler {
+public class ActiveMethodHandler<T extends Model<T, ?>> implements MethodHandler {
 
 	private ActiveIntrospector<T> intro;
 
@@ -27,7 +27,7 @@ public class ActiveMethodHandler<T extends Model<T>> implements MethodHandler {
 
 	private Map<Method, Association> hasManyGetterMap = new HashMap<Method, Association>();
 
-	private Map<Association, Models<? extends Model<?>>> hasManyMap = new HashMap<Association, Models<? extends Model<?>>>();
+	private Map<Association, Models<? extends Model<?, ?>>> hasManyMap = new HashMap<Association, Models<? extends Model<?, ?>>>();
 
 	private ActiveMethodHandler(Class<T> activeClass) {
 		intro = ActiveIntrospector.of(activeClass);
@@ -46,7 +46,7 @@ public class ActiveMethodHandler<T extends Model<T>> implements MethodHandler {
 		}
 	}
 
-	public static <U extends Model<U>> ActiveMethodHandler<U> of(
+	public static <U extends Model<U, ?>> ActiveMethodHandler<U> of(
 			Class<U> activeClass) {
 		return new ActiveMethodHandler<U>(activeClass);
 	}
@@ -69,12 +69,12 @@ public class ActiveMethodHandler<T extends Model<T>> implements MethodHandler {
 			rtn = Void.TYPE;
 		} else if (hasManyGetterMap.containsKey(method)) {
 			Association hasMany = hasManyGetterMap.get(method);
-			Models<? extends Model<?>> models = hasManyMap.get(hasMany);
+			Models<? extends Model<?, ?>> models = hasManyMap.get(hasMany);
 			if (models == null) {
 				@SuppressWarnings("rawtypes")
 				Class<? extends Model> with = hasMany.with();
 				@SuppressWarnings("unchecked")
-				Class<? extends Models<? extends Model<?>>> collectionInterface = ActiveIntrospector
+				Class<? extends Models<? extends Model<?, ?>>> collectionInterface = ActiveIntrospector
 						.of(with).activeCollectionInterface();
 				ProxyFactory f = new ProxyFactory();
 				f.setInterfaces(new Class[] { collectionInterface });

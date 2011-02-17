@@ -2,10 +2,7 @@ package org.activebeans.test.model;
 
 import org.activebeans.Active;
 import org.activebeans.Association;
-import org.activebeans.AssociationConditions;
-import org.activebeans.Conditions;
 import org.activebeans.Property;
-import org.activebeans.PropertyCondition;
 
 @Active(
 	with = {
@@ -20,20 +17,16 @@ public class Comment {
 		return null;
 	}
 	
-	public static Conditions<Comment> conditions(){
-		return null;
+	/*
+	public interface Options {
+		
+		SingularOption<Options, Long> id();
+		
+		SingularOption<Options, String> body();
+		
+		SingularOption<Options, Post.Options> post();
+		
 	}
-	
-	public static PropertyCondition<Comment, Long> id(){
-		return null;
-	}
-	
-	public static PropertyCondition<Comment, String> body(){
-		return null;
-	}
-	
-	public static AssociationConditions<Comment, Post> post(){
-		return null;
-	}
+	*/
 
 }
