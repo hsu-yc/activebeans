@@ -1,25 +1,25 @@
 package org.activebeans;
 
 
-public interface Models<T extends Model<T, ?>> extends Iterable<T> {
+public interface Models<T extends Model<T, U>, U> extends Iterable<T> {
 
 	boolean save();
 
 	boolean update();
 
-	boolean update(Conditions<T> cond);
+	boolean update(U opts);
 
-	Models<T> attrs(Conditions<T> cond);
+	Models<T, U> attrs(U opts);
 
 	boolean destroy();
 
 	T build();
 
-	T build(Conditions<T> cond);
+	T build(U opts);
 
 	T create();
 
-	T create(Conditions<T> cond);
+	T create(U opts);
 
 	T get(Object key, Object... keys);
 
@@ -31,10 +31,10 @@ public interface Models<T extends Model<T, ?>> extends Iterable<T> {
 
 	T last(Conditions<T> cond);
 
-	Models<T> add(T model);
+	Models<T, U> add(T model);
 
-	Models<T> all();
+	Models<T, U> all();
 
-	Models<T> all(Conditions<T> cond);
+	Models<T, U> all(Conditions<T> cond);
 
 }
