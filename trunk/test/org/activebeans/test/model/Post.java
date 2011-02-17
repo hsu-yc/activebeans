@@ -9,7 +9,7 @@ import org.activebeans.Property;
 
 @Active(
 	with = { 
-		@Property(name = "id", type = long.class, key=true, autoIncrement=true),
+		@Property(name = "id", type = Long.class, key=true, autoIncrement=true),
 		@Property(name = "subject", type = String.class),
 		@Property(name = "created", type = Date.class) 
 	}, 
@@ -24,19 +24,5 @@ public class Post {
 	public void world(){
 		
 	}
-	
-	/*
-	public interface Options {
-		
-		SingularOption<Options, Long> id();
-		
-		SingularOption<Options, String> subject();
-		
-		SingularOption<Options, Date> created();
-		
-		CollectionOption<Options, Comment.Options> comments();
-		
-	}
-	*/
 	
 }

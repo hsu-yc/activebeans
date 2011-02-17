@@ -78,6 +78,10 @@ public class ActiveBeans {
 		}
 		ActiveBeansUtils.executeSql(defaultDs, stmts);
 	}
+	
+	public static <T extends Model<T, U>, U> U options(Class<T> activeClass){
+		return null;
+	}
 
 	public static <T extends Model<T, ?>> T build(Class<T> activeClass) {
 		ProxyFactory f = new ProxyFactory();
