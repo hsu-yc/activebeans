@@ -20,10 +20,10 @@ class JavaBeanHasManyAssociationMethods implements HasManyAssociationMethods {
 			for (PropertyDescriptor pd : Introspector.getBeanInfo(activeInterf)
 					.getPropertyDescriptors()) {
 				Type[] types = pd.getPropertyType().getGenericInterfaces();
-				if (types.length == 1 && types[0] instanceof ParameterizedType) {
+				if (types.length > 0 && types[0] instanceof ParameterizedType) {
 					ParameterizedType paramType = (ParameterizedType) types[0];
 					Type[] typeArgs = paramType.getActualTypeArguments();
-					if (typeArgs.length == 1
+					if (typeArgs.length > 0
 							&& typeArgs[0].equals(hasMany.with())) {
 						retrieve = pd.getReadMethod();
 					}
