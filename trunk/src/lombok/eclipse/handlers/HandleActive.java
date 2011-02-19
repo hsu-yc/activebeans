@@ -18,6 +18,7 @@ import lombok.eclipse.EclipseNode;
 
 import org.activebeans.Active;
 import org.activebeans.CollectionOption;
+import org.activebeans.Condition;
 import org.activebeans.Conditions;
 import org.activebeans.Model;
 import org.activebeans.Models;
@@ -59,6 +60,9 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			TypeDeclaration optionsInterf = optionsInterface(beanType,
 					ClassFileConstants.AccPublic
 							| ClassFileConstants.AccInterface, node);
+			TypeDeclaration conditionsInterf = conditionsInterface(beanType,
+					ClassFileConstants.AccPublic
+							| ClassFileConstants.AccInterface, node);
 			char[][] qualifiedOptionsName = Eclipse.fromQualifiedName(
 					Eclipse.toQualifiedName(source.currentPackage.tokens) + "." +
 					String.valueOf(beanType.name) + "." +String.valueOf(optionsInterf.name));
@@ -68,6 +72,15 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			optionsRef.sourceStart = node.get().sourceStart;
 			optionsRef.sourceEnd = node.get().sourceEnd;
 			Eclipse.setGeneratedBy(optionsRef, node.get());
+			char[][] qualifiedConditionsName = Eclipse.fromQualifiedName(
+					Eclipse.toQualifiedName(source.currentPackage.tokens) + "." +
+					String.valueOf(beanType.name) + "." +String.valueOf(conditionsInterf.name));
+			long[] poss4 = new long[qualifiedConditionsName.length];
+			Arrays.fill(poss4, node.get().sourceStart);
+			QualifiedTypeReference conditionsRef = new QualifiedTypeReference(qualifiedConditionsName, poss4);
+			conditionsRef.sourceStart = node.get().sourceStart;
+			conditionsRef.sourceEnd = node.get().sourceEnd;
+			Eclipse.setGeneratedBy(conditionsRef, node.get());
 			char[][] modelInterf = Eclipse.fromQualifiedName(Model.class
 					.getCanonicalName());
 			final TypeReference[][] typeArguments = new TypeReference[modelInterf.length][];
@@ -89,9 +102,10 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			if (!valdateAtLeastOneKey(activeBeanProps)) {
 				node.addError("You MUST configure at least one key property on your bean.");
 			}
-			List<PropertyDefinition> props = properties(activeBeanProps, optionsRef);
+			List<PropertyDefinition> props = properties(activeBeanProps, optionsRef, conditionsRef);
 			List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
 			List<MethodDeclaration> optMethods = new ArrayList<MethodDeclaration>();
+			List<MethodDeclaration> condMethods = new ArrayList<MethodDeclaration>();
 			for (PropertyDefinition p : props) {
 				MethodDeclaration getter = p.getter(activeItf,
 						ExtraCompilerModifiers.AccSemicolonBody, node.get());
@@ -100,9 +114,10 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 						ExtraCompilerModifiers.AccSemicolonBody, node.get());
 				methods.add(setter);
 				optMethods.add(p.option(optionsInterf, ExtraCompilerModifiers.AccSemicolonBody, node.get()));
+				condMethods.add(p.condition(conditionsInterf, ExtraCompilerModifiers.AccSemicolonBody, node.get()));
 			}
 			List<BelongsToDefinition> belongTos = belongsTos(memberMap(
-					ast.memberValuePairs()).get("belongsTo"), optionsRef);
+					ast.memberValuePairs()).get("belongsTo"), optionsRef, conditionsRef);
 			for (BelongsToDefinition b : belongTos) {
 				MethodDeclaration getter = b.getter(activeItf,
 						ExtraCompilerModifiers.AccSemicolonBody, node.get());
@@ -111,17 +126,20 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 						ExtraCompilerModifiers.AccSemicolonBody, node.get());
 				methods.add(setter);
 				optMethods.add(b.option(optionsInterf, ExtraCompilerModifiers.AccSemicolonBody, node.get()));
+				condMethods.add(b.condition(conditionsInterf, ExtraCompilerModifiers.AccSemicolonBody, node.get()));
 			}
 			List<HasManyDefinition> hasManys = hasManys(memberMap(
-					ast.memberValuePairs()).get("hasMany"), optionsRef);
+					ast.memberValuePairs()).get("hasMany"), optionsRef, conditionsRef);
 			for (HasManyDefinition h : hasManys) {
 				MethodDeclaration getter = h.getter(activeItf,
 						ExtraCompilerModifiers.AccSemicolonBody, node.get());
 				methods.add(getter);
 				optMethods.add(h.option(optionsInterf, ExtraCompilerModifiers.AccSemicolonBody, node.get()));
+				condMethods.add(h.condition(conditionsInterf, ExtraCompilerModifiers.AccSemicolonBody, node.get()));
 			}
 			activeItf.methods = methods.toArray(new AbstractMethodDeclaration[0]);
 			optionsInterf.methods = optMethods.toArray(new AbstractMethodDeclaration[0]);
+			conditionsInterf.methods = condMethods.toArray(new AbstractMethodDeclaration[0]);
 			List<TypeDeclaration> types = new ArrayList<TypeDeclaration>(
 					Arrays.asList(source.types));
 			types.add(activeItf);
@@ -153,6 +171,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 				ClassFileConstants.AccPublic | ClassFileConstants.AccInterface, node);
 			injectType(beanType, modelsInterf);
 			injectType(beanType, optionsInterf);
+			injectType(beanType, conditionsInterf);
 			node.up().add(modelsInterf, Kind.TYPE).recursiveSetHandled();
 		} catch (Exception e) {
 			StringWriter msg = new StringWriter();
@@ -181,7 +200,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 	}
 
 	private static List<PropertyDefinition> properties(
-			Expression activeBeanProps, TypeReference beanType) {
+			Expression activeBeanProps, TypeReference options, TypeReference conditions) {
 		List<PropertyDefinition> props = new ArrayList<PropertyDefinition>();
 		if (activeBeanProps instanceof Annotation) {
 			Annotation activeBeanProp = (Annotation) activeBeanProps;
@@ -190,46 +209,46 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			props.add(new PropertyDefinition(
 					String.valueOf(((StringLiteral) propMembers.get("name"))
 							.source()), ((ClassLiteralAccess) propMembers
-							.get("type")).type, beanType));
+							.get("type")).type, options, conditions));
 		} else if (activeBeanProps instanceof ArrayInitializer) {
 			ArrayInitializer propArray = (ArrayInitializer) activeBeanProps;
 			for (Expression propAnnotation : propArray.expressions) {
-				props.addAll(properties(propAnnotation, beanType));
+				props.addAll(properties(propAnnotation, options, conditions));
 			}
 		}
 		return props;
 	}
 
 	private static List<BelongsToDefinition> belongsTos(
-			Expression activeBeanProps, TypeReference beanType) {
+			Expression activeBeanProps, TypeReference options, TypeReference conditions) {
 		List<BelongsToDefinition> belongsTos = new ArrayList<BelongsToDefinition>();
 		if (activeBeanProps instanceof Annotation) {
 			Annotation activeBeanProp = (Annotation) activeBeanProps;
 			Map<String, Expression> propMembers = memberMap(activeBeanProp
 					.memberValuePairs());
 			TypeReference type = ((ClassLiteralAccess) propMembers.get("with")).type;
-			belongsTos.add(new BelongsToDefinition(type, beanType));
+			belongsTos.add(new BelongsToDefinition(type, options, conditions));
 		} else if (activeBeanProps instanceof ArrayInitializer) {
 			ArrayInitializer propArray = (ArrayInitializer) activeBeanProps;
 			for (Expression propAnnotation : propArray.expressions) {
-				belongsTos.addAll(belongsTos(propAnnotation, beanType));
+				belongsTos.addAll(belongsTos(propAnnotation, options, conditions));
 			}
 		}
 		return belongsTos;
 	}
 
-	private static List<HasManyDefinition> hasManys(Expression activeBeanProps, TypeReference optionType) {
+	private static List<HasManyDefinition> hasManys(Expression activeBeanProps, TypeReference options, TypeReference conditions) {
 		List<HasManyDefinition> hasManys = new ArrayList<HasManyDefinition>();
 		if (activeBeanProps instanceof Annotation) {
 			Annotation activeBeanProp = (Annotation) activeBeanProps;
 			Map<String, Expression> propMembers = memberMap(activeBeanProp
 					.memberValuePairs());
 			hasManys.add(new HasManyDefinition(
-					((ClassLiteralAccess) propMembers.get("with")).type, optionType));
+					((ClassLiteralAccess) propMembers.get("with")).type, options, conditions));
 		} else if (activeBeanProps instanceof ArrayInitializer) {
 			ArrayInitializer propArray = (ArrayInitializer) activeBeanProps;
 			for (Expression propAnnotation : propArray.expressions) {
-				hasManys.addAll(hasManys(propAnnotation, optionType));
+				hasManys.addAll(hasManys(propAnnotation, options, conditions));
 			}
 		}
 		return hasManys;
@@ -312,6 +331,19 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
 		Eclipse.setGeneratedBy(interf, source);
 		interf.name = "Options".toCharArray();
+		interf.modifiers = modifier;
+		interf.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+		interf.bodyStart = interf.declarationSourceStart = interf.sourceStart = source.sourceStart;
+		interf.bodyEnd = interf.declarationSourceEnd = interf.sourceEnd = source.sourceEnd;
+		return interf;
+	}
+	
+	private static TypeDeclaration conditionsInterface(TypeDeclaration bean,
+			int modifier, EclipseNode node) {
+		ASTNode source = node.get();
+		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
+		Eclipse.setGeneratedBy(interf, source);
+		interf.name = "Conditions".toCharArray();
 		interf.modifiers = modifier;
 		interf.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 		interf.bodyStart = interf.declarationSourceStart = interf.sourceStart = source.sourceStart;
@@ -443,12 +475,15 @@ class PropertyDefinition {
 
 	private TypeReference type;
 	
-	private TypeReference beanType;
+	private TypeReference options;
+	
+	private TypeReference conditions;
 
-	PropertyDefinition(String name, TypeReference type, TypeReference beanType) {
+	PropertyDefinition(String name, TypeReference type, TypeReference options, TypeReference conditions) {
 		this.name = name;
 		this.type = type;
-		this.beanType = beanType;
+		this.options = options;
+		this.conditions = conditions;
 	}
 
 	public String name() {
@@ -509,15 +544,15 @@ class PropertyDefinition {
 	
 	public MethodDeclaration option(TypeDeclaration parent, int modifier,
 			ASTNode source) {
-		char[][] modelInterf = Eclipse.fromQualifiedName(SingularOption.class
+		char[][] optionInterf = Eclipse.fromQualifiedName(SingularOption.class
 				.getCanonicalName());
-		final TypeReference[][] typeArguments = new TypeReference[modelInterf.length][];
-		long[] poss3 = new long[modelInterf.length];
+		final TypeReference[][] typeArguments = new TypeReference[optionInterf.length][];
+		long[] poss3 = new long[optionInterf.length];
 		Arrays.fill(poss3, source.sourceStart);
-		typeArguments[modelInterf.length - 1] = new TypeReference[] { 
-			Eclipse.copyType(beanType, source),  Eclipse.copyType(type, source)};
+		typeArguments[optionInterf.length - 1] = new TypeReference[] { 
+			Eclipse.copyType(options, source),  Eclipse.copyType(type, source)};
 		ParameterizedQualifiedTypeReference optionType = new ParameterizedQualifiedTypeReference(
-				modelInterf, typeArguments, 0, poss3);
+				optionInterf, typeArguments, 0, poss3);
 		optionType.sourceStart = source.sourceStart;
 		optionType.sourceEnd = source.sourceEnd;
 		Eclipse.setGeneratedBy(optionType, source);
@@ -526,6 +561,37 @@ class PropertyDefinition {
 		Eclipse.setGeneratedBy(method, source);
 		method.modifiers = modifier;
 		method.returnType = optionType;
+		method.annotations = null;
+		method.arguments = null;
+		method.selector = name.toCharArray();
+		method.binding = null;
+		method.thrownExceptions = null;
+		method.typeParameters = null;
+		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
+		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
+		return method;
+	}
+	
+	public MethodDeclaration condition(TypeDeclaration parent, int modifier,
+			ASTNode source) {
+		char[][] conditionInterf = Eclipse.fromQualifiedName(Condition.class
+				.getCanonicalName());
+		final TypeReference[][] typeArguments = new TypeReference[conditionInterf.length][];
+		long[] poss3 = new long[conditionInterf.length];
+		Arrays.fill(poss3, source.sourceStart);
+		typeArguments[conditionInterf.length - 1] = new TypeReference[] { 
+			Eclipse.copyType(conditions, source),  Eclipse.copyType(type, source)};
+		ParameterizedQualifiedTypeReference conditionType = new ParameterizedQualifiedTypeReference(
+				conditionInterf, typeArguments, 0, poss3);
+		conditionType.sourceStart = source.sourceStart;
+		conditionType.sourceEnd = source.sourceEnd;
+		Eclipse.setGeneratedBy(conditionType, source);
+		MethodDeclaration method = new MethodDeclaration(
+				parent.compilationResult);
+		Eclipse.setGeneratedBy(method, source);
+		method.modifiers = modifier;
+		method.returnType = conditionType;
 		method.annotations = null;
 		method.arguments = null;
 		method.selector = name.toCharArray();
@@ -548,13 +614,16 @@ class BelongsToDefinition {
 	
 	private TypeReference type;
 	
-	private TypeReference beanOptionType;
+	private TypeReference options;
+	
+	private TypeReference condtions;
 
-	BelongsToDefinition(TypeReference type, TypeReference beanOptionType) {
+	BelongsToDefinition(TypeReference type, TypeReference options, TypeReference condtions) {
 		this.name = String.valueOf(type.getLastToken());
 		this.qualifiedTypeName = Eclipse.toQualifiedName(type.getTypeName());
 		this.type = type;
-		this.beanOptionType = beanOptionType;
+		this.options = options;
+		this.condtions = condtions;
 	}
 
 	public MethodDeclaration getter(TypeDeclaration parent, int modifier,
@@ -607,22 +676,60 @@ class BelongsToDefinition {
 	
 	public MethodDeclaration option(TypeDeclaration parent, int modifier,
 			ASTNode source) {
-		char[][] optionTypeName = Eclipse.fromQualifiedName(qualifiedTypeName + ".Options");
-		long[] poss = new long[optionTypeName.length];
+		char[][] optionsTypeName = Eclipse.fromQualifiedName(qualifiedTypeName + ".Options");
+		long[] poss = new long[optionsTypeName.length];
 		Arrays.fill(poss, source.sourceStart);
-		QualifiedTypeReference optionType = new QualifiedTypeReference(optionTypeName, poss);
+		QualifiedTypeReference optionsType = new QualifiedTypeReference(optionsTypeName, poss);
+		optionsType.sourceStart = source.sourceStart;
+		optionsType.sourceEnd = source.sourceEnd;
+		Eclipse.setGeneratedBy(optionsType, source);
+		char[][] optionInterf = Eclipse.fromQualifiedName(SingularOption.class
+				.getCanonicalName());
+		final TypeReference[][] typeArguments = new TypeReference[optionInterf.length][];
+		long[] poss3 = new long[optionInterf.length];
+		Arrays.fill(poss3, source.sourceStart);
+		typeArguments[optionInterf.length - 1] = new TypeReference[] { 
+			Eclipse.copyType(options, source),  optionsType};
+		ParameterizedQualifiedTypeReference optionType = new ParameterizedQualifiedTypeReference(
+				optionInterf, typeArguments, 0, poss3);
 		optionType.sourceStart = source.sourceStart;
 		optionType.sourceEnd = source.sourceEnd;
 		Eclipse.setGeneratedBy(optionType, source);
-		char[][] modelInterf = Eclipse.fromQualifiedName(SingularOption.class
+		MethodDeclaration method = new MethodDeclaration(
+				parent.compilationResult);
+		Eclipse.setGeneratedBy(method, source);
+		method.modifiers = modifier;
+		method.returnType = optionType;
+		method.annotations = null;
+		method.arguments = null;
+		method.selector = Introspector.decapitalize(name).toCharArray();
+		method.binding = null;
+		method.thrownExceptions = null;
+		method.typeParameters = null;
+		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
+		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
+		return method;
+	}
+	
+	public MethodDeclaration condition(TypeDeclaration parent, int modifier,
+			ASTNode source) {
+		char[][] conditionsTypeName = Eclipse.fromQualifiedName(qualifiedTypeName + ".Conditions");
+		long[] poss = new long[conditionsTypeName.length];
+		Arrays.fill(poss, source.sourceStart);
+		QualifiedTypeReference conditionsType = new QualifiedTypeReference(conditionsTypeName, poss);
+		conditionsType.sourceStart = source.sourceStart;
+		conditionsType.sourceEnd = source.sourceEnd;
+		Eclipse.setGeneratedBy(conditionsType, source);
+		char[][] optionInterf = Eclipse.fromQualifiedName(SingularOption.class
 				.getCanonicalName());
-		final TypeReference[][] typeArguments = new TypeReference[modelInterf.length][];
-		long[] poss3 = new long[modelInterf.length];
+		final TypeReference[][] typeArguments = new TypeReference[optionInterf.length][];
+		long[] poss3 = new long[optionInterf.length];
 		Arrays.fill(poss3, source.sourceStart);
-		typeArguments[modelInterf.length - 1] = new TypeReference[] { 
-			Eclipse.copyType(beanOptionType, source),  optionType};
+		typeArguments[optionInterf.length - 1] = new TypeReference[] { 
+			Eclipse.copyType(condtions, source),  conditionsType};
 		ParameterizedQualifiedTypeReference optionsType = new ParameterizedQualifiedTypeReference(
-				modelInterf, typeArguments, 0, poss3);
+				optionInterf, typeArguments, 0, poss3);
 		optionsType.sourceStart = source.sourceStart;
 		optionsType.sourceEnd = source.sourceEnd;
 		Eclipse.setGeneratedBy(optionsType, source);
@@ -651,12 +758,15 @@ class HasManyDefinition {
 
 	private String qName;
 	
-	private TypeReference beanOptionType;
+	private TypeReference options;
+	
+	private TypeReference conditions;
 
-	public HasManyDefinition(TypeReference type, TypeReference beanOptionType) {
+	public HasManyDefinition(TypeReference type, TypeReference options, TypeReference conditions) {
 		this.name = String.valueOf(type.getLastToken());
 		this.qName = Eclipse.toQualifiedName(type.getTypeName());
-		this.beanOptionType = beanOptionType;
+		this.options = options;
+		this.conditions = conditions;
 	}
 
 	public MethodDeclaration getter(TypeDeclaration parent, int modifier,
@@ -687,30 +797,68 @@ class HasManyDefinition {
 	
 	public MethodDeclaration option(TypeDeclaration parent, int modifier,
 			ASTNode source) {
-		char[][] optionTypeName = Eclipse.fromQualifiedName(qName + ".Options");
-		long[] poss = new long[optionTypeName.length];
+		char[][] optionsTypeName = Eclipse.fromQualifiedName(qName + ".Options");
+		long[] poss = new long[optionsTypeName.length];
 		Arrays.fill(poss, source.sourceStart);
-		QualifiedTypeReference optionType = new QualifiedTypeReference(optionTypeName, poss);
-		optionType.sourceStart = source.sourceStart;
-		optionType.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(optionType, source);
-		char[][] modelInterf = Eclipse.fromQualifiedName(CollectionOption.class
-				.getCanonicalName());
-		final TypeReference[][] typeArguments = new TypeReference[modelInterf.length][];
-		long[] poss3 = new long[modelInterf.length];
-		Arrays.fill(poss3, source.sourceStart);
-		typeArguments[modelInterf.length - 1] = new TypeReference[] { 
-			Eclipse.copyType(beanOptionType, source),  Eclipse.copyType(optionType, source)};
-		ParameterizedQualifiedTypeReference optionsType = new ParameterizedQualifiedTypeReference(
-				modelInterf, typeArguments, 0, poss3);
+		QualifiedTypeReference optionsType = new QualifiedTypeReference(optionsTypeName, poss);
 		optionsType.sourceStart = source.sourceStart;
 		optionsType.sourceEnd = source.sourceEnd;
 		Eclipse.setGeneratedBy(optionsType, source);
+		char[][] optionInterf = Eclipse.fromQualifiedName(CollectionOption.class
+				.getCanonicalName());
+		final TypeReference[][] typeArguments = new TypeReference[optionInterf.length][];
+		long[] poss3 = new long[optionInterf.length];
+		Arrays.fill(poss3, source.sourceStart);
+		typeArguments[optionInterf.length - 1] = new TypeReference[] { 
+			Eclipse.copyType(options, source),  Eclipse.copyType(optionsType, source)};
+		ParameterizedQualifiedTypeReference optionType = new ParameterizedQualifiedTypeReference(
+				optionInterf, typeArguments, 0, poss3);
+		optionType.sourceStart = source.sourceStart;
+		optionType.sourceEnd = source.sourceEnd;
+		Eclipse.setGeneratedBy(optionType, source);
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
 		Eclipse.setGeneratedBy(method, source);
 		method.modifiers = modifier;
-		method.returnType = optionsType;
+		method.returnType = optionType;
+		method.annotations = null;
+		method.arguments = null;
+		method.selector = Introspector.decapitalize(name + "s").toCharArray();
+		method.binding = null;
+		method.thrownExceptions = null;
+		method.typeParameters = null;
+		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
+		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
+		return method;
+	}
+	
+	public MethodDeclaration condition(TypeDeclaration parent, int modifier,
+			ASTNode source) {
+		char[][] conditionsTypeName = Eclipse.fromQualifiedName(qName + ".Conditions");
+		long[] poss = new long[conditionsTypeName.length];
+		Arrays.fill(poss, source.sourceStart);
+		QualifiedTypeReference optionsType = new QualifiedTypeReference(conditionsTypeName, poss);
+		optionsType.sourceStart = source.sourceStart;
+		optionsType.sourceEnd = source.sourceEnd;
+		Eclipse.setGeneratedBy(optionsType, source);
+		char[][] optionInterf = Eclipse.fromQualifiedName(SingularOption.class
+				.getCanonicalName());
+		final TypeReference[][] typeArguments = new TypeReference[optionInterf.length][];
+		long[] poss3 = new long[optionInterf.length];
+		Arrays.fill(poss3, source.sourceStart);
+		typeArguments[optionInterf.length - 1] = new TypeReference[] { 
+			Eclipse.copyType(conditions, source),  Eclipse.copyType(optionsType, source)};
+		ParameterizedQualifiedTypeReference optionType = new ParameterizedQualifiedTypeReference(
+				optionInterf, typeArguments, 0, poss3);
+		optionType.sourceStart = source.sourceStart;
+		optionType.sourceEnd = source.sourceEnd;
+		Eclipse.setGeneratedBy(optionType, source);
+		MethodDeclaration method = new MethodDeclaration(
+				parent.compilationResult);
+		Eclipse.setGeneratedBy(method, source);
+		method.modifiers = modifier;
+		method.returnType = optionType;
 		method.annotations = null;
 		method.arguments = null;
 		method.selector = Introspector.decapitalize(name + "s").toCharArray();
