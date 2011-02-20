@@ -1,5 +1,12 @@
 package org.activebeans.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -35,18 +42,11 @@ import org.activebeans.test.model.Post;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-
 public class ActiveBeansTest {
 
 	private static final String TEST_CONTEXT = "test";
 
-	private static Set<Class<? extends Model<?, ?, ?>>> activeClasses;
+	private static Set<Class<? extends Model<?, ?, ?, ?>>> activeClasses;
 
 	private static DataSource ds;
 
@@ -145,7 +145,7 @@ public class ActiveBeansTest {
 
 	@Test
 	public void methodFilter() {
-		ActiveMethodFilter<? extends Model<?, ?, ?>> filter = ActiveMethodFilter
+		ActiveMethodFilter<? extends Model<?, ?, ?, ?>> filter = ActiveMethodFilter
 				.of(activeClass);
 		List<Method> handledMathods = new ArrayList<Method>();
 		handledMathods.addAll(Arrays.asList(activeInterf.getMethods()));
@@ -190,7 +190,7 @@ public class ActiveBeansTest {
 
 	@Test
 	public void noopModel() {
-		Model<?, ?, ?> model = ActiveBeans.build(activeClass);
+		Model<?, ?, ?, ?> model = ActiveBeans.build(activeClass);
 		assertTrue(activeClass.isInstance(model));
 		assertNull(model.attrs(null));
 		assertFalse(model.destroy());
@@ -387,7 +387,7 @@ public class ActiveBeansTest {
 
 	@Test
 	public void upgradeOne() {
-		ActiveMigration<? extends Model<?, ?, ?>> migr = ActiveMigration.of(
+		ActiveMigration<? extends Model<?, ?, ?, ?>> migr = ActiveMigration.of(
 				activeClass, ds);
 		Table activeTable = migr.table();
 		List<String> colNames = new ArrayList<String>();

@@ -90,7 +90,16 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			beanRef.sourceStart = node.get().sourceStart;
 			beanRef.sourceEnd = node.get().sourceEnd;
 			Eclipse.setGeneratedBy(beanRef, node.get());
-			typeArguments[modelInterf.length - 1] = new TypeReference[] { beanRef, optionsRef, conditionsRef };
+			char[][] qualifiedModelsName = Eclipse.fromQualifiedName(
+					Eclipse.toQualifiedName(source.currentPackage.tokens) + "." +
+					String.valueOf(beanType.name) + ".Models");
+			long[] poss5 = new long[qualifiedModelsName.length];
+			Arrays.fill(poss5, node.get().sourceStart);
+			QualifiedTypeReference modelsRef = new QualifiedTypeReference(qualifiedModelsName, poss5);
+			modelsRef.sourceStart = node.get().sourceStart;
+			modelsRef.sourceEnd = node.get().sourceEnd;
+			Eclipse.setGeneratedBy(modelsRef, node.get());
+			typeArguments[modelInterf.length - 1] = new TypeReference[] { beanRef, optionsRef, conditionsRef, modelsRef };
 			ParameterizedQualifiedTypeReference modelInterfRef = new ParameterizedQualifiedTypeReference(
 					modelInterf, typeArguments, 0, poss3);
 			modelInterfRef.sourceStart = node.get().sourceStart;
@@ -168,6 +177,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			TypeDeclaration modelsInterf = modelsInterface(beanType, 
 				Eclipse.copyType(optionsRef, node.get()),
 				Eclipse.copyType(conditionsRef, node.get()),
+				Eclipse.copyType(modelsRef, node.get()),
 				ClassFileConstants.AccPublic | ClassFileConstants.AccInterface, node);
 			injectType(beanType, modelsInterf);
 			injectType(beanType, optionsInterf);
@@ -276,7 +286,8 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 	}
 
 	private static TypeDeclaration modelsInterface(TypeDeclaration bean,
-			TypeReference optionsRef, TypeReference conditionsRef, int modifier, EclipseNode node) {
+			TypeReference optionsRef, TypeReference conditionsRef, 
+			TypeReference modelsRef, int modifier, EclipseNode node) {
 		ASTNode source = node.get();
 		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
 		Eclipse.setGeneratedBy(interf, source);
@@ -292,7 +303,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		beanRef.sourceStart = source.sourceStart;
 		beanRef.sourceEnd = source.sourceEnd;
 		Eclipse.setGeneratedBy(beanRef, source);
-		typeArguments[superInterf.length - 1] = new TypeReference[] { beanRef, optionsRef, conditionsRef };
+		typeArguments[superInterf.length - 1] = new TypeReference[] { beanRef, optionsRef, conditionsRef, modelsRef };
 		ParameterizedQualifiedTypeReference superInterfRef = new ParameterizedQualifiedTypeReference(
 				superInterf, typeArguments, 0, poss);
 		superInterfRef.sourceStart = source.sourceStart;
