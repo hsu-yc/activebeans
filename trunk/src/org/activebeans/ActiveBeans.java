@@ -37,7 +37,7 @@ public class ActiveBeans {
 		return defaultDs;
 	}
 
-	public static <T extends Model<T, ?>> void migrate(Class<T> activeClass) {
+	public static <T extends Model<T, ?, ?>> void migrate(Class<T> activeClass) {
 		Table table = ActiveMigration.of(activeClass, defaultDs).table();
 		ActiveBeansUtils.executeSql(defaultDs, table.dropStatement(),
 				table.createStatment());
@@ -57,7 +57,7 @@ public class ActiveBeans {
 		ActiveBeansUtils.executeSql(defaultDs, stmts);
 	}
 
-	public static <T extends Model<T, ?>> void upgrade(Class<T> activeClass) {
+	public static <T extends Model<T, ?, ?>> void upgrade(Class<T> activeClass) {
 		String alterStmt = ActiveMigration.of(activeClass, defaultDs)
 				.alterStatement();
 		if (alterStmt != null) {
@@ -79,11 +79,11 @@ public class ActiveBeans {
 		ActiveBeansUtils.executeSql(defaultDs, stmts);
 	}
 	
-	public static <T extends Model<T, U>, U> U options(Class<T> activeClass){
+	public static <T extends Model<T, U, ?>, U> U options(Class<T> activeClass){
 		return null;
 	}
 
-	public static <T extends Model<T, ?>> T build(Class<T> activeClass) {
+	public static <T extends Model<T, ?, ?>> T build(Class<T> activeClass) {
 		ProxyFactory f = new ProxyFactory();
 		f.setSuperclass(activeClass);
 		f.setFilter(ActiveMethodFilter.of(activeClass));
@@ -95,59 +95,59 @@ public class ActiveBeans {
 		}
 	}
 
-	public static <T extends Model<T, U>, U> T build(Class<T> modelClass,
+	public static <T extends Model<T, U, ?>, U> T build(Class<T> modelClass,
 			U attrs) {
 		return null;
 	}
 
-	public static <T extends Model<T, U>, U> T create(Class<T> modelClass) {
+	public static <T extends Model<T, U, ?>, U> T create(Class<T> modelClass) {
 		return null;
 	}
 
-	public static <T extends Model<T, U>, U> T create(Class<T> modelClass,
+	public static <T extends Model<T, U, ?>, U> T create(Class<T> modelClass,
 			U attrs) {
 		return null;
 	}
 
-	public static boolean destroy(Class<? extends Model<?, ?>> modelClass) {
+	public static boolean destroy(Class<? extends Model<?, ?, ?>> modelClass) {
 		return false;
 	}
 
-	public static <T> boolean update(Class<? extends Model<?, T>> modelClass,
+	public static <T> boolean update(Class<? extends Model<?, T, ?>> modelClass,
 			T attrs) {
 		return false;
 	}
 
-	public static <T extends Model<T, ?>> T get(Class<T> modelClass, Object key,
+	public static <T extends Model<T, ?, ?>> T get(Class<T> modelClass, Object key,
 			Object... keys) {
 		return null;
 	}
 
-	public static <T extends Model<T, ?>> T first(Class<T> modelClass) {
+	public static <T extends Model<T, ?, ?>> T first(Class<T> modelClass) {
 		return null;
 	}
 
-	public static <T extends Model<T, ?>> T first(Class<T> modelClass,
-			Map<String, ?> conditions) {
+	public static <T extends Model<T, ?, U>, U> T first(Class<T> modelClass,
+			U conditions) {
 		return null;
 	}
 
-	public static <T extends Model<T, ?>> T last(Class<T> modelClass) {
+	public static <T extends Model<T, ?, ?>> T last(Class<T> modelClass) {
 		return null;
 	}
 
-	public static <T extends Model<T, ?>> T last(Class<T> modelClass,
-			Map<String, ?> conditions) {
+	public static <T extends Model<T, ?, U>, U> T last(Class<T> modelClass,
+			U conditions) {
 		return null;
 	}
 
-	public static <T extends Models<U, ?>, U extends Model<U, ?>> T all(
+	public static <T extends Models<U, ?, ?>, U extends Model<U, ?, ?>> T all(
 			Class<T> modelsClass) {
 		return null;
 	}
 
-	public static <T extends Models<U, ?>, U extends Model<U, ?>> T all(
-			Class<T> modelsClass, Map<String, ?> conditions) {
+	public static <T extends Models<U, ?, V>, U extends Model<U, ?, V>, V> T all(
+			Class<T> modelsClass, V conditions) {
 		return null;
 	}
 
