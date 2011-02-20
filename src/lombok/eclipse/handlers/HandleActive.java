@@ -19,7 +19,6 @@ import lombok.eclipse.EclipseNode;
 import org.activebeans.Active;
 import org.activebeans.CollectionOption;
 import org.activebeans.Condition;
-import org.activebeans.Conditions;
 import org.activebeans.Model;
 import org.activebeans.Models;
 import org.activebeans.SingularOption;
@@ -91,7 +90,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			beanRef.sourceStart = node.get().sourceStart;
 			beanRef.sourceEnd = node.get().sourceEnd;
 			Eclipse.setGeneratedBy(beanRef, node.get());
-			typeArguments[modelInterf.length - 1] = new TypeReference[] { beanRef, optionsRef };
+			typeArguments[modelInterf.length - 1] = new TypeReference[] { beanRef, optionsRef, conditionsRef };
 			ParameterizedQualifiedTypeReference modelInterfRef = new ParameterizedQualifiedTypeReference(
 					modelInterf, typeArguments, 0, poss3);
 			modelInterfRef.sourceStart = node.get().sourceStart;
@@ -168,6 +167,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			}
 			TypeDeclaration modelsInterf = modelsInterface(beanType, 
 				Eclipse.copyType(optionsRef, node.get()),
+				Eclipse.copyType(conditionsRef, node.get()),
 				ClassFileConstants.AccPublic | ClassFileConstants.AccInterface, node);
 			injectType(beanType, modelsInterf);
 			injectType(beanType, optionsInterf);
@@ -276,7 +276,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 	}
 
 	private static TypeDeclaration modelsInterface(TypeDeclaration bean,
-			TypeReference optionsRef, int modifier, EclipseNode node) {
+			TypeReference optionsRef, TypeReference conditionsRef, int modifier, EclipseNode node) {
 		ASTNode source = node.get();
 		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
 		Eclipse.setGeneratedBy(interf, source);
@@ -292,7 +292,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		beanRef.sourceStart = source.sourceStart;
 		beanRef.sourceEnd = source.sourceEnd;
 		Eclipse.setGeneratedBy(beanRef, source);
-		typeArguments[superInterf.length - 1] = new TypeReference[] { beanRef, optionsRef };
+		typeArguments[superInterf.length - 1] = new TypeReference[] { beanRef, optionsRef, conditionsRef };
 		ParameterizedQualifiedTypeReference superInterfRef = new ParameterizedQualifiedTypeReference(
 				superInterf, typeArguments, 0, poss);
 		superInterfRef.sourceStart = source.sourceStart;
@@ -308,7 +308,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		methods.add(covariantAllFinder(interf, interfRef,
 				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.add(covariantAllFinderWithOptions(interf, interfRef,
-				Eclipse.copyType(beanRef, source),
+				Eclipse.copyType(conditionsRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.add(covariantAdder(interf, interfRef,
 				Eclipse.copyType(beanRef, source),
@@ -371,20 +371,11 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 	}
 
 	private static MethodDeclaration covariantAllFinderWithOptions(
-			TypeDeclaration parent, TypeReference type, TypeReference beanType,
+			TypeDeclaration parent, TypeReference type, TypeReference conditions,
 			int modifier, ASTNode source) {
 		int pS = source.sourceStart, pE = source.sourceEnd;
 		long p = (long) pS << 32 | pE;
-		char[][] argType = Eclipse.fromQualifiedName(Conditions.class
-				.getCanonicalName());
-		final TypeReference[][] typeArguments = new TypeReference[argType.length][];
-		long[] poss = new long[argType.length];
-		Arrays.fill(poss, pS);
-		typeArguments[argType.length - 1] = new TypeReference[] { beanType };
-		ParameterizedQualifiedTypeReference argTypeRef = new ParameterizedQualifiedTypeReference(
-				argType, typeArguments, 0, poss);
-		Eclipse.setGeneratedBy(argTypeRef, source);
-		Argument param = new Argument("options".toCharArray(), p, argTypeRef,
+		Argument param = new Argument("options".toCharArray(), p, conditions,
 				Modifier.FINAL);
 		param.sourceStart = pS;
 		param.sourceEnd = pE;
