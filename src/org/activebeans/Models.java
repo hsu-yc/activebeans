@@ -1,7 +1,7 @@
 package org.activebeans;
 
 
-public interface Models<T extends Model<T, U, V>, U, V> extends Iterable<T> {
+public interface Models<T extends Model<T, U, V, S>, U, V, S extends Models<T, U, V, S>> extends Iterable<T> {
 
 	boolean save();
 
@@ -9,7 +9,7 @@ public interface Models<T extends Model<T, U, V>, U, V> extends Iterable<T> {
 
 	boolean update(U opts);
 
-	Models<T, U, V> attrs(U opts);
+	Models<T, U, V, S> attrs(U opts);
 
 	boolean destroy();
 
@@ -31,10 +31,10 @@ public interface Models<T extends Model<T, U, V>, U, V> extends Iterable<T> {
 
 	T last(V cond);
 
-	Models<T, U, V> add(T model);
+	Models<T, U, V, S> add(T model);
 
-	Models<T, U, V> all();
+	Models<T, U, V, S> all();
 
-	Models<T, U, V> all(V cond);
+	Models<T, U, V, S> all(V cond);
 
 }

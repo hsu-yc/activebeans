@@ -6,7 +6,6 @@ import org.activebeans.Active;
 import org.activebeans.Association;
 import org.activebeans.Property;
 
-
 @Active(
 	with = { 
 		@Property(name = "id", type = Long.class, key=true, autoIncrement=true),
