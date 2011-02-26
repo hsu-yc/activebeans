@@ -14,6 +14,8 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
+import lombok.eclipse.handlers.HandleActive;
+
 import org.activebeans.Active;
 import org.activebeans.ActiveBeans;
 import org.activebeans.ActiveBeansUtils;
@@ -54,9 +56,9 @@ public class ActiveBeansTest {
 
 	private static Active activeAt;
 
-	private static Class<?> activeInterf;
+	private static Class<?> attrsInterf;
 
-	private static Class<?> activeCollectionInterf;
+	private static Class<?> modelsInterf;
 
 	private static ActiveIntrospector<?, ?, ?, ?> activeIntro;
 
@@ -69,21 +71,19 @@ public class ActiveBeansTest {
 		activeClasses = ActiveIntrospector.activeClasses();
 		activeClass = Post.class;
 		activeAt = activeClass.getAnnotation(Active.class);
-		activeInterf = Class.forName(activeClass.getPackage().getName()
-				+ ".Active" + activeClass.getSimpleName());
-		activeCollectionInterf = Class.forName(activeClass.getName()
-				+ "$Models");
+		attrsInterf = Class.forName(HandleActive.attributesInterface(activeClass));
+		modelsInterf = Class.forName(HandleActive.modelsInterface(activeClass));
 		activeIntro = ActiveIntrospector.of(activeClass);
 		dsIntro = new DataSourceIntrospector(ds);
 	}
 
 	@Test
 	public void typeIntrospection() {
-		assertEquals(activeInterf, activeIntro.activeInterface());
+		assertEquals(attrsInterf, activeIntro.attributesInterface());
 		assertEquals(activeAt, activeIntro.activeAnnotation());
 		assertEquals(activeClass, activeIntro.activeClass());
-		assertEquals(activeCollectionInterf,
-				activeIntro.activeCollectionInterface());
+		assertEquals(modelsInterf,
+				activeIntro.modelsInterface());
 	}
 
 	@Test
@@ -147,7 +147,7 @@ public class ActiveBeansTest {
 	public void methodFilter() {
 		ActiveMethodFilter<?, ?, ?, ?> filter = ActiveMethodFilter.of(activeClass);
 		List<Method> handledMathods = new ArrayList<Method>();
-		handledMathods.addAll(Arrays.asList(activeInterf.getMethods()));
+		handledMathods.addAll(Arrays.asList(attrsInterf.getMethods()));
 		handledMathods.addAll(Arrays.asList(Model.class.getMethods()));
 		for (Method method : activeClass.getMethods()) {
 			assertEquals(handledMathods.contains(method),

@@ -77,15 +77,15 @@ public class ActiveMethodHandler<T extends Model<T, U, V, W>, U, V, W extends Mo
 				ActiveIntrospector<? extends Model<?, ?, ?, ?>, ?, ?, 
 					? extends Models<?,?,?,?>> intro = ActiveIntrospector.of(with);
 				ProxyFactory f = new ProxyFactory();
-				Class<? extends Models<?, ?, ?, ?>> collectionInterface = intro.activeCollectionInterface();
-				f.setInterfaces(new Class[] { collectionInterface });
+				Class<? extends Models<?, ?, ?, ?>> modelsInterface = intro.modelsInterface();
+				f.setInterfaces(new Class[] { modelsInterface });
 				f.setFilter(new MethodFilter() {
 					@Override
 					public boolean isHandled(Method m) {
 						return !isCovariantReturn(m);
 					}
 				});
-				models = collectionInterface.cast(f.create(new Class[0],
+				models = modelsInterface.cast(f.create(new Class[0],
 						new Object[0], new MethodHandler() {
 							@Override
 							public Object invoke(Object self, Method method,
