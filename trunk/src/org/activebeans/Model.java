@@ -1,7 +1,7 @@
 package org.activebeans;
 
 
-public interface Model<T extends Model<T, U, V, S>, U, V, S extends Models<T, U, V, S>> {
+public interface Model<T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> {
 
 	boolean save();
 

@@ -37,7 +37,7 @@ public class ActiveBeans {
 		return defaultDs;
 	}
 
-	public static <T extends Model<T, ?, ?, ?>> void migrate(Class<T> activeClass) {
+	public static <T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> void migrate(Class<T> activeClass) {
 		Table table = ActiveMigration.of(activeClass, defaultDs).table();
 		ActiveBeansUtils.executeSql(defaultDs, table.dropStatement(),
 				table.createStatment());
@@ -45,11 +45,10 @@ public class ActiveBeans {
 
 	public static void autoMigrate() {
 		List<String> stmts = new ArrayList<String>();
-		for (@SuppressWarnings("rawtypes")
-		Class<? extends Model> clazz : ActiveIntrospector.activeClasses()) {
-			@SuppressWarnings({ "rawtypes", "unchecked" })
-			ActiveMigration<? extends Model> migr = ActiveMigration.of(clazz,
-					defaultDs);
+		for (@SuppressWarnings("rawtypes") Class clazz : ActiveIntrospector.activeClasses()) {
+			@SuppressWarnings("unchecked")
+			ActiveMigration<? extends Model<?, ?, ?, ?>, ?, ?, ?> migr = 
+				ActiveMigration.of(clazz, defaultDs);
 			Table table = migr.table();
 			stmts.add(table.dropStatement());
 			stmts.add(table.createStatment());
@@ -57,7 +56,7 @@ public class ActiveBeans {
 		ActiveBeansUtils.executeSql(defaultDs, stmts);
 	}
 
-	public static <T extends Model<T, ?, ?, ?>> void upgrade(Class<T> activeClass) {
+	public static <T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> void upgrade(Class<T> activeClass) {
 		String alterStmt = ActiveMigration.of(activeClass, defaultDs)
 				.alterStatement();
 		if (alterStmt != null) {
@@ -67,8 +66,7 @@ public class ActiveBeans {
 
 	public static void autoUpgrade() {
 		List<String> stmts = new ArrayList<String>();
-		for (@SuppressWarnings("rawtypes")
-		Class<? extends Model> clazz : ActiveIntrospector.activeClasses()) {
+		for (@SuppressWarnings("rawtypes") Class clazz : ActiveIntrospector.activeClasses()) {
 			@SuppressWarnings("unchecked")
 			String alterStmt = ActiveMigration.of(clazz, defaultDs)
 					.alterStatement();
@@ -87,7 +85,7 @@ public class ActiveBeans {
 		return null;
 	}
 
-	public static <T extends Model<T, ?, ?, ?>> T build(Class<T> activeClass) {
+	public static <T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> T build(Class<T> activeClass) {
 		ProxyFactory f = new ProxyFactory();
 		f.setSuperclass(activeClass);
 		f.setFilter(ActiveMethodFilter.of(activeClass));

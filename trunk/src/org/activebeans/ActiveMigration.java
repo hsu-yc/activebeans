@@ -5,7 +5,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-public class ActiveMigration<T extends Model<T, ?, ?, ?>> {
+public class ActiveMigration<T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> {
 
 	private static final String ASSOCIATION_SUFFIX = "_id";
 
@@ -20,7 +20,7 @@ public class ActiveMigration<T extends Model<T, ?, ?, ?>> {
 		this.activeClass = activeClass;
 		String tableName = ActiveBeansUtils.camelCaseToUnderscore(activeClass
 				.getSimpleName());
-		ActiveIntrospector<T> ai = ActiveIntrospector.of(activeClass);
+		ActiveIntrospector<T, ?, ?, ?> ai = ActiveIntrospector.of(activeClass);
 		List<Column> cols = new ArrayList<Column>();
 		for (Property prop : ai.properties()) {
 			Class<?> type = prop.type();
@@ -38,10 +38,10 @@ public class ActiveMigration<T extends Model<T, ?, ?, ?>> {
 		}
 		for (Association belongsTo : ai.belongsTos()) {
 			@SuppressWarnings("rawtypes")
-			Class<? extends Model> belongsToClazz = belongsTo.with();
+			Class belongsToClazz = belongsTo.with();
 			boolean notNull = belongsTo.required();
 			@SuppressWarnings("unchecked")
-			ActiveIntrospector<?> btci = ActiveIntrospector.of(belongsToClazz);
+			ActiveIntrospector<?, ?, ?, ?> btci = ActiveIntrospector.of(belongsToClazz);
 			for (Property prop : btci.keys()) {
 				Class<?> type = prop.type();
 				Object len = null;
@@ -60,9 +60,9 @@ public class ActiveMigration<T extends Model<T, ?, ?, ?>> {
 		table = new Table(tableName, cols);
 	}
 
-	public static <U extends Model<U, ?, ?, ?>> ActiveMigration<U> of(
-			Class<U> activeClass, DataSource ds) {
-		return new ActiveMigration<U>(activeClass, ds);
+	public static <X extends Model<X, Y, Z, A>, Y, Z, A extends Models<X, Y, Z, A>> ActiveMigration<X, Y, Z, A> of(
+			Class<X> activeClass, DataSource ds) {
+		return new ActiveMigration<X, Y, Z, A>(activeClass, ds);
 	}
 
 	public Table table() {
