@@ -15,7 +15,7 @@ import lombok.eclipse.handlers.HandleActive;
 import com.impetus.annovention.ClasspathDiscoverer;
 import com.impetus.annovention.listener.ClassAnnotationDiscoveryListener;
 
-public class ActiveIntrospector<T extends Model<T, ?, ?, W>, U, V, W extends Models<T, ?, ?, W>> {
+public class ActiveIntrospector<T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> {
 	
 	private Active at;
 
@@ -24,7 +24,11 @@ public class ActiveIntrospector<T extends Model<T, ?, ?, W>, U, V, W extends Mod
 	private Class<?> attrsInterf;
 
 	private Class<W> modelsInterf;
+	
+	private Class<U> optionsInterf;
 
+	private Class<V> conditionsInterf;
+	
 	private Map<String, Property> propMap = new HashMap<String, Property>();
 
 	private Map<Class<? extends Model<?, ?, ?, ?>>, Association> belongsToMap = new HashMap<Class<? extends Model<?, ?, ?, ?>>, Association>();
@@ -69,11 +73,27 @@ public class ActiveIntrospector<T extends Model<T, ?, ?, W>, U, V, W extends Mod
 		return params.toArray(new Class[0]);
 	}
 	
-	private static <X extends Model<X, ?, ?, Y>, Y extends Models<X, ?, ?, Y>> Class<Y> modelsInterf(
+	private static <X extends Model<X, ?, ?, A>, A extends Models<X, ?, ?, A>> Class<A> modelsInterf(
+			Class<X> activeClass) {
+		@SuppressWarnings("unchecked")
+		Class<A> modelsInterf = (Class<A>) ActiveBeansUtils.classNameMap(modelTypeParams(activeClass))
+					.get(HandleActive.modelsInterface(activeClass));
+		return modelsInterf;
+	}
+	
+	private static <X extends Model<X, Y, ?, A>, Y, A extends Models<X, Y, ?, A>> Class<Y> optionsInterf(
 			Class<X> activeClass) {
 		@SuppressWarnings("unchecked")
 		Class<Y> modelsInterf = (Class<Y>) ActiveBeansUtils.classNameMap(modelTypeParams(activeClass))
-					.get(HandleActive.modelsInterface(activeClass));
+					.get(HandleActive.optionsInterface(activeClass));
+		return modelsInterf;
+	}
+	
+	private static <X extends Model<X, ?, Z, A>, Z, A extends Models<X, ?, Z, A>> Class<Z> conditionsInterf(
+			Class<X> activeClass) {
+		@SuppressWarnings("unchecked")
+		Class<Z> modelsInterf = (Class<Z>) ActiveBeansUtils.classNameMap(modelTypeParams(activeClass))
+					.get(HandleActive.conditionsInterface(activeClass));
 		return modelsInterf;
 	}
 
@@ -82,6 +102,8 @@ public class ActiveIntrospector<T extends Model<T, ?, ?, W>, U, V, W extends Mod
 		at = clazz.getAnnotation(Active.class);
 		attrsInterf = attrsInterf(clazz);
 		modelsInterf = modelsInterf(clazz);
+		optionsInterf = optionsInterf(activeClass);
+		conditionsInterf = conditionsInterf(activeClass);
 		for (Property prop : at.with()) {
 			propMap.put(prop.name(), prop);
 			accessorMap.put(prop, new JavaBeanPropertyAccessors(attrsInterf, prop));
@@ -146,6 +168,14 @@ public class ActiveIntrospector<T extends Model<T, ?, ?, W>, U, V, W extends Mod
 
 	public Class<W> modelsInterface() {
 		return modelsInterf;
+	}
+	
+	public Class<U> optionsInterface() {
+		return optionsInterf;
+	}
+	
+	public Class<V> conditionsInterface() {
+		return conditionsInterf;
 	}
 
 	public Property property(String name) {
