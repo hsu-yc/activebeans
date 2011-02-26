@@ -12,11 +12,11 @@ class JavaBeanBelongsToAssociationMethods implements
 
 	private PropertyDescriptor propDesc;
 
-	public JavaBeanBelongsToAssociationMethods(Class<?> activeInterf,
+	public JavaBeanBelongsToAssociationMethods(Class<?> attrsInterf,
 			Association assoc) {
 		belongsTo = assoc;
 		try {
-			for (PropertyDescriptor pd : Introspector.getBeanInfo(activeInterf)
+			for (PropertyDescriptor pd : Introspector.getBeanInfo(attrsInterf)
 					.getPropertyDescriptors()) {
 				if (pd.getPropertyType().equals(belongsTo.with())) {
 					propDesc = pd;

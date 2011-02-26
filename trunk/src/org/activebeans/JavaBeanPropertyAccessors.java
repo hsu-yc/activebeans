@@ -11,10 +11,10 @@ class JavaBeanPropertyAccessors implements PropertyAccessors {
 
 	private PropertyDescriptor propDesc;
 
-	public JavaBeanPropertyAccessors(Class<?> activeInterf, Property prop) {
+	public JavaBeanPropertyAccessors(Class<?> attrsInterf, Property prop) {
 		property = prop;
 		try {
-			for (PropertyDescriptor pd : Introspector.getBeanInfo(activeInterf)
+			for (PropertyDescriptor pd : Introspector.getBeanInfo(attrsInterf)
 					.getPropertyDescriptors()) {
 				if (pd.getName().equals(property.name())) {
 					propDesc = pd;

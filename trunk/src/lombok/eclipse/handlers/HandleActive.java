@@ -68,7 +68,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		try {
 			CompilationUnitDeclaration source = (CompilationUnitDeclaration) node
 					.up().up().get();
-			TypeDeclaration activeItf = activeInterface(source,
+			TypeDeclaration attrInterf = attrsInterface(source,
 					(TypeDeclaration) node.up().get(),
 					ClassFileConstants.AccInterface, node.get());
 			TypeDeclaration beanType = (TypeDeclaration) node.up().get();
@@ -121,58 +121,56 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			modelInterfRef.sourceStart = node.get().sourceStart;
 			modelInterfRef.sourceEnd = node.get().sourceEnd;
 			Eclipse.setGeneratedBy(modelInterfRef, source);
-			Expression activeBeanProps = memberMap(ast.memberValuePairs()).get(
-					"with");
-			if (!valdateAtLeastOneKey(activeBeanProps)) {
+			Map<String, Expression> activeMemberMap = memberMap(ast.memberValuePairs());
+			Expression activeProps = activeMemberMap.get("with");
+			if (!valdateAtLeastOneKey(activeProps)) {
 				node.addError("You MUST configure at least one key property on your bean.");
 			}
-			List<PropertyDefinition> props = properties(activeBeanProps, optionsRef, conditionsRef);
+			List<PropertyDefinition> props = properties(activeProps, optionsRef, conditionsRef);
 			List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
 			List<MethodDeclaration> optMethods = new ArrayList<MethodDeclaration>();
 			List<MethodDeclaration> condMethods = new ArrayList<MethodDeclaration>();
 			for (PropertyDefinition p : props) {
-				MethodDeclaration getter = p.getter(activeItf,
+				MethodDeclaration getter = p.getter(attrInterf,
 						ExtraCompilerModifiers.AccSemicolonBody, node.get());
 				methods.add(getter);
-				MethodDeclaration setter = p.setter(activeItf,
+				MethodDeclaration setter = p.setter(attrInterf,
 						ExtraCompilerModifiers.AccSemicolonBody, node.get());
 				methods.add(setter);
 				optMethods.add(p.option(optionsInterf, ExtraCompilerModifiers.AccSemicolonBody, node.get()));
 				condMethods.add(p.condition(conditionsInterf, ExtraCompilerModifiers.AccSemicolonBody, node.get()));
 			}
-			List<BelongsToDefinition> belongTos = belongsTos(memberMap(
-					ast.memberValuePairs()).get("belongsTo"), optionsRef, conditionsRef);
+			List<BelongsToDefinition> belongTos = belongsTos(activeMemberMap.get("belongsTo"), optionsRef, conditionsRef);
 			for (BelongsToDefinition b : belongTos) {
-				MethodDeclaration getter = b.getter(activeItf,
+				MethodDeclaration getter = b.getter(attrInterf,
 						ExtraCompilerModifiers.AccSemicolonBody, node.get());
 				methods.add(getter);
-				MethodDeclaration setter = b.setter(activeItf,
+				MethodDeclaration setter = b.setter(attrInterf,
 						ExtraCompilerModifiers.AccSemicolonBody, node.get());
 				methods.add(setter);
 				optMethods.add(b.option(optionsInterf, ExtraCompilerModifiers.AccSemicolonBody, node.get()));
 				condMethods.add(b.condition(conditionsInterf, ExtraCompilerModifiers.AccSemicolonBody, node.get()));
 			}
-			List<HasManyDefinition> hasManys = hasManys(memberMap(
-					ast.memberValuePairs()).get("hasMany"), optionsRef, conditionsRef);
+			List<HasManyDefinition> hasManys = hasManys(activeMemberMap.get("hasMany"), optionsRef, conditionsRef);
 			for (HasManyDefinition h : hasManys) {
-				MethodDeclaration getter = h.getter(activeItf,
+				MethodDeclaration getter = h.getter(attrInterf,
 						ExtraCompilerModifiers.AccSemicolonBody, node.get());
 				methods.add(getter);
 				optMethods.add(h.option(optionsInterf, ExtraCompilerModifiers.AccSemicolonBody, node.get()));
 				condMethods.add(h.condition(conditionsInterf, ExtraCompilerModifiers.AccSemicolonBody, node.get()));
 			}
-			activeItf.methods = methods.toArray(new AbstractMethodDeclaration[0]);
+			attrInterf.methods = methods.toArray(new AbstractMethodDeclaration[0]);
 			optionsInterf.methods = optMethods.toArray(new AbstractMethodDeclaration[0]);
 			conditionsInterf.methods = condMethods.toArray(new AbstractMethodDeclaration[0]);
 			List<TypeDeclaration> types = new ArrayList<TypeDeclaration>(
 					Arrays.asList(source.types));
-			types.add(activeItf);
+			types.add(attrInterf);
 			source.types = types.toArray(new TypeDeclaration[0]);
-			node.up().up().add(activeItf, Kind.TYPE).recursiveSetHandled();
+			node.up().up().add(attrInterf, Kind.TYPE).recursiveSetHandled();
 			char[][] activateQName = Eclipse.fromQualifiedName(node.up()
 					.getPackageDeclaration()
 					+ "."
-					+ String.valueOf(activeItf.name));
+					+ String.valueOf(attrInterf.name));
 			long[] poss = new long[activateQName.length];
 			Arrays.fill(poss, node.get().sourceStart);
 			QualifiedTypeReference activeTypeRef = new QualifiedTypeReference(
@@ -288,7 +286,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		return map;
 	}
 
-	private static TypeDeclaration activeInterface(
+	private static TypeDeclaration attrsInterface(
 			CompilationUnitDeclaration parent, TypeDeclaration bean,
 			int modifier, ASTNode source) {
 		TypeDeclaration interf = new TypeDeclaration(parent.compilationResult);
