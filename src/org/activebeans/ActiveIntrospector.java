@@ -11,7 +11,7 @@ import java.util.Set;
 import com.impetus.annovention.ClasspathDiscoverer;
 import com.impetus.annovention.listener.ClassAnnotationDiscoveryListener;
 
-public class ActiveIntrospector<T extends Model<T, ?, ?, ?>> {
+public class ActiveIntrospector<T extends Model<T, ?, ?, W>, U, V, W extends Models<T, ?, ?, W>> {
 
 	private Active at;
 
@@ -19,7 +19,7 @@ public class ActiveIntrospector<T extends Model<T, ?, ?, ?>> {
 
 	private Class<?> interf;
 
-	private Class<? extends Models<T, ?, ?, ?>> collectionInterf;
+	private Class<W> collectionInterf;
 
 	private Map<String, Property> propMap = new HashMap<String, Property>();
 
@@ -50,10 +50,10 @@ public class ActiveIntrospector<T extends Model<T, ?, ?, ?>> {
 				interfName(activeClass));
 	}
 
-	private static <T extends Model<T, ?, ?, ?>> Class<? extends Models<T, ?, ?, ?>> collectionInterf(
-			Class<T> activeClass) {
+	private static <X extends Model<X, ?, ?, Y>, Y extends Models<X, ?, ?, Y>> Class<Y> collectionInterf(
+			Class<X> activeClass) {
 		@SuppressWarnings("unchecked")
-		Class<? extends Models<T, ?, ?, ?>> clazz = (Class<? extends Models<T, ?, ?, ?>>) ActiveBeansUtils
+		Class<Y> clazz = (Class<Y>) ActiveBeansUtils
 				.classNameMap(activeClass.getDeclaredClasses()).get(
 						collectionInterfName(activeClass));
 		return clazz;
@@ -83,9 +83,9 @@ public class ActiveIntrospector<T extends Model<T, ?, ?, ?>> {
 		}
 	}
 
-	public static <U extends Model<U, ?, ?, ?>> ActiveIntrospector<U> of(
-			Class<U> activeClass) {
-		return new ActiveIntrospector<U>(activeClass);
+	public static <X extends Model<X, Y, Z, A>, Y, Z, A extends Models<X, Y, Z, A>> ActiveIntrospector<X, Y, Z, A> of(
+			Class<X> activeClass) {
+		return new ActiveIntrospector<X, Y, Z, A>(activeClass);
 	}
 
 	public static Set<Class<? extends Model<?, ?, ?, ?>>> activeClasses() {
@@ -126,7 +126,7 @@ public class ActiveIntrospector<T extends Model<T, ?, ?, ?>> {
 		return interf;
 	}
 
-	public Class<? extends Models<T, ?, ?, ?>> activeCollectionInterface() {
+	public Class<W> activeCollectionInterface() {
 		return collectionInterf;
 	}
 

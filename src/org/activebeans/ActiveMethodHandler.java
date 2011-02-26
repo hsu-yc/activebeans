@@ -9,9 +9,9 @@ import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
-public class ActiveMethodHandler<T extends Model<T, ?, ?, ?>> implements MethodHandler {
+public class ActiveMethodHandler<T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> implements MethodHandler {
 
-	private ActiveIntrospector<T> intro;
+	private ActiveIntrospector<T, U, V, W> intro;
 
 	private Map<Method, Property> propGetterMap = new HashMap<Method, Property>();
 
@@ -46,9 +46,9 @@ public class ActiveMethodHandler<T extends Model<T, ?, ?, ?>> implements MethodH
 		}
 	}
 
-	public static <U extends Model<U, ?, ?, ?>> ActiveMethodHandler<U> of(
-			Class<U> activeClass) {
-		return new ActiveMethodHandler<U>(activeClass);
+	public static <X extends Model<X, Y, Z, A>, Y, Z, A extends Models<X, Y, Z, A>> ActiveMethodHandler<X, Y, Z, A> of(
+			Class<X> activeClass) {
+		return new ActiveMethodHandler<X, Y, Z, A>(activeClass);
 	}
 
 	@Override
@@ -69,14 +69,15 @@ public class ActiveMethodHandler<T extends Model<T, ?, ?, ?>> implements MethodH
 			rtn = Void.TYPE;
 		} else if (hasManyGetterMap.containsKey(method)) {
 			Association hasMany = hasManyGetterMap.get(method);
-			Models<? extends Model<?, ?, ?, ?>, ?, ?, ?> models = hasManyMap.get(hasMany);
+			Models<?, ?, ?, ?> models = hasManyMap.get(hasMany);
 			if (models == null) {
 				@SuppressWarnings("rawtypes")
-				Class<? extends Model> with = hasMany.with();
+				Class with = hasMany.with();
 				@SuppressWarnings("unchecked")
-				Class<? extends Models<? extends Model<?, ?, ?, ?>, ?, ?, ?>> collectionInterface = ActiveIntrospector
-						.of(with).activeCollectionInterface();
+				ActiveIntrospector<? extends Model<?, ?, ?, ?>, ?, ?, 
+					? extends Models<?,?,?,?>> intro = ActiveIntrospector.of(with);
 				ProxyFactory f = new ProxyFactory();
+				Class<? extends Models<?, ?, ?, ?>> collectionInterface = intro.activeCollectionInterface();
 				f.setInterfaces(new Class[] { collectionInterface });
 				f.setFilter(new MethodFilter() {
 					@Override

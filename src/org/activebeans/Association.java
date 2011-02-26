@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 @Target({})
 public @interface Association {
 
-	Class<? extends Model<?, ?, ?, ?>> with();
+	Class<? extends Model<?, ?, ?, ? extends Models<?, ?, ?, ?>>> with();
 
 	String name() default "";
 

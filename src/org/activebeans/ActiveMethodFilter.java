@@ -7,12 +7,12 @@ import java.util.Set;
 
 import javassist.util.proxy.MethodFilter;
 
-public class ActiveMethodFilter<T extends Model<T, ?, ?, ?>> implements MethodFilter {
+public class ActiveMethodFilter<T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> implements MethodFilter {
 
 	private Set<Method> methods = new HashSet<Method>();
 
 	private ActiveMethodFilter(Class<T> activeClass) {
-		ActiveIntrospector<T> intro = ActiveIntrospector.of(activeClass);
+		ActiveIntrospector<T, U, V, W> intro = ActiveIntrospector.of(activeClass);
 		for (PropertyAccessors accessor : intro.accessors()) {
 			methods.add(accessor.get());
 			methods.add(accessor.set());
@@ -28,9 +28,9 @@ public class ActiveMethodFilter<T extends Model<T, ?, ?, ?>> implements MethodFi
 		methods.addAll(Arrays.asList(Model.class.getMethods()));
 	}
 
-	public static <U extends Model<U, ?, ?, ?>> ActiveMethodFilter<U> of(
-			Class<U> activeClass) {
-		return new ActiveMethodFilter<U>(activeClass);
+	public static <X extends Model<X, Y, Z, A>, Y, Z, A extends Models<X, Y, Z, A>> ActiveMethodFilter<X, Y, Z, A> of(
+			Class<X> activeClass) {
+		return new ActiveMethodFilter<X, Y, Z, A>(activeClass);
 	}
 
 	@Override
