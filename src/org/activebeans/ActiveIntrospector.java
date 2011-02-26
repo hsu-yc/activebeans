@@ -1,5 +1,7 @@
 package org.activebeans;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,18 +10,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.eclipse.handlers.HandleActive;
+
 import com.impetus.annovention.ClasspathDiscoverer;
 import com.impetus.annovention.listener.ClassAnnotationDiscoveryListener;
 
 public class ActiveIntrospector<T extends Model<T, ?, ?, W>, U, V, W extends Models<T, ?, ?, W>> {
-
+	
 	private Active at;
 
 	private Class<T> clazz;
 
-	private Class<?> interf;
+	private Class<?> attrsInterf;
 
-	private Class<W> collectionInterf;
+	private Class<W> modelsInterf;
 
 	private Map<String, Property> propMap = new HashMap<String, Property>();
 
@@ -35,38 +39,52 @@ public class ActiveIntrospector<T extends Model<T, ?, ?, W>, U, V, W extends Mod
 
 	private List<Property> keys = new ArrayList<Property>();
 
-	private static String interfName(Class<? extends Model<?, ?, ?, ?>> activeClass) {
-		return activeClass.getPackage().getName() + ".Active"
-				+ activeClass.getSimpleName();
-	}
-
-	private static String collectionInterfName(
-			Class<? extends Model<?, ?, ?, ?>> activeClass) {
-		return activeClass.getName() + "$Models";
-	}
-
-	private static Class<?> interf(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+	private static Class<?> attrsInterf(Class<? extends Model<?, ?, ?, ?>> activeClass) {
 		return ActiveBeansUtils.classNameMap(activeClass.getInterfaces()).get(
-				interfName(activeClass));
+				HandleActive.attributesInterface(activeClass));
+	}
+	
+	private static boolean isModelInterf(Type interf){
+		return interf instanceof ParameterizedType && 
+			((ParameterizedType)interf).getRawType().equals(Model.class);
 	}
 
-	private static <X extends Model<X, ?, ?, Y>, Y extends Models<X, ?, ?, Y>> Class<Y> collectionInterf(
+	private static <X extends Model<X, ?, ?, Y>, Y extends Models<X, ?, ?, Y>> ParameterizedType modelInterf(
+			Class<X> activeClass) {
+		ParameterizedType modelInterf = null;
+		for (Type interf : activeClass.getGenericInterfaces()) {
+			if(isModelInterf(interf)){
+				modelInterf = (ParameterizedType) interf;
+			}
+		}
+		return modelInterf;
+	}
+	
+	private static <X extends Model<X, ?, ?, Y>, Y extends Models<X, ?, ?, Y>> Class<?>[] modelTypeParams(
+			Class<X> activeClass) {
+		List<Class<?>> params = new ArrayList<Class<?>>();
+		for (Type p : modelInterf(activeClass).getActualTypeArguments()) {
+			params.add((Class<?>)p);
+		}
+		return params.toArray(new Class[0]);
+	}
+	
+	private static <X extends Model<X, ?, ?, Y>, Y extends Models<X, ?, ?, Y>> Class<Y> modelsInterf(
 			Class<X> activeClass) {
 		@SuppressWarnings("unchecked")
-		Class<Y> clazz = (Class<Y>) ActiveBeansUtils
-				.classNameMap(activeClass.getDeclaredClasses()).get(
-						collectionInterfName(activeClass));
-		return clazz;
+		Class<Y> modelsInterf = (Class<Y>) ActiveBeansUtils.classNameMap(modelTypeParams(activeClass))
+					.get(HandleActive.modelsInterface(activeClass));
+		return modelsInterf;
 	}
 
 	private ActiveIntrospector(Class<T> activeClass) {
 		clazz = activeClass;
 		at = clazz.getAnnotation(Active.class);
-		interf = interf(clazz);
-		collectionInterf = collectionInterf(clazz);
+		attrsInterf = attrsInterf(clazz);
+		modelsInterf = modelsInterf(clazz);
 		for (Property prop : at.with()) {
 			propMap.put(prop.name(), prop);
-			accessorMap.put(prop, new JavaBeanPropertyAccessors(interf, prop));
+			accessorMap.put(prop, new JavaBeanPropertyAccessors(attrsInterf, prop));
 			if (prop.key()) {
 				keys.add(prop);
 			}
@@ -74,12 +92,12 @@ public class ActiveIntrospector<T extends Model<T, ?, ?, W>, U, V, W extends Mod
 		for (Association belongsTo : at.belongsTo()) {
 			belongsToMap.put(belongsTo.with(), belongsTo);
 			belongsToMethodMap.put(belongsTo,
-					new JavaBeanBelongsToAssociationMethods(interf, belongsTo));
+					new JavaBeanBelongsToAssociationMethods(attrsInterf, belongsTo));
 		}
 		for (Association hasMany : at.hasMany()) {
 			hasManyMap.put(hasMany.with(), hasMany);
 			hasManyMethodMap.put(hasMany,
-					new JavaBeanHasManyAssociationMethods(interf, hasMany));
+					new JavaBeanHasManyAssociationMethods(attrsInterf, hasMany));
 		}
 	}
 
@@ -122,12 +140,12 @@ public class ActiveIntrospector<T extends Model<T, ?, ?, W>, U, V, W extends Mod
 		return clazz;
 	}
 
-	public Class<?> activeInterface() {
-		return interf;
+	public Class<?> attributesInterface() {
+		return attrsInterf;
 	}
 
-	public Class<W> activeCollectionInterface() {
-		return collectionInterf;
+	public Class<W> modelsInterface() {
+		return modelsInterf;
 	}
 
 	public Property property(String name) {

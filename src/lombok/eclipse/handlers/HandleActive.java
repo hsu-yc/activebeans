@@ -46,6 +46,22 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 
 public class HandleActive implements EclipseAnnotationHandler<Active> {
 
+	private static final String ATTRIBUTES_INTERFACE = "Attributes";
+
+	private static final String OPTIONS_INTERFACE = "Options";
+	
+	private static final String CONDITIONS_INTERFACE = "Conditions";
+	
+	private static final String MODELS_INTERFACE = "Models";
+
+	public static String attributesInterface(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+		return activeClass.getPackage().getName() + "." + activeClass.getSimpleName() + ATTRIBUTES_INTERFACE;
+	}
+	
+	public static String modelsInterface(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+		return activeClass.getName() + "$" + MODELS_INTERFACE;
+	}
+	
 	@Override
 	public boolean handle(AnnotationValues<Active> at, Annotation ast,
 			EclipseNode node) {
@@ -277,7 +293,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			int modifier, ASTNode source) {
 		TypeDeclaration interf = new TypeDeclaration(parent.compilationResult);
 		Eclipse.setGeneratedBy(interf, source);
-		interf.name = ("Active" + String.valueOf(bean.name)).toCharArray();
+		interf.name = (String.valueOf(bean.name) + ATTRIBUTES_INTERFACE).toCharArray();
 		interf.modifiers = modifier;
 		interf.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 		interf.bodyStart = interf.declarationSourceStart = interf.sourceStart = source.sourceStart;
@@ -291,7 +307,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		ASTNode source = node.get();
 		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
 		Eclipse.setGeneratedBy(interf, source);
-		interf.name = "Models".toCharArray();
+		interf.name = MODELS_INTERFACE.toCharArray();
 		interf.modifiers = modifier;
 		char[][] superInterf = Eclipse.fromQualifiedName(Models.class
 				.getCanonicalName());
@@ -341,7 +357,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		ASTNode source = node.get();
 		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
 		Eclipse.setGeneratedBy(interf, source);
-		interf.name = "Options".toCharArray();
+		interf.name = OPTIONS_INTERFACE.toCharArray();
 		interf.modifiers = modifier;
 		interf.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 		interf.bodyStart = interf.declarationSourceStart = interf.sourceStart = source.sourceStart;
@@ -354,7 +370,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		ASTNode source = node.get();
 		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
 		Eclipse.setGeneratedBy(interf, source);
-		interf.name = "Conditions".toCharArray();
+		interf.name = CONDITIONS_INTERFACE.toCharArray();
 		interf.modifiers = modifier;
 		interf.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 		interf.bodyStart = interf.declarationSourceStart = interf.sourceStart = source.sourceStart;
