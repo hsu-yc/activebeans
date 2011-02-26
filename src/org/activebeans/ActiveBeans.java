@@ -37,18 +37,16 @@ public class ActiveBeans {
 		return defaultDs;
 	}
 
-	public static <T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> void migrate(Class<T> activeClass) {
-		Table table = ActiveMigration.of(activeClass, defaultDs).table();
+	public static void migrate(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+		Table table = new ActiveMigration(activeClass, defaultDs).table();
 		ActiveBeansUtils.executeSql(defaultDs, table.dropStatement(),
 				table.createStatment());
 	}
 
 	public static void autoMigrate() {
 		List<String> stmts = new ArrayList<String>();
-		for (@SuppressWarnings("rawtypes") Class clazz : ActiveIntrospector.activeClasses()) {
-			@SuppressWarnings("unchecked")
-			ActiveMigration<? extends Model<?, ?, ?, ?>, ?, ?, ?> migr = 
-				ActiveMigration.of(clazz, defaultDs);
+		for (Class<? extends Model<?, ?, ?, ?>> clazz : ActiveIntrospector.activeClasses()) {
+			ActiveMigration migr = new ActiveMigration(clazz, defaultDs);
 			Table table = migr.table();
 			stmts.add(table.dropStatement());
 			stmts.add(table.createStatment());
@@ -56,8 +54,8 @@ public class ActiveBeans {
 		ActiveBeansUtils.executeSql(defaultDs, stmts);
 	}
 
-	public static <T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> void upgrade(Class<T> activeClass) {
-		String alterStmt = ActiveMigration.of(activeClass, defaultDs)
+	public static void upgrade(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+		String alterStmt = new ActiveMigration(activeClass, defaultDs)
 				.alterStatement();
 		if (alterStmt != null) {
 			ActiveBeansUtils.executeSql(defaultDs, alterStmt);
@@ -66,9 +64,8 @@ public class ActiveBeans {
 
 	public static void autoUpgrade() {
 		List<String> stmts = new ArrayList<String>();
-		for (@SuppressWarnings("rawtypes") Class clazz : ActiveIntrospector.activeClasses()) {
-			@SuppressWarnings("unchecked")
-			String alterStmt = ActiveMigration.of(clazz, defaultDs)
+		for (Class<? extends Model<?, ?, ?, ?>> clazz : ActiveIntrospector.activeClasses()) {
+			String alterStmt = new ActiveMigration(clazz, defaultDs)
 					.alterStatement();
 			if (alterStmt != null) {
 				stmts.add(alterStmt);
@@ -85,13 +82,13 @@ public class ActiveBeans {
 		return null;
 	}
 
-	public static <T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> T build(Class<T> activeClass) {
+	public static <T extends Model<T, ?, ?, ?>> T build(Class<T> activeClass) {
 		ProxyFactory f = new ProxyFactory();
 		f.setSuperclass(activeClass);
-		f.setFilter(ActiveMethodFilter.of(activeClass));
+		f.setFilter(new ActiveMethodFilter(activeClass));
 		try {
 			return activeClass.cast(f.create(new Class[0], new Object[0],
-					ActiveMethodHandler.of(activeClass)));
+				new ActiveMethodHandler(activeClass)));
 		} catch (Exception e) {
 			throw new ActiveBeansException(e);
 		}

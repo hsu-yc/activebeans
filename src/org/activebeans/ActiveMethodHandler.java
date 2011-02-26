@@ -9,9 +9,9 @@ import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
-public class ActiveMethodHandler<T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> implements MethodHandler {
+public class ActiveMethodHandler implements MethodHandler {
 
-	private ActiveIntrospector<T, U, V, W> intro;
+	private ActiveIntrospector intro;
 
 	private Map<Method, Property> propGetterMap = new HashMap<Method, Property>();
 
@@ -27,10 +27,10 @@ public class ActiveMethodHandler<T extends Model<T, U, V, W>, U, V, W extends Mo
 
 	private Map<Method, Association> hasManyGetterMap = new HashMap<Method, Association>();
 
-	private Map<Association, Models<? extends Model<?, ?, ?, ?>, ?, ?, ?>> hasManyMap = new HashMap<Association, Models<? extends Model<?, ?, ?, ?>, ?, ?, ?>>();
+	private Map<Association, Object> hasManyMap = new HashMap<Association, Object>();
 
-	private ActiveMethodHandler(Class<T> activeClass) {
-		intro = ActiveIntrospector.of(activeClass);
+	public ActiveMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+		intro = new ActiveIntrospector(activeClass);
 		for (PropertyAccessors accessor : intro.accessors()) {
 			Property prop = accessor.property();
 			propGetterMap.put(accessor.get(), prop);
@@ -44,11 +44,6 @@ public class ActiveMethodHandler<T extends Model<T, U, V, W>, U, V, W extends Mo
 		for (HasManyAssociationMethods methods : intro.hasManyMethods()) {
 			hasManyGetterMap.put(methods.retrieve(), methods.association());
 		}
-	}
-
-	public static <X extends Model<X, Y, Z, A>, Y, Z, A extends Models<X, Y, Z, A>> ActiveMethodHandler<X, Y, Z, A> of(
-			Class<X> activeClass) {
-		return new ActiveMethodHandler<X, Y, Z, A>(activeClass);
 	}
 
 	@Override
@@ -69,15 +64,11 @@ public class ActiveMethodHandler<T extends Model<T, U, V, W>, U, V, W extends Mo
 			rtn = Void.TYPE;
 		} else if (hasManyGetterMap.containsKey(method)) {
 			Association hasMany = hasManyGetterMap.get(method);
-			Models<?, ?, ?, ?> models = hasManyMap.get(hasMany);
+			Object models = hasManyMap.get(hasMany);
 			if (models == null) {
-				@SuppressWarnings("rawtypes")
-				Class with = hasMany.with();
-				@SuppressWarnings("unchecked")
-				ActiveIntrospector<? extends Model<?, ?, ?, ?>, ?, ?, 
-					? extends Models<?,?,?,?>> intro = ActiveIntrospector.of(with);
+				ActiveIntrospector intro = new ActiveIntrospector(hasMany.with());
 				ProxyFactory f = new ProxyFactory();
-				Class<? extends Models<?, ?, ?, ?>> modelsInterface = intro.modelsInterface();
+				Class<?> modelsInterface = intro.modelsInterface();
 				f.setInterfaces(new Class[] { modelsInterface });
 				f.setFilter(new MethodFilter() {
 					@Override
@@ -85,7 +76,7 @@ public class ActiveMethodHandler<T extends Model<T, U, V, W>, U, V, W extends Mo
 						return !isCovariantReturn(m);
 					}
 				});
-				models = modelsInterface.cast(f.create(new Class[0],
+				models = f.create(new Class[0],
 						new Object[0], new MethodHandler() {
 							@Override
 							public Object invoke(Object self, Method method,
@@ -93,7 +84,7 @@ public class ActiveMethodHandler<T extends Model<T, U, V, W>, U, V, W extends Mo
 									throws Throwable {
 								return defaultValue(method.getReturnType());
 							}
-						}));
+						});
 				hasManyMap.put(hasMany, models);
 				rtn = models;
 			}

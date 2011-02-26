@@ -64,7 +64,7 @@ public class ActiveBeansTest {
 	
 	private static Class<?> conditionsInterf;
 
-	private static ActiveIntrospector<?, ?, ?, ?> activeIntro;
+	private static ActiveIntrospector activeIntro;
 
 	private static DataSourceIntrospector dsIntro;
 
@@ -79,7 +79,7 @@ public class ActiveBeansTest {
 		modelsInterf = Class.forName(HandleActive.modelsInterface(activeClass));
 		optionsInterf = Class.forName(HandleActive.optionsInterface(activeClass));
 		conditionsInterf = Class.forName(HandleActive.conditionsInterface(activeClass));
-		activeIntro = ActiveIntrospector.of(activeClass);
+		activeIntro = new ActiveIntrospector(activeClass);
 		dsIntro = new DataSourceIntrospector(ds);
 	}
 
@@ -152,7 +152,7 @@ public class ActiveBeansTest {
 
 	@Test
 	public void methodFilter() {
-		ActiveMethodFilter<?, ?, ?, ?> filter = ActiveMethodFilter.of(activeClass);
+		ActiveMethodFilter filter = new ActiveMethodFilter(activeClass);
 		List<Method> handledMathods = new ArrayList<Method>();
 		handledMathods.addAll(Arrays.asList(attrsInterf.getMethods()));
 		handledMathods.addAll(Arrays.asList(Model.class.getMethods()));
@@ -252,7 +252,7 @@ public class ActiveBeansTest {
 
 	@Test
 	public void keys() {
-		ActiveIntrospector<?, ?, ?, ?> pIntro = ActiveIntrospector.of(Post.class);
+		ActiveIntrospector pIntro = new ActiveIntrospector(Post.class);
 		List<Property> keys = pIntro.keys();
 		assertEquals(1, keys.size());
 		assertEquals(pIntro.property("id"), keys.get(0));
@@ -318,7 +318,7 @@ public class ActiveBeansTest {
 
 	@Test
 	public void createAndDropTable() throws SQLException {
-		ActiveMigration<?, ?, ?, ?> migr = ActiveMigration.of(Comment.class, ds);
+		ActiveMigration migr = new ActiveMigration(Comment.class, ds);
 		final Table table = migr.table();
 		ActiveBeansUtils.executeSql(ds, table.createStatment());
 		String tableName = table.name();
@@ -333,7 +333,7 @@ public class ActiveBeansTest {
 
 	@Test
 	public void migrateOne() {
-		Table table = ActiveMigration.of(activeClass, ds).table();
+		Table table = new ActiveMigration(activeClass, ds).table();
 		ActiveBeans.migrate(activeClass);
 		String tableName = table.name();
 		assertTrue(dsIntro.tables().contains(tableName));
@@ -345,9 +345,8 @@ public class ActiveBeansTest {
 	public void migrateAll() {
 		List<String> tableNames = new ArrayList<String>();
 		List<String> dropStmts = new ArrayList<String>();
-		for (@SuppressWarnings("rawtypes") Class clazz : activeClasses) {
-			@SuppressWarnings("unchecked")
-			Table table = ActiveMigration.of(clazz, ds).table();
+		for (Class<? extends Model<?, ?, ?, ?>> clazz : activeClasses) {
+			Table table = new ActiveMigration(clazz, ds).table();
 			tableNames.add(table.name());
 			dropStmts.add(table.dropStatement());
 		}
@@ -392,7 +391,7 @@ public class ActiveBeansTest {
 
 	@Test
 	public void upgradeOne() {
-		ActiveMigration<?, ?, ?, ?> migr = ActiveMigration.of(activeClass, ds);
+		ActiveMigration migr = new ActiveMigration(activeClass, ds);
 		Table activeTable = migr.table();
 		List<String> colNames = new ArrayList<String>();
 		List<Column> cols = activeTable.columns();
@@ -420,9 +419,8 @@ public class ActiveBeansTest {
 		List<Table> tables = new ArrayList<Table>();
 		List<String> tableNames = new ArrayList<String>();
 		List<String> dropStmts = new ArrayList<String>();
-		for (@SuppressWarnings("rawtypes") Class clazz : activeClasses) {
-			@SuppressWarnings("unchecked")
-			Table table = ActiveMigration.of(clazz, ds).table();
+		for (Class<? extends Model<? ,?, ?, ?>> clazz : activeClasses) {
+			Table table = new ActiveMigration(clazz, ds).table();
 			tables.add(table);
 			tableNames.add(table.name());
 			dropStmts.add(table.dropStatement());
