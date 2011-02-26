@@ -1,5 +1,12 @@
 package org.activebeans.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -37,13 +44,6 @@ import org.activebeans.test.model.Post;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-
 public class ActiveBeansTest {
 
 	private static final String TEST_CONTEXT = "test";
@@ -59,6 +59,10 @@ public class ActiveBeansTest {
 	private static Class<?> attrsInterf;
 
 	private static Class<?> modelsInterf;
+	
+	private static Class<?> optionsInterf;
+	
+	private static Class<?> conditionsInterf;
 
 	private static ActiveIntrospector<?, ?, ?, ?> activeIntro;
 
@@ -73,6 +77,8 @@ public class ActiveBeansTest {
 		activeAt = activeClass.getAnnotation(Active.class);
 		attrsInterf = Class.forName(HandleActive.attributesInterface(activeClass));
 		modelsInterf = Class.forName(HandleActive.modelsInterface(activeClass));
+		optionsInterf = Class.forName(HandleActive.optionsInterface(activeClass));
+		conditionsInterf = Class.forName(HandleActive.conditionsInterface(activeClass));
 		activeIntro = ActiveIntrospector.of(activeClass);
 		dsIntro = new DataSourceIntrospector(ds);
 	}
@@ -82,8 +88,9 @@ public class ActiveBeansTest {
 		assertEquals(attrsInterf, activeIntro.attributesInterface());
 		assertEquals(activeAt, activeIntro.activeAnnotation());
 		assertEquals(activeClass, activeIntro.activeClass());
-		assertEquals(modelsInterf,
-				activeIntro.modelsInterface());
+		assertEquals(modelsInterf, activeIntro.modelsInterface());
+		assertEquals(optionsInterf, activeIntro.optionsInterface());
+		assertEquals(conditionsInterf, activeIntro.conditionsInterface());
 	}
 
 	@Test

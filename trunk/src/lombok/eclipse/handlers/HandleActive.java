@@ -62,6 +62,14 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		return activeClass.getName() + "$" + MODELS_INTERFACE;
 	}
 	
+	public static String optionsInterface(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+		return activeClass.getName() + "$" + OPTIONS_INTERFACE;
+	}
+	
+	public static String conditionsInterface(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+		return activeClass.getName() + "$" + CONDITIONS_INTERFACE;
+	}
+	
 	@Override
 	public boolean handle(AnnotationValues<Active> at, Annotation ast,
 			EclipseNode node) {
