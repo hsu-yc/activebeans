@@ -13,11 +13,11 @@ class JavaBeanHasManyAssociationMethods implements HasManyAssociationMethods {
 
 	private Method retrieve;
 
-	public JavaBeanHasManyAssociationMethods(Class<?> activeInterf,
+	public JavaBeanHasManyAssociationMethods(Class<?> attrsInterf,
 			Association assoc) {
 		hasMany = assoc;
 		try {
-			for (PropertyDescriptor pd : Introspector.getBeanInfo(activeInterf)
+			for (PropertyDescriptor pd : Introspector.getBeanInfo(attrsInterf)
 					.getPropertyDescriptors()) {
 				Type[] types = pd.getPropertyType().getGenericInterfaces();
 				if (types.length > 0 && types[0] instanceof ParameterizedType) {
