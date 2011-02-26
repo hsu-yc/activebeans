@@ -5,22 +5,22 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-public class ActiveMigration<T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> {
+public class ActiveMigration {
 
 	private static final String ASSOCIATION_SUFFIX = "_id";
 
-	private Class<T> activeClass;
+	private Class<?> activeClass;
 
 	private Table table;
 
 	private DataSourceIntrospector dsIntro;
 
-	private ActiveMigration(Class<T> activeClass, DataSource ds) {
+	public ActiveMigration(Class<? extends Model<?, ?, ?, ?>> activeClass, DataSource ds) {
 		dsIntro = new DataSourceIntrospector(ds);
 		this.activeClass = activeClass;
 		String tableName = ActiveBeansUtils.camelCaseToUnderscore(activeClass
 				.getSimpleName());
-		ActiveIntrospector<T, ?, ?, ?> ai = ActiveIntrospector.of(activeClass);
+		ActiveIntrospector ai = new ActiveIntrospector(activeClass);
 		List<Column> cols = new ArrayList<Column>();
 		for (Property prop : ai.properties()) {
 			Class<?> type = prop.type();
@@ -37,11 +37,9 @@ public class ActiveMigration<T extends Model<T, U, V, W>, U, V, W extends Models
 					.notNull(key || prop.required()).build());
 		}
 		for (Association belongsTo : ai.belongsTos()) {
-			@SuppressWarnings("rawtypes")
-			Class belongsToClazz = belongsTo.with();
+			Class<? extends Model<?, ?, ?, ?>> belongsToClazz = belongsTo.with();
 			boolean notNull = belongsTo.required();
-			@SuppressWarnings("unchecked")
-			ActiveIntrospector<?, ?, ?, ?> btci = ActiveIntrospector.of(belongsToClazz);
+			ActiveIntrospector btci = new ActiveIntrospector(belongsToClazz);
 			for (Property prop : btci.keys()) {
 				Class<?> type = prop.type();
 				Object len = null;
@@ -60,16 +58,11 @@ public class ActiveMigration<T extends Model<T, U, V, W>, U, V, W extends Models
 		table = new Table(tableName, cols);
 	}
 
-	public static <X extends Model<X, Y, Z, A>, Y, Z, A extends Models<X, Y, Z, A>> ActiveMigration<X, Y, Z, A> of(
-			Class<X> activeClass, DataSource ds) {
-		return new ActiveMigration<X, Y, Z, A>(activeClass, ds);
-	}
-
 	public Table table() {
 		return table;
 	}
 
-	public Class<T> activeClass() {
+	public Class<?> activeClass() {
 		return activeClass;
 	}
 

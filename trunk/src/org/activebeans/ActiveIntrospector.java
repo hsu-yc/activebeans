@@ -15,19 +15,19 @@ import lombok.eclipse.handlers.HandleActive;
 import com.impetus.annovention.ClasspathDiscoverer;
 import com.impetus.annovention.listener.ClassAnnotationDiscoveryListener;
 
-public class ActiveIntrospector<T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> {
+public class ActiveIntrospector {
 	
 	private Active at;
 
-	private Class<T> clazz;
+	private Class<?> clazz;
 
 	private Class<?> attrsInterf;
 
-	private Class<W> modelsInterf;
+	private Class<?> modelsInterf;
 	
-	private Class<U> optionsInterf;
+	private Class<?> optionsInterf;
 
-	private Class<V> conditionsInterf;
+	private Class<?> conditionsInterf;
 	
 	private Map<String, Property> propMap = new HashMap<String, Property>();
 
@@ -53,8 +53,7 @@ public class ActiveIntrospector<T extends Model<T, U, V, W>, U, V, W extends Mod
 			((ParameterizedType)interf).getRawType().equals(Model.class);
 	}
 
-	private static <X extends Model<X, ?, ?, Y>, Y extends Models<X, ?, ?, Y>> ParameterizedType modelInterf(
-			Class<X> activeClass) {
+	private static ParameterizedType modelInterf(Class<?> activeClass) {
 		ParameterizedType modelInterf = null;
 		for (Type interf : activeClass.getGenericInterfaces()) {
 			if(isModelInterf(interf)){
@@ -64,8 +63,7 @@ public class ActiveIntrospector<T extends Model<T, U, V, W>, U, V, W extends Mod
 		return modelInterf;
 	}
 	
-	private static <X extends Model<X, ?, ?, Y>, Y extends Models<X, ?, ?, Y>> Class<?>[] modelTypeParams(
-			Class<X> activeClass) {
+	private static Class<?>[] modelTypeParams(Class<?> activeClass) {
 		List<Class<?>> params = new ArrayList<Class<?>>();
 		for (Type p : modelInterf(activeClass).getActualTypeArguments()) {
 			params.add((Class<?>)p);
@@ -73,35 +71,26 @@ public class ActiveIntrospector<T extends Model<T, U, V, W>, U, V, W extends Mod
 		return params.toArray(new Class[0]);
 	}
 	
-	private static <X extends Model<X, ?, ?, A>, A extends Models<X, ?, ?, A>> Class<A> modelsInterf(
-			Class<X> activeClass) {
-		@SuppressWarnings("unchecked")
-		Class<A> modelsInterf = (Class<A>) ActiveBeansUtils.classNameMap(modelTypeParams(activeClass))
+	private static Class<?> modelsInterf(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+		return ActiveBeansUtils.classNameMap(modelTypeParams(activeClass))
 					.get(HandleActive.modelsInterface(activeClass));
-		return modelsInterf;
 	}
 	
-	private static <X extends Model<X, Y, ?, A>, Y, A extends Models<X, Y, ?, A>> Class<Y> optionsInterf(
-			Class<X> activeClass) {
-		@SuppressWarnings("unchecked")
-		Class<Y> modelsInterf = (Class<Y>) ActiveBeansUtils.classNameMap(modelTypeParams(activeClass))
+	private static Class<?> optionsInterf(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+		return ActiveBeansUtils.classNameMap(modelTypeParams(activeClass))
 					.get(HandleActive.optionsInterface(activeClass));
-		return modelsInterf;
 	}
 	
-	private static <X extends Model<X, ?, Z, A>, Z, A extends Models<X, ?, Z, A>> Class<Z> conditionsInterf(
-			Class<X> activeClass) {
-		@SuppressWarnings("unchecked")
-		Class<Z> modelsInterf = (Class<Z>) ActiveBeansUtils.classNameMap(modelTypeParams(activeClass))
-					.get(HandleActive.conditionsInterface(activeClass));
-		return modelsInterf;
+	private static Class<?> conditionsInterf(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+		return ActiveBeansUtils.classNameMap(modelTypeParams(activeClass))
+			.get(HandleActive.conditionsInterface(activeClass));
 	}
 
-	private ActiveIntrospector(Class<T> activeClass) {
+	public ActiveIntrospector(Class<? extends Model<?, ?, ?, ?>> activeClass) {
 		clazz = activeClass;
 		at = clazz.getAnnotation(Active.class);
-		attrsInterf = attrsInterf(clazz);
-		modelsInterf = modelsInterf(clazz);
+		attrsInterf = attrsInterf(activeClass);
+		modelsInterf = modelsInterf(activeClass);
 		optionsInterf = optionsInterf(activeClass);
 		conditionsInterf = conditionsInterf(activeClass);
 		for (Property prop : at.with()) {
@@ -121,11 +110,6 @@ public class ActiveIntrospector<T extends Model<T, U, V, W>, U, V, W extends Mod
 			hasManyMethodMap.put(hasMany,
 					new JavaBeanHasManyAssociationMethods(attrsInterf, hasMany));
 		}
-	}
-
-	public static <X extends Model<X, Y, Z, A>, Y, Z, A extends Models<X, Y, Z, A>> ActiveIntrospector<X, Y, Z, A> of(
-			Class<X> activeClass) {
-		return new ActiveIntrospector<X, Y, Z, A>(activeClass);
 	}
 
 	public static Set<Class<? extends Model<?, ?, ?, ?>>> activeClasses() {
@@ -158,7 +142,7 @@ public class ActiveIntrospector<T extends Model<T, U, V, W>, U, V, W extends Mod
 		return at;
 	}
 
-	public Class<T> activeClass() {
+	public Class<?> activeClass() {
 		return clazz;
 	}
 
@@ -166,15 +150,15 @@ public class ActiveIntrospector<T extends Model<T, U, V, W>, U, V, W extends Mod
 		return attrsInterf;
 	}
 
-	public Class<W> modelsInterface() {
+	public Class<?> modelsInterface() {
 		return modelsInterf;
 	}
 	
-	public Class<U> optionsInterface() {
+	public Class<?> optionsInterface() {
 		return optionsInterf;
 	}
 	
-	public Class<V> conditionsInterface() {
+	public Class<?> conditionsInterface() {
 		return conditionsInterf;
 	}
 
