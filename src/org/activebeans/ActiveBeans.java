@@ -85,7 +85,7 @@ public class ActiveBeans {
 	public static <T extends Model<T, ?, ?, ?>> T build(Class<T> activeClass) {
 		ProxyFactory f = new ProxyFactory();
 		f.setSuperclass(activeClass);
-		f.setFilter(new ActiveMethodFilter(activeClass));
+		f.setFilter(new AttributesMethodFilter(activeClass));
 		try {
 			return activeClass.cast(f.create(new Class[0], new Object[0],
 				new ActiveMethodHandler(activeClass)));

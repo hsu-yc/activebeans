@@ -7,11 +7,11 @@ import java.util.Set;
 
 import javassist.util.proxy.MethodFilter;
 
-public class ActiveMethodFilter implements MethodFilter {
+public class AttributesMethodFilter implements MethodFilter {
 
 	private Set<Method> methods = new HashSet<Method>();
 
-	public ActiveMethodFilter(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+	public AttributesMethodFilter(Class<? extends Model<?, ?, ?, ?>> activeClass) {
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		for (PropertyMethods propMethods : intro.propertyMethods()) {
 			methods.add(propMethods.get());
