@@ -20,14 +20,16 @@ import org.activebeans.Active;
 import org.activebeans.ActiveBeans;
 import org.activebeans.ActiveBeansUtils;
 import org.activebeans.ActiveIntrospector;
-import org.activebeans.ActiveMethodFilter;
 import org.activebeans.ActiveMigration;
 import org.activebeans.Association;
+import org.activebeans.AttributesMethodFilter;
 import org.activebeans.CollectionAssociationMethods;
 import org.activebeans.Column;
+import org.activebeans.ConditionsMethodFilter;
 import org.activebeans.DataSourceIntrospector;
 import org.activebeans.DataType;
 import org.activebeans.Model;
+import org.activebeans.OptionsMethodFilter;
 import org.activebeans.Property;
 import org.activebeans.PropertyMethods;
 import org.activebeans.SingularAssociationMethods;
@@ -154,13 +156,33 @@ public class ActiveBeansTest {
 	}
 
 	@Test
-	public void methodFilter() {
-		ActiveMethodFilter filter = new ActiveMethodFilter(activeClass);
-		List<Method> handledMathods = new ArrayList<Method>();
-		handledMathods.addAll(Arrays.asList(attrsInterf.getMethods()));
-		handledMathods.addAll(Arrays.asList(Model.class.getMethods()));
+	public void attributesMethodFilter() {
+		AttributesMethodFilter filter = new AttributesMethodFilter(activeClass);
+		List<Method> handledMethods = new ArrayList<Method>();
+		handledMethods.addAll(Arrays.asList(attrsInterf.getMethods()));
+		handledMethods.addAll(Arrays.asList(Model.class.getMethods()));
 		for (Method method : activeClass.getMethods()) {
-			assertEquals(handledMathods.contains(method),
+			assertEquals(handledMethods.contains(method),
+					filter.isHandled(method));
+		}
+	}
+	
+	@Test
+	public void optionsMethodFilter() {
+		OptionsMethodFilter filter = new OptionsMethodFilter(activeClass);
+		List<Method> handledMethods = Arrays.asList(optionsInterf.getMethods());
+		for (Method method : optionsInterf.getMethods()) {
+			assertEquals(handledMethods.contains(method),
+					filter.isHandled(method));
+		}
+	}
+	
+	@Test
+	public void conditionsMethodFilter() {
+		ConditionsMethodFilter filter = new ConditionsMethodFilter(activeClass);
+		List<Method> handledMethods = Arrays.asList(conditionsInterf.getMethods());
+		for (Method method : conditionsInterf.getMethods()) {
+			assertEquals(handledMethods.contains(method),
 					filter.isHandled(method));
 		}
 	}
