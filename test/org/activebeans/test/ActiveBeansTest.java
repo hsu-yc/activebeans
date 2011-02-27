@@ -24,6 +24,7 @@ import org.activebeans.ActiveMigration;
 import org.activebeans.Association;
 import org.activebeans.AttributesMethodFilter;
 import org.activebeans.CollectionAssociationMethods;
+import org.activebeans.CollectionOption;
 import org.activebeans.Column;
 import org.activebeans.ConditionsMethodFilter;
 import org.activebeans.DataSourceIntrospector;
@@ -33,9 +34,11 @@ import org.activebeans.OptionsMethodFilter;
 import org.activebeans.Property;
 import org.activebeans.PropertyMethods;
 import org.activebeans.SingularAssociationMethods;
+import org.activebeans.SingularOption;
 import org.activebeans.Table;
 import org.activebeans.test.model.Comment;
 import org.activebeans.test.model.Post;
+import org.activebeans.test.model.Post.Options;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -222,7 +225,7 @@ public class ActiveBeansTest {
 	@Test
 	public void noopModel() {
 		Model<?, ?, ?, ?> model = ActiveBeans.build(activeClass);
-		assertTrue(activeClass.isInstance(model));
+		assertNotNull(model);
 		assertNull(model.attrs(null));
 		assertFalse(model.destroy());
 		assertFalse(model.save());
@@ -234,6 +237,7 @@ public class ActiveBeansTest {
 	public void noopModels() {
 		Post post = ActiveBeans.build(Post.class);
 		Comment.Models comments = post.getComments();
+		assertNotNull(comments);
 		assertNull(comments.add(null));
 		assertNull(comments.all());
 		assertNull(comments.all(null));
@@ -253,6 +257,18 @@ public class ActiveBeansTest {
 		assertFalse(comments.save());
 		assertFalse(comments.update());
 		assertFalse(comments.update(null));
+	}
+	
+	@Test
+	public void noopOptions(){
+		Options options = ActiveBeans.options(activeClass);
+		assertNotNull(options);
+		SingularOption<Options, Long> id = options.id();
+		assertNotNull(id);
+		assertSame(options, id.val(0L));
+		CollectionOption<Options, org.activebeans.test.model.Comment.Options> comments = options.comments();
+		assertNotNull(comments);
+		assertSame(options, comments.val());
 	}
 
 	@Test

@@ -75,7 +75,17 @@ public class ActiveBeans {
 	}
 	
 	public static <T extends Model<T, U, ?, ?>, U> U options(Class<T> activeClass){
-		return null;
+		ProxyFactory f = new ProxyFactory();
+		@SuppressWarnings("unchecked")
+		Class<U> optionsInterface = (Class<U>) new ActiveIntrospector(activeClass).optionsInterface();
+		f.setInterfaces(new Class[]{optionsInterface});
+		f.setFilter(new OptionsMethodFilter(activeClass));
+		try {
+			return optionsInterface.cast(f.create(new Class[0], new Object[0],
+				new OptionsMethodHandler(activeClass)));
+		} catch (Exception e) {
+			throw new ActiveBeansException(e);
+		}
 	}
 	
 	public static <T extends Model<T, ?, U, ?>, U> U conditions(Class<T> activeClass){

@@ -88,6 +88,25 @@ public final class ActiveBeansUtils {
 	public static void executeSql(DataSource ds, String... stmts) {
 		executeSql(ds, Arrays.asList(stmts));
 	}
+	
+	public static Object defaultValue(Class<?> type) {
+		Object rtn = null;
+		if (Boolean.TYPE.equals(type)) {
+			rtn = false;
+		} else if (Character.TYPE.equals(type)) {
+			rtn = '\u0000';
+		} else if (Byte.TYPE.equals(type) || Short.TYPE.equals(type)
+				|| Integer.TYPE.equals(type)) {
+			rtn = 0;
+		} else if (Long.TYPE.equals(type)) {
+			rtn = 0L;
+		} else if (Float.TYPE.equals(type)) {
+			rtn = 0.0f;
+		} else if (Double.TYPE.equals(type)) {
+			rtn = 0.0d;
+		}
+		return rtn;
+	}
 
 	private static String[] splitByCharacterType(String str, boolean camelCase) {
 		if (str == null) {
