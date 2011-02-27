@@ -13,17 +13,17 @@ public class ActiveMethodFilter implements MethodFilter {
 
 	public ActiveMethodFilter(Class<? extends Model<?, ?, ?, ?>> activeClass) {
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
-		for (PropertyAccessors accessor : intro.accessors()) {
-			methods.add(accessor.get());
-			methods.add(accessor.set());
+		for (PropertyMethods propMethods : intro.propertyMethods()) {
+			methods.add(propMethods.get());
+			methods.add(propMethods.set());
 		}
-		for (BelongsToAssociationMethods assocMethods : intro
+		for (SingularAssociationMethods assocMethods : intro
 				.belongsToMethods()) {
-			methods.add(assocMethods.retrieve());
-			methods.add(assocMethods.assign());
+			methods.add(assocMethods.get());
+			methods.add(assocMethods.set());
 		}
-		for (HasManyAssociationMethods assocMethods : intro.hasManyMethods()) {
-			methods.add(assocMethods.retrieve());
+		for (CollectionAssociationMethods assocMethods : intro.hasManyMethods()) {
+			methods.add(assocMethods.get());
 		}
 		methods.addAll(Arrays.asList(Model.class.getMethods()));
 	}

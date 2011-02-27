@@ -5,9 +5,9 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 
-class JavaBeanBelongsToAssociationMethods implements SingularAssociationMethods {
+class JavaBeanPropertyMethods implements PropertyMethods {
 
-	private Association belongsTo;
+	private Property property;
 	
 	private Method get;
 	
@@ -17,48 +17,49 @@ class JavaBeanBelongsToAssociationMethods implements SingularAssociationMethods 
 	
 	private Method condition;
 
-	public JavaBeanBelongsToAssociationMethods(Class<?> attrsInterf,
-			Class<?> optionsInterf, Class<?> conditionsInterf, Association assoc) {
-		belongsTo = assoc;
-		String name = Introspector.decapitalize(belongsTo.with().getSimpleName());
+	public JavaBeanPropertyMethods(Class<?> attrsInterf, Class<?> optionsInterf, 
+			Class<?> conditionsInterf, Property prop) {
+		property = prop;
+		String name = property.name();
 		PropertyDescriptor propDesc = null;
 		try {
 			for (PropertyDescriptor pd : Introspector.getBeanInfo(attrsInterf)
 					.getPropertyDescriptors()) {
 				if (pd.getName().equals(name)) {
 					propDesc = pd;
+					break;
 				}
 			}
 		} catch (IntrospectionException e) {
 			throw new ActiveBeansException(e);
 		}
 		if (propDesc == null) {
-			throw new ActiveBeansException("java bean belongs-to association methods not found");
+			throw new ActiveBeansException("java bean property methods not found");
 		}
 		get = propDesc.getReadMethod();
 		set = propDesc.getWriteMethod();
 		try {
 			option = optionsInterf.getMethod(name);
 		}catch (NoSuchMethodException e) {
-			throw new ActiveBeansException("belongs-to association option method not found");
+			throw new ActiveBeansException("property option method not found");
 		}
 		try {
 			condition = conditionsInterf.getMethod(name);
 		}catch (NoSuchMethodException e) {
-			throw new ActiveBeansException("belongs-to association condition method not found");
+			throw new ActiveBeansException("property condition method not found");
 		}
 	}
 
 	@Override
-	public Association association() {
-		return belongsTo;
+	public Property property() {
+		return property;
 	}
 
 	@Override
 	public Method get() {
 		return get;
 	}
-	
+
 	@Override
 	public Method set() {
 		return set;
