@@ -1,12 +1,5 @@
 package org.activebeans.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -30,19 +23,26 @@ import org.activebeans.ActiveIntrospector;
 import org.activebeans.ActiveMethodFilter;
 import org.activebeans.ActiveMigration;
 import org.activebeans.Association;
-import org.activebeans.BelongsToAssociationMethods;
+import org.activebeans.CollectionAssociationMethods;
 import org.activebeans.Column;
 import org.activebeans.DataSourceIntrospector;
 import org.activebeans.DataType;
-import org.activebeans.HasManyAssociationMethods;
 import org.activebeans.Model;
 import org.activebeans.Property;
-import org.activebeans.PropertyAccessors;
+import org.activebeans.PropertyMethods;
+import org.activebeans.SingularAssociationMethods;
 import org.activebeans.Table;
 import org.activebeans.test.model.Comment;
 import org.activebeans.test.model.Post;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 public class ActiveBeansTest {
 
@@ -94,7 +94,7 @@ public class ActiveBeansTest {
 	}
 
 	@Test
-	public void propertyIntrospection() throws IntrospectionException {
+	public void propertyIntrospection() throws IntrospectionException, NoSuchMethodException {
 		Property[] withs = activeAt.with();
 		List<Property> props = activeIntro.properties();
 		int propCount = withs.length;
@@ -104,35 +104,36 @@ public class ActiveBeansTest {
 			assertEquals(with, activeIntro.property(propName));
 			PropertyDescriptor pd = new PropertyDescriptor(propName,
 					activeClass);
-			PropertyAccessors accessors = activeIntro.accessors(with);
-			assertEquals(pd.getReadMethod(), accessors.get());
-			assertEquals(pd.getWriteMethod(), accessors.set());
+			PropertyMethods methods = activeIntro.propertyMethods(with);
+			assertEquals(pd.getReadMethod(), methods.get());
+			assertEquals(pd.getWriteMethod(), methods.set());
+			assertEquals(optionsInterf.getMethod(propName), methods.option());
+			assertEquals(conditionsInterf.getMethod(propName), methods.condition());
 		}
-		assertEquals(propCount, activeIntro.accessors().size());
+		assertEquals(propCount, activeIntro.propertyMethods().size());
 	}
 
 	@Test
-	public void belongsToAssociationIntrospection()
-			throws IntrospectionException {
+	public void belongsToAssociationIntrospection() throws IntrospectionException, NoSuchMethodException {
 		Association[] belongsTos = activeAt.belongsTo();
 		List<Association> belongsToList = activeIntro.belongsTos();
 		int assocCount = belongsTos.length;
 		assertEquals(assocCount, belongsToList.size());
 		for (Association belongsTo : belongsTos) {
 			assertEquals(belongsTo, activeIntro.belongsTo(belongsTo.with()));
-			PropertyDescriptor pd = new PropertyDescriptor(
-					Introspector.decapitalize(belongsTo.with().getSimpleName()),
-					activeClass);
-			BelongsToAssociationMethods methods = activeIntro
-					.belongsToMethods(belongsTo);
-			assertEquals(pd.getReadMethod(), methods.retrieve());
-			assertEquals(pd.getWriteMethod(), methods.assign());
+			String assocName = Introspector.decapitalize(belongsTo.with().getSimpleName());
+			PropertyDescriptor pd = new PropertyDescriptor(assocName, activeClass);
+			SingularAssociationMethods methods = activeIntro.belongsToMethods(belongsTo);
+			assertEquals(pd.getReadMethod(), methods.get());
+			assertEquals(pd.getWriteMethod(), methods.set());
+			assertEquals(optionsInterf.getMethod(assocName), methods.option());
+			assertEquals(conditionsInterf.getMethod(assocName), methods.condition());
 		}
 		assertEquals(assocCount, activeIntro.belongsToMethods().size());
 	}
 
 	@Test
-	public void hasManyAssociationIntrospection() throws IntrospectionException {
+	public void hasManyAssociationIntrospection() throws IntrospectionException, NoSuchMethodException {
 		Association[] hasManys = activeAt.hasMany();
 		List<Association> hasManysList = activeIntro.hasManys();
 		int assocCount = hasManys.length;
@@ -140,12 +141,14 @@ public class ActiveBeansTest {
 		for (Association hasMany : hasManys) {
 			assertEquals(hasMany, activeIntro.hasMany(hasMany.with()));
 			String typeName = hasMany.with().getSimpleName();
-			PropertyDescriptor pd = new PropertyDescriptor(
-					Introspector.decapitalize(typeName) + "s", activeClass,
-					"get" + typeName + "s", null);
-			HasManyAssociationMethods methods = activeIntro
+			String assocName = Introspector.decapitalize(typeName) + "s";
+			PropertyDescriptor pd = new PropertyDescriptor(assocName, activeClass,
+				"get" + typeName + "s", null);
+			CollectionAssociationMethods methods = activeIntro
 					.hasManyMethods(hasMany);
-			assertEquals(pd.getReadMethod(), methods.retrieve());
+			assertEquals(pd.getReadMethod(), methods.get());
+			assertEquals(optionsInterf.getMethod(assocName), methods.option());
+			assertEquals(conditionsInterf.getMethod(assocName), methods.condition());
 		}
 		assertEquals(assocCount, activeIntro.hasManyMethods().size());
 	}
@@ -163,7 +166,7 @@ public class ActiveBeansTest {
 	}
 
 	@Test
-	public void propertyAccessors() {
+	public void propertyMethods() {
 		Post post = ActiveBeans.build(Post.class);
 		Long id = 1L;
 		post.setId(id);

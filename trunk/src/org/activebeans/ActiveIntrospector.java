@@ -35,11 +35,11 @@ public class ActiveIntrospector {
 
 	private Map<Class<? extends Model<?, ?, ?, ?>>, Association> hasManyMap = new HashMap<Class<? extends Model<?, ?, ?, ?>>, Association>();
 
-	private Map<Property, PropertyAccessors> accessorMap = new HashMap<Property, PropertyAccessors>();
+	private Map<Property, PropertyMethods> propMethodMap = new HashMap<Property, PropertyMethods>();
 
-	private Map<Association, BelongsToAssociationMethods> belongsToMethodMap = new HashMap<Association, BelongsToAssociationMethods>();
+	private Map<Association, SingularAssociationMethods> belongsToMethodMap = new HashMap<Association, SingularAssociationMethods>();
 
-	private Map<Association, HasManyAssociationMethods> hasManyMethodMap = new HashMap<Association, HasManyAssociationMethods>();
+	private Map<Association, CollectionAssociationMethods> hasManyMethodMap = new HashMap<Association, CollectionAssociationMethods>();
 
 	private List<Property> keys = new ArrayList<Property>();
 
@@ -95,20 +95,21 @@ public class ActiveIntrospector {
 		conditionsInterf = conditionsInterf(activeClass);
 		for (Property prop : at.with()) {
 			propMap.put(prop.name(), prop);
-			accessorMap.put(prop, new JavaBeanPropertyAccessors(attrsInterf, prop));
+			propMethodMap.put(prop, new JavaBeanPropertyMethods(attrsInterf, 
+				optionsInterf, conditionsInterf, prop));
 			if (prop.key()) {
 				keys.add(prop);
 			}
 		}
 		for (Association belongsTo : at.belongsTo()) {
 			belongsToMap.put(belongsTo.with(), belongsTo);
-			belongsToMethodMap.put(belongsTo,
-					new JavaBeanBelongsToAssociationMethods(attrsInterf, belongsTo));
+			belongsToMethodMap.put(belongsTo, new JavaBeanBelongsToAssociationMethods(
+				attrsInterf, optionsInterf, conditionsInterf, belongsTo));
 		}
 		for (Association hasMany : at.hasMany()) {
 			hasManyMap.put(hasMany.with(), hasMany);
-			hasManyMethodMap.put(hasMany,
-					new JavaBeanHasManyAssociationMethods(attrsInterf, hasMany));
+			hasManyMethodMap.put(hasMany, new JavaBeanHasManyAssociationMethods(
+				attrsInterf, optionsInterf, conditionsInterf, hasMany));
 		}
 	}
 
@@ -186,29 +187,29 @@ public class ActiveIntrospector {
 		return new ArrayList<Association>(hasManyMap.values());
 	}
 
-	public PropertyAccessors accessors(Property prop) {
-		return accessorMap.get(prop);
+	public PropertyMethods propertyMethods(Property prop) {
+		return propMethodMap.get(prop);
 	}
 
-	public List<PropertyAccessors> accessors() {
-		return new ArrayList<PropertyAccessors>(accessorMap.values());
+	public List<PropertyMethods> propertyMethods() {
+		return new ArrayList<PropertyMethods>(propMethodMap.values());
 	}
 
-	public BelongsToAssociationMethods belongsToMethods(Association assoc) {
+	public SingularAssociationMethods belongsToMethods(Association assoc) {
 		return belongsToMethodMap.get(assoc);
 	}
 
-	public List<BelongsToAssociationMethods> belongsToMethods() {
-		return new ArrayList<BelongsToAssociationMethods>(
+	public List<SingularAssociationMethods> belongsToMethods() {
+		return new ArrayList<SingularAssociationMethods>(
 				belongsToMethodMap.values());
 	}
 
-	public HasManyAssociationMethods hasManyMethods(Association assoc) {
+	public CollectionAssociationMethods hasManyMethods(Association assoc) {
 		return hasManyMethodMap.get(assoc);
 	}
 
-	public List<HasManyAssociationMethods> hasManyMethods() {
-		return new ArrayList<HasManyAssociationMethods>(
+	public List<CollectionAssociationMethods> hasManyMethods() {
+		return new ArrayList<CollectionAssociationMethods>(
 				hasManyMethodMap.values());
 	}
 

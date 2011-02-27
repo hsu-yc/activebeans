@@ -4,37 +4,44 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 
-class JavaBeanHasManyAssociationMethods implements HasManyAssociationMethods {
+class JavaBeanHasManyAssociationMethods implements CollectionAssociationMethods {
 
 	private Association hasMany;
 
-	private Method retrieve;
+	private Method get;
 
+	private Method option;
+	
+	private Method condition;
+	
 	public JavaBeanHasManyAssociationMethods(Class<?> attrsInterf,
-			Association assoc) {
+			Class<?> optionsInterf, Class<?> conditionsInterf, Association assoc) {
 		hasMany = assoc;
+		String name = Introspector.decapitalize(hasMany.with().getSimpleName()) + "s";
 		try {
 			for (PropertyDescriptor pd : Introspector.getBeanInfo(attrsInterf)
 					.getPropertyDescriptors()) {
-				Type[] types = pd.getPropertyType().getGenericInterfaces();
-				if (types.length > 0 && types[0] instanceof ParameterizedType) {
-					ParameterizedType paramType = (ParameterizedType) types[0];
-					Type[] typeArgs = paramType.getActualTypeArguments();
-					if (typeArgs.length > 0
-							&& typeArgs[0].equals(hasMany.with())) {
-						retrieve = pd.getReadMethod();
-					}
+				if (pd.getName().equals(name)) {
+					get = pd.getReadMethod();
 				}
 			}
 		} catch (IntrospectionException e) {
 			throw new ActiveBeansException(e);
 		}
-		if (retrieve == null) {
+		if (get == null) {
 			throw new ActiveBeansException(
 					"java bean has-many association methods not found");
+		}
+		try {
+			option = optionsInterf.getMethod(name);
+		}catch (NoSuchMethodException e) {
+			throw new ActiveBeansException("has-many association option method not found");
+		}
+		try {
+			condition = conditionsInterf.getMethod(name);
+		}catch (NoSuchMethodException e) {
+			throw new ActiveBeansException("has-many association condition method not found");
 		}
 	}
 
@@ -44,8 +51,18 @@ class JavaBeanHasManyAssociationMethods implements HasManyAssociationMethods {
 	}
 
 	@Override
-	public Method retrieve() {
-		return retrieve;
+	public Method get() {
+		return get;
+	}
+
+	@Override
+	public Method option() {
+		return option;
+	}
+
+	@Override
+	public Method condition() {
+		return condition;
 	}
 
 }

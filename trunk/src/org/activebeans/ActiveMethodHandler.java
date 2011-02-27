@@ -31,18 +31,18 @@ public class ActiveMethodHandler implements MethodHandler {
 
 	public ActiveMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass) {
 		intro = new ActiveIntrospector(activeClass);
-		for (PropertyAccessors accessor : intro.accessors()) {
-			Property prop = accessor.property();
-			propGetterMap.put(accessor.get(), prop);
-			propSetterMap.put(accessor.set(), prop);
+		for (PropertyMethods methods : intro.propertyMethods()) {
+			Property prop = methods.property();
+			propGetterMap.put(methods.get(), prop);
+			propSetterMap.put(methods.set(), prop);
 		}
-		for (BelongsToAssociationMethods methods : intro.belongsToMethods()) {
+		for (SingularAssociationMethods methods : intro.belongsToMethods()) {
 			Association assoc = methods.association();
-			belongsToGetterMap.put(methods.retrieve(), assoc);
-			belongsToSetterMap.put(methods.assign(), assoc);
+			belongsToGetterMap.put(methods.get(), assoc);
+			belongsToSetterMap.put(methods.set(), assoc);
 		}
-		for (HasManyAssociationMethods methods : intro.hasManyMethods()) {
-			hasManyGetterMap.put(methods.retrieve(), methods.association());
+		for (CollectionAssociationMethods methods : intro.hasManyMethods()) {
+			hasManyGetterMap.put(methods.get(), methods.association());
 		}
 	}
 
