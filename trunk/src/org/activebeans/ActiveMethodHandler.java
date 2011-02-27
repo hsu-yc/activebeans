@@ -11,8 +11,6 @@ import javassist.util.proxy.ProxyFactory;
 
 public class ActiveMethodHandler implements MethodHandler {
 
-	private ActiveIntrospector intro;
-
 	private Map<Method, Property> propGetterMap = new HashMap<Method, Property>();
 
 	private Map<Method, Property> propSetterMap = new HashMap<Method, Property>();
@@ -30,7 +28,7 @@ public class ActiveMethodHandler implements MethodHandler {
 	private Map<Association, Object> hasManyMap = new HashMap<Association, Object>();
 
 	public ActiveMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass) {
-		intro = new ActiveIntrospector(activeClass);
+		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		for (PropertyMethods methods : intro.propertyMethods()) {
 			Property prop = methods.property();
 			propGetterMap.put(methods.get(), prop);
@@ -82,33 +80,14 @@ public class ActiveMethodHandler implements MethodHandler {
 							public Object invoke(Object self, Method method,
 									Method proceed, Object[] args)
 									throws Throwable {
-								return defaultValue(method.getReturnType());
+								return ActiveBeansUtils.defaultValue(method.getReturnType());
 							}
 						});
 				hasManyMap.put(hasMany, models);
 				rtn = models;
 			}
 		} else {
-			rtn = defaultValue(method.getReturnType());
-		}
-		return rtn;
-	}
-
-	private static Object defaultValue(Class<?> type) {
-		Object rtn = null;
-		if (Boolean.TYPE.equals(type)) {
-			rtn = false;
-		} else if (Character.TYPE.equals(type)) {
-			rtn = '\u0000';
-		} else if (Byte.TYPE.equals(type) || Short.TYPE.equals(type)
-				|| Integer.TYPE.equals(type)) {
-			rtn = 0;
-		} else if (Long.TYPE.equals(type)) {
-			rtn = 0L;
-		} else if (Float.TYPE.equals(type)) {
-			rtn = 0.0f;
-		} else if (Double.TYPE.equals(type)) {
-			rtn = 0.0d;
+			rtn = ActiveBeansUtils.defaultValue(method.getReturnType());
 		}
 		return rtn;
 	}
