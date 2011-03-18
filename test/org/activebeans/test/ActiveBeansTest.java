@@ -26,6 +26,7 @@ import org.activebeans.AttributesMethodFilter;
 import org.activebeans.CollectionAssociationMethods;
 import org.activebeans.CollectionOption;
 import org.activebeans.Column;
+import org.activebeans.Condition;
 import org.activebeans.ConditionsMethodFilter;
 import org.activebeans.DataSourceIntrospector;
 import org.activebeans.DataType;
@@ -38,6 +39,7 @@ import org.activebeans.SingularOption;
 import org.activebeans.Table;
 import org.activebeans.test.model.Comment;
 import org.activebeans.test.model.Post;
+import org.activebeans.test.model.Post.Conditions;
 import org.activebeans.test.model.Post.Options;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -269,6 +271,24 @@ public class ActiveBeansTest {
 		CollectionOption<Options, org.activebeans.test.model.Comment.Options> comments = options.comments();
 		assertNotNull(comments);
 		assertSame(options, comments.val());
+	}
+	
+	@Test
+	public void noopCondtions(){
+		Conditions conds = ActiveBeans.conditions(activeClass);
+		assertNotNull(conds);
+		Condition<Conditions, Long> id = conds.id();
+		assertNotNull(id);
+		assertSame(conds, id.eql(0L));
+		assertSame(conds, id.gt(0L));
+		assertSame(conds, id.gte(0L));
+		assertSame(conds, id.like(0L));
+		assertSame(conds, id.lt(0L));
+		assertSame(conds, id.lte(0L));
+		assertSame(conds, id.not(0L));
+		SingularOption<Conditions, org.activebeans.test.model.Comment.Conditions> comments = conds.comments();
+		assertNotNull(comments);
+		assertSame(conds, comments.val(null));
 	}
 
 	@Test
