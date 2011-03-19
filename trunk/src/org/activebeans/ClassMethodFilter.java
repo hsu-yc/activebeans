@@ -12,6 +12,10 @@ public class ClassMethodFilter implements MethodFilter {
 	private List<Method> methods = new ArrayList<Method>();
 	
 	public ClassMethodFilter(Class<?>... classes){
+		this(Arrays.asList(classes));
+	}
+	
+	public ClassMethodFilter(List<Class<?>> classes){
 		for (Class<?> c : classes) {
 			methods.addAll(Arrays.asList(c.getMethods()));
 		}

@@ -19,8 +19,8 @@ import lombok.eclipse.handlers.HandleActive;
 import org.activebeans.Active;
 import org.activebeans.ActiveBeans;
 import org.activebeans.ActiveBeansUtils;
+import org.activebeans.ActiveDelegate;
 import org.activebeans.ActiveIntrospector;
-import org.activebeans.ActiveMethodFilter;
 import org.activebeans.ActiveMigration;
 import org.activebeans.Association;
 import org.activebeans.CollectionAssociationMethods;
@@ -162,13 +162,13 @@ public class ActiveBeansTest {
 
 	@Test
 	public void activeMethodFilter() {
-		ActiveMethodFilter filter = new ActiveMethodFilter(activeClass);
+		ActiveDelegate delegate = new ActiveDelegate(activeClass);
 		List<Method> handledMethods = new ArrayList<Method>();
 		handledMethods.addAll(Arrays.asList(attrsInterf.getMethods()));
 		handledMethods.addAll(Arrays.asList(Model.class.getMethods()));
 		for (Method method : activeClass.getMethods()) {
 			assertEquals(handledMethods.contains(method),
-					filter.isHandled(method));
+				delegate.isHandled(method));
 		}
 	}
 	

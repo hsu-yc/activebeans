@@ -7,15 +7,16 @@ import java.util.Map;
 import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 
-public class ActiveMethodHandler implements MethodHandler {
+public class ActiveDelegate implements MethodFilter, MethodHandler {
 
 	private MapDelegate delegate;
 
-	public ActiveMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+	public ActiveDelegate(Class<? extends Model<?, ?, ?, ?>> activeClass) {
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		Map<MethodFilter, MethodHandler> map = new LinkedHashMap<MethodFilter, MethodHandler>();
 		map.put(new ClassMethodFilter(intro.attributesInterface()), 
 			new AttributeMethodHandler(activeClass));
+		map.put(new ClassMethodFilter(Model.class), new NoopMethodHandler());
 		delegate = new MapDelegate(map);
 	}
 
@@ -31,6 +32,11 @@ public class ActiveMethodHandler implements MethodHandler {
 			rtn = ActiveBeansUtils.defaultValue(method.getReturnType());
 		}
 		return rtn;
+	}
+	
+	@Override
+	public boolean isHandled(Method m) {
+		return delegate.isHandled(m);
 	}
 
 }
