@@ -1,10 +1,18 @@
 package org.activebeans.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.sql.Date;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +38,7 @@ import org.activebeans.Condition;
 import org.activebeans.ConditionsMethodFilter;
 import org.activebeans.DataSourceIntrospector;
 import org.activebeans.DataType;
+import org.activebeans.GeneratedKeysHandler;
 import org.activebeans.Model;
 import org.activebeans.OptionsMethodFilter;
 import org.activebeans.Property;
@@ -43,13 +52,6 @@ import org.activebeans.test.model.Post.Conditions;
 import org.activebeans.test.model.Post.Options;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
 public class ActiveBeansTest {
 
@@ -511,23 +513,33 @@ public class ActiveBeansTest {
 		String id = "id";
 		String name = "name";
 		Table table = new Table(tableName, 
-			new Column.Builder(id, new DataType("int")).key(true).build(),
+			new Column.Builder(id, new DataType("int")).key(true)
+				.autoIncrement(true).build(),
 			new Column.Builder(name, new DataType("varchar")).build()
 		);
-		assertEquals("insert " + tableName + "(" + id + ", " + name + ") values(?, ?)", 
+		assertEquals("insert " + tableName + "(" + id + ", " + name + ") values(default, ?)", 
 			table.insertStatement());
 	}
 	
 	@Test 
 	public void insert() {
 		Table table = new Table("test", 
-			new Column.Builder("id", new DataType("int")).key(true).build(),
+			new Column.Builder("id", new DataType("int"))
+				.key(true).autoIncrement(true).build(),
 			new Column.Builder("name", new DataType("varchar", 50)).build()
 		);
 		try{
 			ActiveBeansUtils.executeSql(ds, table.createStatment());
-			assertEquals(1, ActiveBeansUtils.executePreparedSql(ds, 
-				table.insertStatement(), 1, "name value"));
+			assertEquals(1, ActiveBeansUtils.executePreparedSql(
+				ds,
+				new GeneratedKeysHandler() {
+					@Override
+					public void handle(ResultSet keys) throws SQLException {
+						assertTrue(keys.next());
+					}
+				},
+				table.insertStatement(), "name value")
+			);
 		}finally{
 			ActiveBeansUtils.executeSql(ds, table.dropStatement());
 		}
