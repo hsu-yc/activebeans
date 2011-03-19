@@ -16,7 +16,7 @@ public class ActiveDelegate implements MethodFilter, MethodHandler {
 		Map<MethodFilter, MethodHandler> map = new LinkedHashMap<MethodFilter, MethodHandler>();
 		map.put(new ClassMethodFilter(intro.attributesInterface()), 
 			new AttributeMethodHandler(activeClass));
-		map.put(new ClassMethodFilter(Model.class), new NoopMethodHandler());
+		map.put(new ClassMethodFilter(Model.class), Delegate.of(new ModelDelegate(activeClass)));
 		delegate = new MapDelegate(map);
 	}
 
