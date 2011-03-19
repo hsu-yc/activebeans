@@ -1,6 +1,7 @@
 package org.activebeans;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -67,7 +68,7 @@ public final class ActiveBeansUtils {
 		}
 	}
 
-	public static void executeSql(DataSource ds, List<String> stmts) {
+	public static int[] executeSql(DataSource ds, List<String> stmts) {
 		Connection conn = null;
 		Statement stmt = null;
 		try {
@@ -76,7 +77,7 @@ public final class ActiveBeansUtils {
 			for (String s : stmts) {
 				stmt.addBatch(s);
 			}
-			stmt.executeBatch();
+			return stmt.executeBatch();
 		} catch (SQLException e) {
 			throw new ActiveBeansException(e);
 		} finally {
@@ -85,8 +86,26 @@ public final class ActiveBeansUtils {
 		}
 	}
 
-	public static void executeSql(DataSource ds, String... stmts) {
-		executeSql(ds, Arrays.asList(stmts));
+	public static int[] executeSql(DataSource ds, String... stmts) {
+		return executeSql(ds, Arrays.asList(stmts));
+	}
+	
+	public static int executePreparedSql(DataSource ds, String sql, Object... params) {
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		try {
+			conn = ds.getConnection();
+			stmt = conn.prepareStatement(sql);
+			for (int i=0; i < params.length; i++) {
+				stmt.setObject(i + 1, params[i]);
+			}
+			return stmt.executeUpdate();
+		} catch (SQLException e) {
+			throw new ActiveBeansException(e);
+		} finally {
+			ActiveBeansUtils.close(stmt);
+			ActiveBeansUtils.close(conn);
+		}
 	}
 	
 	public static Object defaultValue(Class<?> type) {

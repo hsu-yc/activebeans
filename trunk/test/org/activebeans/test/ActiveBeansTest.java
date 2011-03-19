@@ -518,4 +518,19 @@ public class ActiveBeansTest {
 			table.insertStatement());
 	}
 	
+	@Test 
+	public void insert() {
+		Table table = new Table("test", 
+			new Column.Builder("id", new DataType("int")).key(true).build(),
+			new Column.Builder("name", new DataType("varchar", 50)).build()
+		);
+		ActiveBeansUtils.executeSql(ds, table.createStatment());
+		try{
+			assertEquals(1, ActiveBeansUtils.executePreparedSql(ds, 
+				table.insertStatement(), 1, "name value"));
+		}finally{
+			ActiveBeansUtils.executeSql(ds, table.dropStatement());
+		}
+	}
+	
 }
