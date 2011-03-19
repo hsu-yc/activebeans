@@ -46,7 +46,8 @@ public class Table {
 		}
 		insert += ") values(";
 		for (int i=0;  i < cols.size(); i++) {
-			insert += (i == 0 ? "" : ", ") + "?";
+			Column c = cols.get(i);
+			insert += (i == 0 ? "" : ", ") + (c.autoIncrement()?"default":"?");
 		}
 		insert += ")";
 	}

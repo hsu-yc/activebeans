@@ -91,18 +91,31 @@ public final class ActiveBeansUtils {
 	}
 	
 	public static int executePreparedSql(DataSource ds, String sql, Object... params) {
+		return executePreparedSql(ds, null, sql, params);
+	}
+	
+	public static int executePreparedSql(DataSource ds, GeneratedKeysHandler handler, String sql, Object... params) {
 		Connection conn = null;
 		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		boolean returnGeneratedKeys = handler != null; 
 		try {
 			conn = ds.getConnection();
-			stmt = conn.prepareStatement(sql);
+			stmt = conn.prepareStatement(sql, 
+				returnGeneratedKeys?Statement.RETURN_GENERATED_KEYS:Statement.NO_GENERATED_KEYS);
 			for (int i=0; i < params.length; i++) {
 				stmt.setObject(i + 1, params[i]);
 			}
-			return stmt.executeUpdate();
+			int result = stmt.executeUpdate();
+			if(returnGeneratedKeys){
+				rs = stmt.getGeneratedKeys();
+				handler.handle(rs);
+			}
+			return result;
 		} catch (SQLException e) {
 			throw new ActiveBeansException(e);
 		} finally {
+			ActiveBeansUtils.close(rs);
 			ActiveBeansUtils.close(stmt);
 			ActiveBeansUtils.close(conn);
 		}
