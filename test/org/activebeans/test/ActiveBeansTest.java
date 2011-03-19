@@ -20,9 +20,9 @@ import org.activebeans.Active;
 import org.activebeans.ActiveBeans;
 import org.activebeans.ActiveBeansUtils;
 import org.activebeans.ActiveIntrospector;
+import org.activebeans.ActiveMethodFilter;
 import org.activebeans.ActiveMigration;
 import org.activebeans.Association;
-import org.activebeans.AttributesMethodFilter;
 import org.activebeans.CollectionAssociationMethods;
 import org.activebeans.CollectionOption;
 import org.activebeans.Column;
@@ -161,8 +161,8 @@ public class ActiveBeansTest {
 	}
 
 	@Test
-	public void attributesMethodFilter() {
-		AttributesMethodFilter filter = new AttributesMethodFilter(activeClass);
+	public void activeMethodFilter() {
+		ActiveMethodFilter filter = new ActiveMethodFilter(activeClass);
 		List<Method> handledMethods = new ArrayList<Method>();
 		handledMethods.addAll(Arrays.asList(attrsInterf.getMethods()));
 		handledMethods.addAll(Arrays.asList(Model.class.getMethods()));
@@ -524,8 +524,8 @@ public class ActiveBeansTest {
 			new Column.Builder("id", new DataType("int")).key(true).build(),
 			new Column.Builder("name", new DataType("varchar", 50)).build()
 		);
-		ActiveBeansUtils.executeSql(ds, table.createStatment());
 		try{
+			ActiveBeansUtils.executeSql(ds, table.createStatment());
 			assertEquals(1, ActiveBeansUtils.executePreparedSql(ds, 
 				table.insertStatement(), 1, "name value"));
 		}finally{
