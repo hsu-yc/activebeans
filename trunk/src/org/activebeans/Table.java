@@ -11,32 +11,44 @@ public class Table {
 
 	private List<Column> cols = new ArrayList<Column>();
 
-	private String createStatement;
+	private String create;
 
-	private String dropStatement;
+	private String drop;
 
-	private String alterTable;
+	private String alter;
+
+	private String insert;
 
 	public Table(String name, List<Column> columns) {
 		this.name = name;
 		cols.addAll(columns);
-		createStatement = "create table if not exists " + name + "(";
+		create = "create table if not exists " + name + "(";
 		List<Column> keys = new ArrayList<Column>();
 		for (int i = 0; i < cols.size(); i++) {
 			Column c = cols.get(i);
-			createStatement += (i == 0 ? "" : ", ") + c.definition();
+			create += (i == 0 ? "" : ", ") + c.definition();
 			if (c.key()) {
 				keys.add(c);
 			}
 		}
 		int numOfKeys = keys.size();
 		for (int i = 0; i < numOfKeys; i++) {
-			createStatement += (i == 0 ? ", primary key(" : ", ")
+			create += (i == 0 ? ", primary key(" : ", ")
 					+ keys.get(i).name() + (i == numOfKeys - 1 ? ")" : "");
 		}
-		createStatement += ")";
-		dropStatement = "drop table if exists " + name;
-		alterTable = "alter table " + name;
+		create += ")";
+		drop = "drop table if exists " + name;
+		alter = "alter table " + name;
+		insert = "insert " + name + "(";
+		for (int i=0;  i < cols.size(); i++) {
+			Column c = cols.get(i);
+			insert += (i == 0 ? "" : ", ") + c.name();
+		}
+		insert += ") values(";
+		for (int i=0;  i < cols.size(); i++) {
+			insert += (i == 0 ? "" : ", ") + "?";
+		}
+		insert += ")";
 	}
 
 	public Table(String name, Column... columns) {
@@ -52,15 +64,15 @@ public class Table {
 	}
 
 	public String createStatment() {
-		return createStatement;
+		return create;
 	}
 
 	public String dropStatement() {
-		return dropStatement;
+		return drop;
 	}
 
 	public String alterStatement(List<Column> cols) {
-		String alterStmt = alterTable;
+		String alterStmt = alter;
 		for (int i = 0; i < cols.size(); i++) {
 			alterStmt += (i == 0 ? "" : ",") + " add column "
 					+ cols.get(i).definition();
@@ -70,6 +82,10 @@ public class Table {
 
 	public String alterStatement(Column... cols) {
 		return alterStatement(Arrays.asList(cols));
+	}
+	
+	public String insertStatement(){
+		return insert;
 	}
 
 }
