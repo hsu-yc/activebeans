@@ -21,12 +21,10 @@ public class AttributeMethodHandler implements MethodHandler {
 
 	private Map<Method, Association> belongsToSetterMap = new HashMap<Method, Association>();
 
-	private Map<Association, Object> belongsToMap = new HashMap<Association, Object>();
-
 	private Map<Method, Association> hasManyGetterMap = new HashMap<Method, Association>();
 
-	private Map<Association, Object> hasManyMap = new HashMap<Association, Object>();
-
+	private Map<Association, Object> assocMap = new HashMap<Association, Object>();
+	
 	public AttributeMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass) {
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		for (PropertyMethods methods : intro.propertyMethods()) {
@@ -54,13 +52,13 @@ public class AttributeMethodHandler implements MethodHandler {
 			propMap.put(propSetterMap.get(method), args[0]);
 			rtn = Void.TYPE;
 		} else if (belongsToGetterMap.containsKey(method)) {
-			rtn = belongsToMap.get(belongsToGetterMap.get(method));
+			rtn = assocMap.get(belongsToGetterMap.get(method));
 		} else if (belongsToSetterMap.containsKey(method)) {
-			belongsToMap.put(belongsToSetterMap.get(method), args[0]);
+			assocMap.put(belongsToSetterMap.get(method), args[0]);
 			rtn = Void.TYPE;
 		} else if (hasManyGetterMap.containsKey(method)) {
 			Association hasMany = hasManyGetterMap.get(method);
-			Object models = hasManyMap.get(hasMany);
+			Object models = assocMap.get(hasMany);
 			if (models == null) {
 				ActiveIntrospector intro = new ActiveIntrospector(hasMany.with());
 				ProxyFactory f = new ProxyFactory();
@@ -81,7 +79,7 @@ public class AttributeMethodHandler implements MethodHandler {
 								return ActiveBeansUtils.defaultValue(method.getReturnType());
 							}
 						});
-				hasManyMap.put(hasMany, models);
+				assocMap.put(hasMany, models);
 				rtn = models;
 			}
 		}
