@@ -11,6 +11,8 @@ import javassist.util.proxy.ProxyFactory;
 
 public class AttributeMethodHandler implements MethodHandler {
 
+	private Class<? extends Model<?, ?, ?, ?>> activeClass;
+	
 	private Map<Method, Property> propGetterMap = new HashMap<Method, Property>();
 
 	private Map<Method, Property> propSetterMap = new HashMap<Method, Property>();
@@ -26,6 +28,7 @@ public class AttributeMethodHandler implements MethodHandler {
 	private Map<Association, Object> assocMap = new HashMap<Association, Object>();
 	
 	public AttributeMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+		this.activeClass = activeClass;
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		for (PropertyMethods methods : intro.propertyMethods()) {
 			Property prop = methods.property();
@@ -40,6 +43,26 @@ public class AttributeMethodHandler implements MethodHandler {
 		for (CollectionAssociationMethods methods : intro.hasManyMethods()) {
 			hasManyGetterMap.put(methods.get(), methods.association());
 		}
+	}
+	
+	public Class<? extends Model<?, ?, ?, ?>> activeClass(){
+		return activeClass;
+	}
+	
+	public Object get(Property prop){
+		return propMap.get(prop);
+	}
+	
+	public void set(Property prop, Object val){
+		propMap.put(prop, val);
+	}
+	
+	public Object get(Association assoc){
+		return assocMap.get(assoc);
+	}
+	
+	public void set(Association assoc, Object val){
+		assocMap.put(assoc, val);
 	}
 
 	@Override

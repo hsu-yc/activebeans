@@ -14,9 +14,9 @@ public class ActiveDelegate implements MethodFilter, MethodHandler {
 	public ActiveDelegate(Class<? extends Model<?, ?, ?, ?>> activeClass) {
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		Map<MethodFilter, MethodHandler> map = new LinkedHashMap<MethodFilter, MethodHandler>();
-		map.put(new ClassMethodFilter(intro.attributesInterface()), 
-			new AttributeMethodHandler(activeClass));
-		map.put(new ClassMethodFilter(Model.class), Delegate.of(new ModelDelegate(activeClass)));
+		AttributeMethodHandler attrs = new AttributeMethodHandler(activeClass);
+		map.put(new ClassMethodFilter(intro.attributesInterface()), attrs);
+		map.put(new ClassMethodFilter(Model.class), Delegate.of(new ModelDelegate(attrs)));
 		delegate = new MapDelegate(map);
 	}
 

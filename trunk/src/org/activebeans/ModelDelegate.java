@@ -3,8 +3,11 @@ package org.activebeans;
 @SuppressWarnings("rawtypes")
 public class ModelDelegate implements Model {
 	
-	public ModelDelegate(Class<? extends Model<?, ?, ?, ?>> activeClass){
-		
+	@SuppressWarnings("unused")
+	private AttributeMethodHandler attrs;
+	
+	public ModelDelegate(AttributeMethodHandler attrs){
+		this.attrs = attrs;
 	}
 	
 	@Override
