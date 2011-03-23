@@ -58,55 +58,62 @@ public class AttributeMethodHandler implements MethodHandler {
 	}
 	
 	public Object get(Association assoc){
-		return assocMap.get(assoc);
+		Object rtn = assocMap.get(assoc);
+		if(rtn == null && hasManyGetterMap.containsValue(assoc)){
+			rtn = models(assoc.with());
+			set(assoc, rtn);
+		}
+		return rtn;
 	}
 	
 	public void set(Association assoc, Object val){
 		assocMap.put(assoc, val);
 	}
-
+	
 	@Override
 	public Object invoke(Object self, Method method, Method proceed,
 			Object[] args) throws Throwable {
 		Object rtn = null;
 		if (propGetterMap.containsKey(method)) {
-			rtn = propMap.get(propGetterMap.get(method));
+			rtn = get(propGetterMap.get(method));
 		} else if (propSetterMap.containsKey(method)) {
-			propMap.put(propSetterMap.get(method), args[0]);
+			set(propSetterMap.get(method), args[0]);
 			rtn = Void.TYPE;
 		} else if (belongsToGetterMap.containsKey(method)) {
-			rtn = assocMap.get(belongsToGetterMap.get(method));
+			rtn = get(belongsToGetterMap.get(method));
 		} else if (belongsToSetterMap.containsKey(method)) {
-			assocMap.put(belongsToSetterMap.get(method), args[0]);
+			set(belongsToSetterMap.get(method), args[0]);
 			rtn = Void.TYPE;
 		} else if (hasManyGetterMap.containsKey(method)) {
-			Association hasMany = hasManyGetterMap.get(method);
-			Object models = assocMap.get(hasMany);
-			if (models == null) {
-				ActiveIntrospector intro = new ActiveIntrospector(hasMany.with());
-				ProxyFactory f = new ProxyFactory();
-				Class<?> modelsInterface = intro.modelsInterface();
-				f.setInterfaces(new Class[] { modelsInterface });
-				f.setFilter(new MethodFilter() {
-					@Override
-					public boolean isHandled(Method m) {
-						return !isCovariantReturn(m);
-					}
-				});
-				models = f.create(new Class[0],
-						new Object[0], new MethodHandler() {
-							@Override
-							public Object invoke(Object self, Method method,
-									Method proceed, Object[] args)
-									throws Throwable {
-								return ActiveBeansUtils.defaultValue(method.getReturnType());
-							}
-						});
-				assocMap.put(hasMany, models);
-				rtn = models;
-			}
+			rtn = get(hasManyGetterMap.get(method));
 		}
 		return rtn;
+	}
+	
+	private static Object models(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
+		ProxyFactory f = new ProxyFactory();
+		Class<?> modelsInterface = intro.modelsInterface();
+		f.setInterfaces(new Class[] { modelsInterface });
+		f.setFilter(new MethodFilter() {
+			@Override
+			public boolean isHandled(Method m) {
+				return !isCovariantReturn(m);
+			}
+		});
+		try {
+			return f.create(new Class[0],
+				new Object[0], new MethodHandler() {
+					@Override
+					public Object invoke(Object self, Method method,
+							Method proceed, Object[] args)
+							throws Throwable {
+						return ActiveBeansUtils.defaultValue(method.getReturnType());
+					}
+				});
+		} catch (Throwable t) {
+			throw new ActiveBeansException(t);
+		}
 	}
 
 	private static boolean isCovariantReturn(Method m) {
