@@ -35,6 +35,7 @@ import org.activebeans.DataType;
 import org.activebeans.GeneratedKeysHandler;
 import org.activebeans.Model;
 import org.activebeans.OptionsMethodFilter;
+import org.activebeans.OptionsMethodHandler;
 import org.activebeans.Property;
 import org.activebeans.PropertyMethods;
 import org.activebeans.SingularAssociationMethods;
@@ -271,6 +272,24 @@ public class ActiveBeansTest {
 		AttributeMethodHandler post = new AttributeMethodHandler(postClass);
 		ActiveIntrospector postIntro = new ActiveIntrospector(postClass);
 		assertNotNull(post.get(postIntro.hasMany(Comment.class)));
+	}
+	
+	@Test
+	public void optionsMethodHandler() {
+		Class<Comment> commentClass = Comment.class;
+		OptionsMethodHandler comment = new OptionsMethodHandler(commentClass);
+		ActiveIntrospector commentIntro = new ActiveIntrospector(commentClass);
+		Property id = commentIntro.property("id");
+		Long idVal = 1L;
+		comment.set(id, idVal);
+		assertEquals(idVal, comment.get(id));
+		assertTrue(comment.properties().containsValue(idVal));
+		Class<Post> postClass = Post.class;
+		Association post = commentIntro.belongsTo(postClass);
+		Post postVal = ActiveBeans.build(postClass);
+		comment.set(post, postVal);
+		assertEquals(postVal, comment.get(post));
+		assertTrue(comment.associations().containsValue(postVal));
 	}
 	
 	@Test
