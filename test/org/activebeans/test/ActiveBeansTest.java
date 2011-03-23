@@ -1,12 +1,5 @@
 package org.activebeans.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -31,6 +24,7 @@ import org.activebeans.ActiveDelegate;
 import org.activebeans.ActiveIntrospector;
 import org.activebeans.ActiveMigration;
 import org.activebeans.Association;
+import org.activebeans.AttributeMethodHandler;
 import org.activebeans.CollectionAssociationMethods;
 import org.activebeans.CollectionOption;
 import org.activebeans.Column;
@@ -52,6 +46,13 @@ import org.activebeans.test.model.Post.Conditions;
 import org.activebeans.test.model.Post.Options;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 public class ActiveBeansTest {
 
@@ -225,7 +226,53 @@ public class ActiveBeansTest {
 		Comment.Models comments = post.getComments();
 		assertNotNull(comments);
 	}
+	
+	@Test
+	public void propertyMethodsHandler() {
+		Class<? extends Model<?, ?, ?, ?>> postClass = Post.class;
+		AttributeMethodHandler post = new AttributeMethodHandler(postClass);
+		ActiveIntrospector postIntro = new ActiveIntrospector(postClass);
+		Property id = postIntro.property("id");
+		Long idVal = 1L;
+		post.set(id, idVal);
+		assertEquals(idVal, post.get(id));
+		Property subject = postIntro.property("subject");
+		String subjectVal = "foo";
+		post.set(subject, subjectVal);
+		assertEquals(subjectVal, post.get(subject));
+		Property created = postIntro.property("created");
+		Date createdVal = new Date(System.currentTimeMillis());
+		post.set(created, createdVal);
+		assertEquals(createdVal, post.get(created));
+		Class<? extends Model<?, ?, ?, ?>> commentClass = Comment.class;
+		AttributeMethodHandler comment = new AttributeMethodHandler(commentClass);
+		ActiveIntrospector commentIntro = new ActiveIntrospector(commentClass);
+		Property body = commentIntro.property("body");
+		String bodyVal = "bar";
+		comment.set(body, bodyVal);
+		assertEquals(bodyVal, comment.get(body));
+	}
+	
+	@Test
+	public void belongsToAssociationMethodsHandler() {
+		Class<? extends Model<?, ?, ?, ?>> commentClass = Comment.class;
+		AttributeMethodHandler comment = new AttributeMethodHandler(commentClass);
+		ActiveIntrospector commentIntro = new ActiveIntrospector(commentClass);
+		Class<Post> postClass = Post.class;
+		Post postVal = ActiveBeans.build(postClass);
+		Association post = commentIntro.belongsTo(postClass);
+		comment.set(post, postVal);
+		assertEquals(postVal, comment.get(post));
+	}
 
+	@Test
+	public void hasManyAssociationMethodsHandler() {
+		Class<? extends Model<?, ?, ?, ?>> postClass = Post.class;
+		AttributeMethodHandler post = new AttributeMethodHandler(postClass);
+		ActiveIntrospector postIntro = new ActiveIntrospector(postClass);
+		assertNotNull(post.get(postIntro.hasMany(Comment.class)));
+	}
+	
 	@Test
 	public void noopModel() {
 		Model<?, ?, ?, ?> model = ActiveBeans.build(activeClass);
