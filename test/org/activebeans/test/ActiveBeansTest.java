@@ -293,14 +293,18 @@ public class ActiveBeansTest {
 	}
 	
 	@Test
-	public void noopModel() {
-		Model<?, ?, ?, ?> model = ActiveBeans.build(activeClass);
-		assertNotNull(model);
-		assertNull(model.attrs(null));
-		assertFalse(model.destroy());
-		assertFalse(model.save());
-		assertFalse(model.update());
-		assertFalse(model.update(null));
+	public void attrMethod() {
+		Class<Post> postClass = Post.class;
+		Long id = 1L;
+		String subj = "subj";
+		Post post = ActiveBeans.build(postClass);
+		assertEquals(post, post.attrs(
+			ActiveBeans.options(postClass)
+				.id().val(id)
+				.subject().val(subj)
+		));
+		assertEquals(id, post.getId());
+		assertEquals(subj, post.getSubject());
 	}
 
 	@Test
