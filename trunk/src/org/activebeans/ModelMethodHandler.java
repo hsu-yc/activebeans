@@ -39,6 +39,9 @@ public class ModelMethodHandler implements Model, MethodHandler {
 		for (Entry<Property, Object> e : options.properties().entrySet()) {
 			attrHandler.set(e.getKey(), e.getValue());
 		}
+		for (Entry<Association, Object> e : options.associations().entrySet()) {
+			attrHandler.set(e.getKey(), e.getValue());
+		}
 		return (Model) self;
 	}
 

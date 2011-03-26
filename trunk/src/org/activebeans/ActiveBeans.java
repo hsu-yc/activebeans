@@ -103,15 +103,7 @@ public class ActiveBeans {
 	}
 
 	public static <T extends Model<T, ?, ?, ?>> T build(Class<T> activeClass) {
-		ActiveDelegate delegate = new ActiveDelegate(activeClass);
-		ProxyFactory f = new ProxyFactory();
-		f.setSuperclass(activeClass);
-		f.setFilter(delegate);
-		try {
-			return activeClass.cast(f.create(new Class[0], new Object[0], delegate));
-		} catch (Exception e) {
-			throw new ActiveBeansException(e);
-		}
+		return ActiveBeansUtils.model(activeClass);
 	}
 
 	public static <T extends Model<T, U, ?, ?>, U> T build(Class<T> modelClass,

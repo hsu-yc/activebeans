@@ -72,15 +72,32 @@ public class OptionsMethodHandler implements MethodHandler {
 			rtn = new SingularOption<Object, Object>() {
 				@Override
 				public Object val(Object val) {
-					set(belongsToOptionMap.get(method), val);
+					Association assoc = belongsToOptionMap.get(method);
+					@SuppressWarnings("rawtypes")
+					Model rawModel = ActiveBeansUtils.model(assoc.with());
+					@SuppressWarnings({ "unchecked", "rawtypes" })
+					Model model = rawModel.attrs(val);
+					set(assoc, model);
 					return self;
 				}
 			};
 		}else if(hasManyOptionMap.containsKey(method)){
 			rtn = new CollectionOption<Object, Object>() {
+				@SuppressWarnings("unchecked")
 				@Override
 				public Object val(Object... val) {
-					set(hasManyOptionMap.get(method), val);
+					Association assoc = hasManyOptionMap.get(method);
+					Class<? extends Model<?, ?, ?, ?>> activeClass = assoc.with();
+					@SuppressWarnings("rawtypes")
+					Models models = ActiveBeansUtils.models(activeClass);
+					for (Object v : val) {
+						@SuppressWarnings("rawtypes")
+						Model rawModel = ActiveBeansUtils.model(assoc.with());
+						@SuppressWarnings("rawtypes")
+						Model model = rawModel.attrs(v);
+						models.add(model);
+					}
+					set(assoc, models);
 					return self;
 				}
 			};

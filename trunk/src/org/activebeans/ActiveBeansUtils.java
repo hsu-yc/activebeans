@@ -1,5 +1,6 @@
 package org.activebeans;
 
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,12 +12,68 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javassist.util.proxy.MethodFilter;
+import javassist.util.proxy.MethodHandler;
+import javassist.util.proxy.ProxyFactory;
+
 import javax.sql.DataSource;
 
 public final class ActiveBeansUtils {
 
 	private ActiveBeansUtils() {
 
+	}
+	
+	public static <T extends Model<?, ?, ?, ?>> T model(Class<T> activeClass){
+		ActiveDelegate delegate = new ActiveDelegate(activeClass);
+		ProxyFactory f = new ProxyFactory();
+		f.setSuperclass(activeClass);
+		f.setFilter(delegate);
+		try {
+			return activeClass.cast(f.create(new Class[0], new Object[0], delegate));
+		} catch (Exception e) {
+			throw new ActiveBeansException(e);
+		}
+	}
+	
+	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U models(final Class<T> activeClass) {
+		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
+		ProxyFactory f = new ProxyFactory();
+		@SuppressWarnings("unchecked")
+		final Class<U> modelsInterface = (Class<U>) intro.modelsInterface();
+		f.setInterfaces(new Class[] { modelsInterface });
+		f.setFilter(new MethodFilter() {
+			@Override
+			public boolean isHandled(Method m) {
+				return !(m.getDeclaringClass().equals(Models.class)
+					&& Arrays.asList(new String[] { "all", "attrs" })
+					.contains(m.getName()));
+			}
+		});
+		try {
+			return modelsInterface.cast(f.create(new Class[0],
+				new Object[0], new MethodHandler() {
+					private List<Object> objs = new ArrayList<Object>();
+					@Override
+					public Object invoke(Object self, Method method,
+							Method proceed, Object[] args)
+							throws Throwable {
+						Object rtn = null; 
+						if(method.equals(Iterable.class.getMethod("iterator"))){
+							rtn = objs.iterator();
+						} else if(method.equals(modelsInterface.getMethod("add", activeClass)) ||
+								method.equals(Models.class.getMethod("add", Model.class))){
+							objs.add(args[0]);
+							rtn = self;
+						}else {
+							rtn = ActiveBeansUtils.defaultValue(method.getReturnType());
+						}
+						return rtn;
+					}
+				}));
+		} catch (Throwable t) {
+			throw new ActiveBeansException(t);
+		}
 	}
 
 	public static Map<String, Class<?>> classNameMap(Class<?>[] classes) {
