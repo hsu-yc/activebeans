@@ -49,5 +49,9 @@ public class ActiveDelegate implements MethodFilter, MethodHandler {
 	public boolean isHandled(Method m) {
 		return filter.isHandled(m);
 	}
+	
+	public AttributeMethodHandler attrHandler(){
+		return attrHandler;
+	}
 
 }

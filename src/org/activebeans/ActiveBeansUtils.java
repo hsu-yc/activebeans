@@ -15,6 +15,7 @@ import java.util.Map;
 import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
+import javassist.util.proxy.ProxyObject;
 
 import javax.sql.DataSource;
 
@@ -22,6 +23,50 @@ public final class ActiveBeansUtils {
 
 	private ActiveBeansUtils() {
 
+	}
+	
+	public static <T extends Model<?, ?, ?, ?>> int insert(
+			DataSource ds, Class<T> activeClass, T model){
+		return insert(ds, activeClass, model);
+	}
+	
+	public static <T extends Model<?, ?, ?, ?>> int insert(
+			DataSource ds, Class<T> activeClass, T model, GeneratedKeysMapHandler generatedKeys){
+		List<Object> params = new ArrayList<Object>();
+		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
+		final List<Property> generatedkeys = new ArrayList<Property>();
+		AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
+		for (Property prop : intro.properties()) {
+			if(prop.autoIncrement()){
+				generatedkeys.add(prop);
+			}else{
+				params.add(handler.get(prop));
+			}
+		}
+		for (Association assoc : intro.belongsTos()) {
+			params.add(handler.get(assoc));
+		}
+		final Map<Property, Object> generatedKeyMap = new HashMap<Property, Object>();
+		int result = executePreparedSql(
+			ds,
+			new GeneratedKeysResultSetHandler() {
+				@Override
+				public void handle(ResultSet keys) throws SQLException {
+					if(keys.next()){
+						for (int i=0; i < generatedkeys.size(); i++) {
+							generatedKeyMap.put(generatedkeys.get(i), keys.getObject(i + 1));
+							i++;
+						}
+					}
+				}
+			},
+			new ActiveMigration(activeClass, ds).table().insertStatement(), 
+			params.toArray()
+		);
+		if(generatedKeys != null){
+			generatedKeys.handle(generatedKeyMap);
+		}
+		return result;
 	}
 	
 	public static <T extends Model<?, ?, ?, ?>> T model(Class<T> activeClass){
@@ -151,7 +196,7 @@ public final class ActiveBeansUtils {
 		return executePreparedSql(ds, null, sql, params);
 	}
 	
-	public static int executePreparedSql(DataSource ds, GeneratedKeysHandler handler, String sql, Object... params) {
+	public static int executePreparedSql(DataSource ds, GeneratedKeysResultSetHandler handler, String sql, Object... params) {
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;

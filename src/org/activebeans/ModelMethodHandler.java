@@ -12,15 +12,20 @@ public class ModelMethodHandler implements Model, MethodHandler {
 	private Object self;
 	private AttributeMethodHandler attrHandler;
 	private Delegate delegate;
+	private ActiveIntrospector intro;
 	
 	public ModelMethodHandler(AttributeMethodHandler attrHandler){
 		this.attrHandler = attrHandler;
+		intro = new ActiveIntrospector(attrHandler.activeClass());
 		delegate = new Delegate(this);
 	}
 	
 	@Override
 	public boolean save() {
-		return false;
+		for (Property key : intro.keys()) {
+			attrHandler.set(key, 0L);
+		}
+		return true;
 	}
 
 	@Override
