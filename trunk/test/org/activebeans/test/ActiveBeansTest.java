@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javassist.util.proxy.ProxyObject;
@@ -33,7 +34,8 @@ import org.activebeans.Condition;
 import org.activebeans.ConditionsMethodFilter;
 import org.activebeans.DataSourceIntrospector;
 import org.activebeans.DataType;
-import org.activebeans.GeneratedKeysHandler;
+import org.activebeans.GeneratedKeysMapHandler;
+import org.activebeans.GeneratedKeysResultSetHandler;
 import org.activebeans.Model;
 import org.activebeans.OptionsMethodFilter;
 import org.activebeans.OptionsMethodHandler;
@@ -330,6 +332,17 @@ public class ActiveBeansTest {
 		assertEquals(2, comments.size());
 		assertEquals(id2, comments.get(0).getId());
 		assertEquals(id3, comments.get(1).getId());
+	}
+	
+	@Test 
+	public void saveMethod(){
+		Post model = ActiveBeans.build(activeClass);
+		assertTrue(model.attrs(
+			ActiveBeans.options(activeClass)
+				.subject().val("test")
+				.created().val(new Date(System.currentTimeMillis()))
+		).save());
+		assertNotNull(model.getId());
 	}
 
 	@Test
@@ -653,13 +666,40 @@ public class ActiveBeansTest {
 			ActiveBeansUtils.executeSql(ds, table.createStatment());
 			assertEquals(1, ActiveBeansUtils.executePreparedSql(
 				ds,
-				new GeneratedKeysHandler() {
+				new GeneratedKeysResultSetHandler() {
 					@Override
 					public void handle(ResultSet keys) throws SQLException {
 						assertTrue(keys.next());
 					}
 				},
 				table.insertStatement(), "name value")
+			);
+		}finally{
+			ActiveBeansUtils.executeSql(ds, table.dropStatement());
+		}
+	}
+	
+	@Test 
+	public void insertModelTable() {
+		Table table = new ActiveMigration(activeClass, ds).table();
+		try{
+			ActiveBeansUtils.executeSql(ds, table.createStatment());
+			assertEquals(1, ActiveBeansUtils.insert(ds, activeClass, ActiveBeans.build(activeClass),
+				new GeneratedKeysMapHandler() {
+					@Override
+					public void handle(Map<Property, Object> keys) {
+						int generatedCnt = 0;
+						for (Property prop : activeIntro.properties()) {
+							if(prop.autoIncrement()){
+								generatedCnt++;
+							}
+						}
+						assertEquals(generatedCnt, keys.size());
+						for (Object key : keys.values()) {
+							assertNotNull(key);
+						}
+					}
+				})
 			);
 		}finally{
 			ActiveBeansUtils.executeSql(ds, table.dropStatement());

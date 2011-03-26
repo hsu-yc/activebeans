@@ -3,7 +3,7 @@ package org.activebeans;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public interface GeneratedKeysHandler {
+public interface GeneratedKeysResultSetHandler {
 
 	void handle(ResultSet keys) throws SQLException;
 	
