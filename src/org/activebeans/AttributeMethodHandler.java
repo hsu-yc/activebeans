@@ -1,13 +1,10 @@
 package org.activebeans;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
-import javassist.util.proxy.ProxyFactory;
 
 public class AttributeMethodHandler implements MethodHandler {
 
@@ -60,7 +57,7 @@ public class AttributeMethodHandler implements MethodHandler {
 	public Object get(Association assoc){
 		Object rtn = assocMap.get(assoc);
 		if(rtn == null && hasManyGetterMap.containsValue(assoc)){
-			rtn = models(assoc.with());
+			rtn = ActiveBeansUtils.models(assoc.with());
 			set(assoc, rtn);
 		}
 		return rtn;
@@ -88,38 +85,6 @@ public class AttributeMethodHandler implements MethodHandler {
 			rtn = get(hasManyGetterMap.get(method));
 		}
 		return rtn;
-	}
-	
-	private static Object models(Class<? extends Model<?, ?, ?, ?>> activeClass) {
-		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
-		ProxyFactory f = new ProxyFactory();
-		Class<?> modelsInterface = intro.modelsInterface();
-		f.setInterfaces(new Class[] { modelsInterface });
-		f.setFilter(new MethodFilter() {
-			@Override
-			public boolean isHandled(Method m) {
-				return !isCovariantReturn(m);
-			}
-		});
-		try {
-			return f.create(new Class[0],
-				new Object[0], new MethodHandler() {
-					@Override
-					public Object invoke(Object self, Method method,
-							Method proceed, Object[] args)
-							throws Throwable {
-						return ActiveBeansUtils.defaultValue(method.getReturnType());
-					}
-				});
-		} catch (Throwable t) {
-			throw new ActiveBeansException(t);
-		}
-	}
-
-	private static boolean isCovariantReturn(Method m) {
-		return m.getDeclaringClass().equals(Models.class)
-				&& Arrays.asList(new String[] { "add", "all", "attrs" })
-						.contains(m.getName());
 	}
 
 }

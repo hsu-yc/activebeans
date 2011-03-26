@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import javassist.util.proxy.ProxyObject;
+
 import javax.sql.DataSource;
 
 import lombok.eclipse.handlers.HandleActive;
@@ -26,7 +28,6 @@ import org.activebeans.ActiveMigration;
 import org.activebeans.Association;
 import org.activebeans.AttributeMethodHandler;
 import org.activebeans.CollectionAssociationMethods;
-import org.activebeans.CollectionOption;
 import org.activebeans.Column;
 import org.activebeans.Condition;
 import org.activebeans.ConditionsMethodFilter;
@@ -42,9 +43,9 @@ import org.activebeans.SingularAssociationMethods;
 import org.activebeans.SingularOption;
 import org.activebeans.Table;
 import org.activebeans.test.model.Comment;
+import org.activebeans.test.model.Comment.Options;
 import org.activebeans.test.model.Post;
 import org.activebeans.test.model.Post.Conditions;
-import org.activebeans.test.model.Post.Options;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -294,17 +295,41 @@ public class ActiveBeansTest {
 	
 	@Test
 	public void attrMethod() {
-		Class<Post> postClass = Post.class;
-		Long id = 1L;
+		Class<Comment> commentClass = Comment.class;
+		Long id1 = 1L;
+		Long id2 = 2L;
+		Long id3 = 3L;
+		String body = "body";
 		String subj = "subj";
-		Post post = ActiveBeans.build(postClass);
-		assertEquals(post, post.attrs(
-			ActiveBeans.options(postClass)
-				.id().val(id)
-				.subject().val(subj)
+		Class<Post> postClass = Post.class;
+		Comment comment = ActiveBeans.build(commentClass);
+		assertEquals(comment, comment.attrs(
+			ActiveBeans.options(commentClass)
+				.id().val(id1)
+				.body().val(body)
+				.post().val(
+					ActiveBeans.options(postClass)
+						.subject().val(subj)
+						.comments().val(
+							ActiveBeans.options(commentClass)
+								.id().val(id2),
+							ActiveBeans.options(commentClass)
+								.id().val(id3)	
+						)
+				)
 		));
-		assertEquals(id, post.getId());
+		assertEquals(id1, comment.getId());
+		assertEquals(body, comment.getBody());
+		Post post = comment.getPost();
+		assertNotNull(post);
 		assertEquals(subj, post.getSubject());
+		List<Comment> comments = new ArrayList<Comment>();
+		for (Comment c : post.getComments()) {
+			comments.add(c);
+		}
+		assertEquals(2, comments.size());
+		assertEquals(id2, comments.get(0).getId());
+		assertEquals(id3, comments.get(1).getId());
 	}
 
 	@Test
@@ -312,7 +337,7 @@ public class ActiveBeansTest {
 		Post post = ActiveBeans.build(Post.class);
 		Comment.Models comments = post.getComments();
 		assertNotNull(comments);
-		assertNull(comments.add(null));
+		assertNotNull(comments.add(null));
 		assertNull(comments.all());
 		assertNull(comments.all(null));
 		assertNull(comments.attrs(null));
@@ -324,7 +349,7 @@ public class ActiveBeansTest {
 		assertNull(comments.first());
 		assertNull(comments.first(null));
 		assertNull(comments.get(null));
-		assertNull(comments.iterator());
+		assertNotNull(comments.iterator());
 		assertNull(comments.last());
 		assertNull(comments.last(null));
 		assertNull(comments.popular());
@@ -334,15 +359,41 @@ public class ActiveBeansTest {
 	}
 	
 	@Test
-	public void noopOptions(){
-		Options options = ActiveBeans.options(activeClass);
-		assertNotNull(options);
-		SingularOption<Options, Long> id = options.id();
+	public void options(){
+		Class<Comment> commentClass = Comment.class;
+		Options comment = ActiveBeans.options(commentClass);
+		assertNotNull(comment);
+		SingularOption<Options, Long> id = comment.id();
+		Long idVal = 1L;
 		assertNotNull(id);
-		assertSame(options, id.val(0L));
-		CollectionOption<Options, org.activebeans.test.model.Comment.Options> comments = options.comments();
-		assertNotNull(comments);
-		assertSame(options, comments.val());
+		assertSame(comment, id.val(idVal));
+		Class<Post> postClass = Post.class;
+		SingularOption<Options, org.activebeans.test.model.Post.Options> post = comment.post();
+		assertNotNull(post);
+		String subjVal = "subj";
+		String bodyVal = "body";
+		assertSame(comment, post.val(
+			ActiveBeans.options(postClass)
+				.subject().val(subjVal)
+				.comments().val(
+					ActiveBeans.options(commentClass)
+						.body().val(bodyVal)
+				)
+		));
+		OptionsMethodHandler handler = (OptionsMethodHandler)((ProxyObject)comment).getHandler();
+		ActiveIntrospector commentIntro = new ActiveIntrospector(commentClass);
+		assertEquals(idVal, handler.get(commentIntro.property("id")));
+		Object postObj = handler.get(commentIntro.belongsTo(postClass));
+		assertTrue(postClass.isAssignableFrom(postObj.getClass()));
+		Post postVal = postClass.cast(postObj);
+		assertEquals(subjVal, postVal.getSubject());
+		List<Comment> comments = new ArrayList<Comment>();
+		for (Comment c : postVal.getComments()) {
+			assertNotNull(c);
+			comments.add(c);
+		}
+		assertEquals(1, comments.size());
+		assertEquals(bodyVal, comments.get(0).getBody());
 	}
 	
 	@Test
