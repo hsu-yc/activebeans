@@ -346,7 +346,23 @@ public class ActiveBeansTest {
 	}
 	
 	@Test
-	public void createMethod(){
+	public void buildModelWithAttrs(){
+		String subj = "test";
+		Date created = new Date(System.currentTimeMillis());
+		Post model = ActiveBeans.build(activeClass, 
+			ActiveBeans.options(activeClass)
+				.subject().val(subj)
+				.created().val(created)
+		);
+		assertNotNull(model);
+		assertEquals(subj, model.getSubject());
+		assertEquals(created, model.getCreated());
+		assertTrue(model.save());
+		assertNotNull(model.getId());
+	}
+	
+	@Test
+	public void createModel(){
 		Post model = ActiveBeans.create(activeClass);
 		assertNotNull(model);
 		assertNotNull(model.getId());

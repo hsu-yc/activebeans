@@ -108,7 +108,7 @@ public class ActiveBeans {
 
 	public static <T extends Model<T, U, ?, ?>, U> T build(Class<T> modelClass,
 			U attrs) {
-		return null;
+		return build(modelClass).attrs(attrs);
 	}
 
 	public static <T extends Model<T, U, ?, ?>, U> T create(Class<T> modelClass) {
