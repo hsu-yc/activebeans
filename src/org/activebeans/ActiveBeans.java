@@ -119,7 +119,9 @@ public class ActiveBeans {
 
 	public static <T extends Model<T, U, ?, ?>, U> T create(Class<T> modelClass,
 			U attrs) {
-		return null;
+		T model = build(modelClass, attrs);
+		model.save();
+		return model;
 	}
 
 	public static boolean destroy(Class<? extends Model<?, ?, ?, ?>> modelClass) {

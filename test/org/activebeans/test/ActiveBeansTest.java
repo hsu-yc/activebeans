@@ -367,6 +367,21 @@ public class ActiveBeansTest {
 		assertNotNull(model);
 		assertNotNull(model.getId());
 	}
+	
+	@Test
+	public void createModelWithAttrs(){
+		String subj = "test";
+		Date created = new Date(System.currentTimeMillis());
+		Post model = ActiveBeans.create(activeClass, 
+			ActiveBeans.options(activeClass)
+				.subject().val(subj)
+				.created().val(created)
+		);
+		assertNotNull(model);
+		assertEquals(subj, model.getSubject());
+		assertEquals(created, model.getCreated());
+		assertNotNull(model.getId());
+	}
 
 	@Test
 	public void noopModels() {
