@@ -744,4 +744,18 @@ public class ActiveBeansTest {
 		}
 	}
 	
+	@Test
+	public void selectStatement() {
+		String tableName = "test";
+		String id = "id";
+		String name = "name";
+		Table table = new Table(tableName, 
+			new Column.Builder(id, new DataType("int")).key(true)
+				.autoIncrement(true).build(),
+			new Column.Builder(name, new DataType("varchar")).build()
+		);
+		assertEquals("select " + id + ", " + name + " from " + tableName 
+			+ " where " + id + " = ?", table.selectStatement());
+	}
+	
 }

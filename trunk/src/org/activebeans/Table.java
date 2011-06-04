@@ -18,6 +18,8 @@ public class Table {
 	private String alter;
 
 	private String insert;
+	
+	private String select;
 
 	public Table(String name, List<Column> columns) {
 		this.name = name;
@@ -50,6 +52,16 @@ public class Table {
 			insert += (i == 0 ? "" : ", ") + (c.autoIncrement()?"default":"?");
 		}
 		insert += ")";
+		select = "select";
+		for (int i=0;  i < cols.size(); i++) {
+			Column c = cols.get(i);
+			select += (i == 0 ? "" : ",") + " " + c.name();
+		}
+		select += " from " + name + " where";
+		for (int i = 0; i < numOfKeys; i++) {
+			select += " " + (i == 0 ? "" : "and")
+					+ keys.get(i).name() + " = ?";
+		}
 	}
 
 	public Table(String name, Column... columns) {
@@ -87,6 +99,10 @@ public class Table {
 	
 	public String insertStatement(){
 		return insert;
+	}
+	
+	public String selectStatement(){
+		return select;
 	}
 
 }
