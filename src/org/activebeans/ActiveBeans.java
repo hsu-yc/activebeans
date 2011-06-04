@@ -112,7 +112,9 @@ public class ActiveBeans {
 	}
 
 	public static <T extends Model<T, U, ?, ?>, U> T create(Class<T> modelClass) {
-		return null;
+		T model = build(modelClass);
+		model.save();
+		return model;
 	}
 
 	public static <T extends Model<T, U, ?, ?>, U> T create(Class<T> modelClass,

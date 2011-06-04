@@ -344,6 +344,13 @@ public class ActiveBeansTest {
 		).save());
 		assertNotNull(model.getId());
 	}
+	
+	@Test
+	public void createMethod(){
+		Post model = ActiveBeans.create(activeClass);
+		assertNotNull(model);
+		assertNotNull(model.getId());
+	}
 
 	@Test
 	public void noopModels() {
