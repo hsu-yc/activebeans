@@ -35,12 +35,12 @@ import org.activebeans.ConditionsMethodFilter;
 import org.activebeans.DataSourceIntrospector;
 import org.activebeans.DataType;
 import org.activebeans.GeneratedKeysMapHandler;
-import org.activebeans.GeneratedKeysResultSetHandler;
 import org.activebeans.Model;
 import org.activebeans.OptionsMethodFilter;
 import org.activebeans.OptionsMethodHandler;
 import org.activebeans.Property;
 import org.activebeans.PropertyMethods;
+import org.activebeans.ResultSetHandler;
 import org.activebeans.SingularAssociationMethods;
 import org.activebeans.SingularOption;
 import org.activebeans.Table;
@@ -704,7 +704,7 @@ public class ActiveBeansTest {
 			ActiveBeansUtils.executeSql(ds, table.createStatment());
 			assertEquals(1, ActiveBeansUtils.executePreparedSql(
 				ds,
-				new GeneratedKeysResultSetHandler() {
+				new ResultSetHandler() {
 					@Override
 					public void handle(ResultSet keys) throws SQLException {
 						assertTrue(keys.next());
@@ -756,6 +756,42 @@ public class ActiveBeansTest {
 		);
 		assertEquals("select " + id + ", " + name + " from " + tableName 
 			+ " where " + id + " = ?", table.selectStatement());
+	}
+	
+	@Test 
+	public void select() {
+		final String id = "id";
+		final String name = "name";
+		final Table table = new Table("test", 
+			new Column.Builder(id, new DataType("int"))
+				.key(true).autoIncrement(true).build(),
+			new Column.Builder(name, new DataType("varchar", 50)).build()
+		);
+		final String nameVal = "name value";
+		try{
+			ActiveBeansUtils.executeSql(ds, table.createStatment());
+			assertEquals(1, ActiveBeansUtils.executePreparedSql(
+				ds,
+				new ResultSetHandler() {
+					@Override
+					public void handle(ResultSet keys) throws SQLException {
+						assertTrue(keys.next());
+						final int idVal = keys.getInt(1);
+						ActiveBeansUtils.executePreparedSqlForResult(ds, new ResultSetHandler() {
+							@Override
+							public void handle(ResultSet rs) throws SQLException {
+								assertTrue(rs.next());
+								assertEquals(idVal, rs.getInt(id));
+								assertEquals(nameVal, rs.getString(name));
+							}
+						}, table.selectStatement(), idVal);
+					}
+				},
+				table.insertStatement(), nameVal)
+			);
+		}finally{
+			ActiveBeansUtils.executeSql(ds, table.dropStatement());
+		}
 	}
 	
 }

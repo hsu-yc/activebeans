@@ -49,7 +49,7 @@ public final class ActiveBeansUtils {
 		final Map<Property, Object> generatedKeyMap = new HashMap<Property, Object>();
 		int result = executePreparedSql(
 			ds,
-			new GeneratedKeysResultSetHandler() {
+			new ResultSetHandler() {
 				@Override
 				public void handle(ResultSet keys) throws SQLException {
 					if(keys.next()){
@@ -196,11 +196,11 @@ public final class ActiveBeansUtils {
 		return executePreparedSql(ds, null, sql, params);
 	}
 	
-	public static int executePreparedSql(DataSource ds, GeneratedKeysResultSetHandler handler, String sql, Object... params) {
+	public static int executePreparedSql(DataSource ds, ResultSetHandler generatedKeysHandler, String sql, Object... params) {
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		boolean returnGeneratedKeys = handler != null; 
+		boolean returnGeneratedKeys = generatedKeysHandler != null; 
 		try {
 			conn = ds.getConnection();
 			stmt = conn.prepareStatement(sql, 
@@ -211,9 +211,30 @@ public final class ActiveBeansUtils {
 			int result = stmt.executeUpdate();
 			if(returnGeneratedKeys){
 				rs = stmt.getGeneratedKeys();
-				handler.handle(rs);
+				generatedKeysHandler.handle(rs);
 			}
 			return result;
+		} catch (SQLException e) {
+			throw new ActiveBeansException(e);
+		} finally {
+			ActiveBeansUtils.close(rs);
+			ActiveBeansUtils.close(stmt);
+			ActiveBeansUtils.close(conn);
+		}
+	}
+	
+	public static void executePreparedSqlForResult(DataSource ds, ResultSetHandler handler, String sql, Object... params) {
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null; 
+		try {
+			conn = ds.getConnection();
+			stmt = conn.prepareStatement(sql);
+			for (int i=0; i < params.length; i++) {
+				stmt.setObject(i + 1, params[i]);
+			}
+			rs = stmt.executeQuery();
+			handler.handle(rs);
 		} catch (SQLException e) {
 			throw new ActiveBeansException(e);
 		} finally {
