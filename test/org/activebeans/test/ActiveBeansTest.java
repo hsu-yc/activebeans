@@ -10,8 +10,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javassist.util.proxy.ProxyObject;
@@ -789,6 +791,36 @@ public class ActiveBeansTest {
 				},
 				table.insertStatement(), nameVal)
 			);
+		}finally{
+			ActiveBeansUtils.executeSql(ds, table.dropStatement());
+		}
+	}
+	
+	@Test 
+	public void selectModelTable() {
+		final Map<Property, Object> generatedKeys = new LinkedHashMap<Property, Object>();
+		Table table = new ActiveMigration(activeClass, ds).table();
+		try{
+			ActiveBeansUtils.executeSql(ds, table.createStatment());
+			assertEquals(1, ActiveBeansUtils.insert(ds, activeClass, ActiveBeans.build(activeClass),
+				new GeneratedKeysMapHandler() {
+					@Override
+					public void handle(Map<Property, Object> keys) {
+						generatedKeys.putAll(keys);
+					}
+				})
+			);
+			@SuppressWarnings("rawtypes")
+			List objs = ActiveBeansUtils.select(ds, activeClass, 
+				new ArrayList<Object>(generatedKeys.values()));
+			assertEquals(1, objs.size());
+			Object obj = objs.get(0);
+			assertNotNull(obj);
+			AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)obj).getHandler())
+				.attrHandler();
+			for (Entry<Property, Object> e : generatedKeys.entrySet()) {
+				assertEquals(e.getValue(), handler.get(e.getKey()));
+			}
 		}finally{
 			ActiveBeansUtils.executeSql(ds, table.dropStatement());
 		}
