@@ -9,6 +9,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +47,7 @@ public final class ActiveBeansUtils {
 		for (Association assoc : intro.belongsTos()) {
 			params.add(handler.get(assoc));
 		}
-		final Map<Property, Object> generatedKeyMap = new HashMap<Property, Object>();
+		final Map<Property, Object> generatedKeyMap = new LinkedHashMap<Property, Object>();
 		int result = executePreparedSql(
 			ds,
 			new ResultSetHandler() {
@@ -61,11 +62,35 @@ public final class ActiveBeansUtils {
 				}
 			},
 			new ActiveMigration(activeClass, ds).table().insertStatement(), 
-			params.toArray()
+			params
 		);
 		if(generatedKeys != null){
 			generatedKeys.handle(generatedKeyMap);
 		}
+		return result;
+	}
+	
+	public static <T extends Model<?, ?, ?, ?>> List<T> select(
+			DataSource ds, final Class<T> activeClass, List<?> keys){
+		final List<T> result = new ArrayList<T>();
+		executePreparedSqlForResult(ds, 
+			new ResultSetHandler() {
+				@Override
+				public void handle(ResultSet rs) throws SQLException {
+					ActiveIntrospector intro = new ActiveIntrospector(activeClass);
+					while(rs.next()){
+						T model = ActiveBeansUtils.model(activeClass);
+						AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
+						for (Property p : intro.properties()) {
+							handler.set(p, rs.getObject(p.name()));
+						}
+						result.add(model);
+					}
+				}
+			}, 
+			new ActiveMigration(activeClass, ds).table().selectStatement(), 
+			keys
+		);
 		return result;
 	}
 	
@@ -111,7 +136,7 @@ public final class ActiveBeansUtils {
 							objs.add(args[0]);
 							rtn = self;
 						}else {
-							rtn = ActiveBeansUtils.defaultValue(method.getReturnType());
+							rtn = defaultValue(method.getReturnType());
 						}
 						return rtn;
 					}
@@ -183,8 +208,8 @@ public final class ActiveBeansUtils {
 		} catch (SQLException e) {
 			throw new ActiveBeansException(e);
 		} finally {
-			ActiveBeansUtils.close(stmt);
-			ActiveBeansUtils.close(conn);
+			close(stmt);
+			close(conn);
 		}
 	}
 
@@ -192,8 +217,16 @@ public final class ActiveBeansUtils {
 		return executeSql(ds, Arrays.asList(stmts));
 	}
 	
+	public static int executePreparedSql(DataSource ds, String sql, List<?> params) {
+		return executePreparedSql(ds, null, sql, params.toArray());
+	}
+	
 	public static int executePreparedSql(DataSource ds, String sql, Object... params) {
 		return executePreparedSql(ds, null, sql, params);
+	}
+	
+	public static int executePreparedSql(DataSource ds, ResultSetHandler generatedKeysHandler, String sql, List<?> params) {
+		return executePreparedSql(ds, generatedKeysHandler, sql, params.toArray());
 	}
 	
 	public static int executePreparedSql(DataSource ds, ResultSetHandler generatedKeysHandler, String sql, Object... params) {
@@ -217,10 +250,14 @@ public final class ActiveBeansUtils {
 		} catch (SQLException e) {
 			throw new ActiveBeansException(e);
 		} finally {
-			ActiveBeansUtils.close(rs);
-			ActiveBeansUtils.close(stmt);
-			ActiveBeansUtils.close(conn);
+			close(rs);
+			close(stmt);
+			close(conn);
 		}
+	}
+	
+	public static void executePreparedSqlForResult(DataSource ds, ResultSetHandler handler, String sql, List<?> params) {
+		executePreparedSqlForResult(ds, handler, sql, params.toArray());
 	}
 	
 	public static void executePreparedSqlForResult(DataSource ds, ResultSetHandler handler, String sql, Object... params) {
@@ -238,9 +275,9 @@ public final class ActiveBeansUtils {
 		} catch (SQLException e) {
 			throw new ActiveBeansException(e);
 		} finally {
-			ActiveBeansUtils.close(rs);
-			ActiveBeansUtils.close(stmt);
-			ActiveBeansUtils.close(conn);
+			close(rs);
+			close(stmt);
+			close(conn);
 		}
 	}
 	
