@@ -4,12 +4,12 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -210,7 +210,7 @@ public class ActiveBeansTest {
 		String subject = "foo";
 		post.setSubject(subject);
 		assertEquals(subject, post.getSubject());
-		Date created = new Date(System.currentTimeMillis());
+		Date created = new Date();
 		post.setCreated(created);
 		assertEquals(created, post.getCreated());
 		Comment comment = ActiveBeans.build(Comment.class);
@@ -247,7 +247,7 @@ public class ActiveBeansTest {
 		post.set(subject, subjectVal);
 		assertEquals(subjectVal, post.get(subject));
 		Property created = postIntro.property("created");
-		Date createdVal = new Date(System.currentTimeMillis());
+		Date createdVal = new Date();
 		post.set(created, createdVal);
 		assertEquals(createdVal, post.get(created));
 		Class<? extends Model<?, ?, ?, ?>> commentClass = Comment.class;
@@ -338,19 +338,22 @@ public class ActiveBeansTest {
 	
 	@Test 
 	public void saveMethod(){
+		ActiveBeans.migrate(activeClass);
 		Post model = ActiveBeans.build(activeClass);
 		assertTrue(model.attrs(
 			ActiveBeans.options(activeClass)
 				.subject().val("test")
-				.created().val(new Date(System.currentTimeMillis()))
+				.created().val(new Date())
 		).save());
-		assertNotNull(model.getId());
+		Long id = model.getId();
+		assertTrue(id != null && id != 0);
 	}
 	
 	@Test
 	public void buildModelWithAttrs(){
+		ActiveBeans.migrate(activeClass);
 		String subj = "test";
-		Date created = new Date(System.currentTimeMillis());
+		Date created = new Date();
 		Post model = ActiveBeans.build(activeClass, 
 			ActiveBeans.options(activeClass)
 				.subject().val(subj)
@@ -360,20 +363,24 @@ public class ActiveBeansTest {
 		assertEquals(subj, model.getSubject());
 		assertEquals(created, model.getCreated());
 		assertTrue(model.save());
-		assertNotNull(model.getId());
+		Long id = model.getId();
+		assertTrue(id != null && id != 0);
 	}
 	
 	@Test
 	public void createModel(){
+		ActiveBeans.migrate(activeClass);
 		Post model = ActiveBeans.create(activeClass);
 		assertNotNull(model);
-		assertNotNull(model.getId());
+		Long id = model.getId();
+		assertTrue(id != null && id != 0);
 	}
 	
 	@Test
 	public void createModelWithAttrs(){
+		ActiveBeans.migrate(activeClass);
 		String subj = "test";
-		Date created = new Date(System.currentTimeMillis());
+		Date created = new Date();
 		Post model = ActiveBeans.create(activeClass, 
 			ActiveBeans.options(activeClass)
 				.subject().val(subj)
@@ -382,13 +389,15 @@ public class ActiveBeansTest {
 		assertNotNull(model);
 		assertEquals(subj, model.getSubject());
 		assertEquals(created, model.getCreated());
-		assertNotNull(model.getId());
+		Long id = model.getId();
+		assertTrue(id != null && id != 0);
 	}
 	
-	
+	@Test
 	public void getModel(){		
+		ActiveBeans.migrate(activeClass);
 		String subj = "test";
-		Date created = new Date(System.currentTimeMillis());
+		Date created = new Date();
 		Long id = ActiveBeans.create(activeClass, 
 			ActiveBeans.options(activeClass)
 				.subject().val(subj)
@@ -397,9 +406,10 @@ public class ActiveBeansTest {
 		assertNotNull(id);
 		Post model = ActiveBeans.get(activeClass, id);
 		assertNotNull(model);
-		assertEquals(id, model.getId());
+		assertTrue(id != null && id != 0);
 		assertEquals(subj, model.getSubject());
-		assertEquals(created, model.getCreated());
+		assertEquals(new java.sql.Date(created.getTime()).toString(), 
+			model.getCreated().toString());
 	}
 
 	@Test
