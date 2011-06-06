@@ -866,4 +866,46 @@ public class ActiveBeansTest {
 			+ " = ? where " + id + " = ?", table.updateStatement());
 	}
 	
+	@Test 
+	public void update() {
+		final String id = "id";
+		final String name = "name";
+		final String age = "age";
+		final Table table = new Table("test", 
+			new Column.Builder(id, new DataType("int"))
+				.key(true).autoIncrement(true).build(),
+			new Column.Builder(name, new DataType("varchar", 50)).build(),
+			new Column.Builder(age, new DataType("int")).build()
+		);
+		final String nameVal = "name value";
+		final int ageVal = 10;
+		try{
+			ActiveBeansUtils.executeSql(ds, table.createStatment());
+			assertEquals(1, ActiveBeansUtils.executePreparedSql(
+				ds,
+				new ResultSetHandler() {
+					@Override
+					public void handle(ResultSet keys) throws SQLException {
+						assertTrue(keys.next());
+						final int idVal = keys.getInt(1);
+						assertEquals(1, ActiveBeansUtils.executePreparedSql(
+							ds, table.updateStatement(), nameVal, ageVal, idVal));
+						ActiveBeansUtils.executePreparedSqlForResult(ds, new ResultSetHandler() {
+							@Override
+							public void handle(ResultSet rs) throws SQLException {
+								assertTrue(rs.next());
+								assertEquals(idVal, rs.getInt(id));
+								assertEquals(nameVal, rs.getString(name));
+								assertEquals(ageVal, rs.getInt(age));
+							}
+						}, table.selectStatement(), idVal);
+					}
+				},
+				table.insertStatement(), "", 0)
+			);
+		}finally{
+			ActiveBeansUtils.executeSql(ds, table.dropStatement());
+		}
+	}
+	
 }
