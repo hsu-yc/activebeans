@@ -850,4 +850,20 @@ public class ActiveBeansTest {
 		}
 	}
 	
+	@Test
+	public void updateStatement() {
+		String tableName = "test";
+		String id = "id";
+		String name = "name";
+		String age = "age";
+		Table table = new Table(tableName, 
+			new Column.Builder(id, new DataType("int")).key(true)
+				.autoIncrement(true).build(),
+			new Column.Builder(name, new DataType("varchar")).build(),
+			new Column.Builder(age, new DataType("int")).build()
+		);
+		assertEquals("update " + tableName + " set "+ name + " = ?, " + age 
+			+ " = ? where " + id + " = ?", table.updateStatement());
+	}
+	
 }

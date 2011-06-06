@@ -20,6 +20,8 @@ public class Table {
 	private String insert;
 	
 	private String select;
+	
+	private String update;
 
 	public Table(String name, List<Column> columns) {
 		this.name = name;
@@ -60,6 +62,20 @@ public class Table {
 		select += " from " + name + " where";
 		for (int i = 0; i < numOfKeys; i++) {
 			select += " " + (i == 0 ? "" : "and")
+					+ keys.get(i).name() + " = ?";
+		}
+		update = "update " + name + " set";
+		boolean firstUpdateCol = true;
+		for (int i=0;  i < cols.size(); i++) {
+			Column c = cols.get(i);
+			if(!c.key()){
+				update += (firstUpdateCol ? "" : ",") + " " + c.name() + " = ?";
+				firstUpdateCol = false;
+			}
+		}
+		update += " where";
+		for (int i = 0; i < numOfKeys; i++) {
+			update += " " + (i == 0 ? "" : "and")
 					+ keys.get(i).name() + " = ?";
 		}
 	}
@@ -103,6 +119,10 @@ public class Table {
 	
 	public String selectStatement(){
 		return select;
+	}
+	
+	public String updateStatement(){
+		return update;
 	}
 
 }
