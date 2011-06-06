@@ -70,28 +70,28 @@ public final class ActiveBeansUtils {
 		return result;
 	}
 	
-	public static <T extends Model<?, ?, ?, ?>> List<T> select(
+	public static <T extends Model<?, ?, ?, ?>> T get(
 			DataSource ds, final Class<T> activeClass, List<?> keys){
-		final List<T> result = new ArrayList<T>();
+		final List<T> resultList = new ArrayList<T>();
 		executePreparedSqlForResult(ds, 
 			new ResultSetHandler() {
 				@Override
 				public void handle(ResultSet rs) throws SQLException {
 					ActiveIntrospector intro = new ActiveIntrospector(activeClass);
-					while(rs.next()){
+					if(rs.next()){
 						T model = ActiveBeansUtils.model(activeClass);
 						AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
 						for (Property p : intro.properties()) {
 							handler.set(p, rs.getObject(p.name()));
 						}
-						result.add(model);
+						resultList.add(model);
 					}
 				}
 			}, 
 			new ActiveMigration(activeClass, ds).table().selectStatement(), 
 			keys
 		);
-		return result;
+		return resultList.isEmpty()? null:resultList.get(0);
 	}
 	
 	public static <T extends Model<?, ?, ?, ?>> T model(Class<T> activeClass){

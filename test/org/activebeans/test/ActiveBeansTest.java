@@ -384,6 +384,23 @@ public class ActiveBeansTest {
 		assertEquals(created, model.getCreated());
 		assertNotNull(model.getId());
 	}
+	
+	
+	public void getModel(){		
+		String subj = "test";
+		Date created = new Date(System.currentTimeMillis());
+		Long id = ActiveBeans.create(activeClass, 
+			ActiveBeans.options(activeClass)
+				.subject().val(subj)
+				.created().val(created)
+		).getId();
+		assertNotNull(id);
+		Post model = ActiveBeans.get(activeClass, id);
+		assertNotNull(model);
+		assertEquals(id, model.getId());
+		assertEquals(subj, model.getSubject());
+		assertEquals(created, model.getCreated());
+	}
 
 	@Test
 	public void noopModels() {
@@ -810,11 +827,8 @@ public class ActiveBeansTest {
 					}
 				})
 			);
-			@SuppressWarnings("rawtypes")
-			List objs = ActiveBeansUtils.select(ds, activeClass, 
+			Object obj = ActiveBeansUtils.get(ds, activeClass, 
 				new ArrayList<Object>(generatedKeys.values()));
-			assertEquals(1, objs.size());
-			Object obj = objs.get(0);
 			assertNotNull(obj);
 			AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)obj).getHandler())
 				.attrHandler();
