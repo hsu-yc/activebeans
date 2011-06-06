@@ -1,6 +1,7 @@
 package org.activebeans;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,7 +136,10 @@ public class ActiveBeans {
 
 	public static <T extends Model<T, ?, ?, ?>> T get(Class<T> modelClass, Object key,
 			Object... keys) {
-		return null;
+		List<Object> keyParams = new ArrayList<Object>();
+		keyParams.add(key);
+		keyParams.addAll(Arrays.asList(keys));
+		return ActiveBeansUtils.get(defaultDs, modelClass, keyParams);
 	}
 
 	public static <T extends Model<T, ?, ?, ?>> T first(Class<T> modelClass) {
