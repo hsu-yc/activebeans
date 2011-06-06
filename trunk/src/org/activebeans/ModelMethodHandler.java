@@ -34,7 +34,11 @@ public class ModelMethodHandler implements Model, MethodHandler {
 
 	@Override
 	public boolean update() {
-		return false;
+		return ActiveBeansUtils.update(
+				ActiveBeans.repository(), 
+				selfClass,
+				self
+			) == 1;
 	}
 
 	@Override
