@@ -28,7 +28,7 @@ public final class ActiveBeansUtils {
 	
 	public static <T extends Model<?, ?, ?, ?>> int insert(
 			DataSource ds, Class<T> activeClass, T model){
-		return insert(ds, activeClass, model);
+		return insert(ds, activeClass, model, null);
 	}
 	
 	public static <T extends Model<?, ?, ?, ?>> int insert(
@@ -36,7 +36,7 @@ public final class ActiveBeansUtils {
 		List<Object> params = new ArrayList<Object>();
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		final List<Property> generatedkeys = new ArrayList<Property>();
-		AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
+		final AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
 		for (Property prop : intro.properties()) {
 			if(prop.autoIncrement()){
 				generatedkeys.add(prop);
@@ -55,7 +55,10 @@ public final class ActiveBeansUtils {
 				public void handle(ResultSet keys) throws SQLException {
 					if(keys.next()){
 						for (int i=0; i < generatedkeys.size(); i++) {
-							generatedKeyMap.put(generatedkeys.get(i), keys.getObject(i + 1));
+							Property prop = generatedkeys.get(i);
+							Object val = keys.getObject(i + 1);
+							generatedKeyMap.put(prop, val);
+							handler.set(prop, val);
 							i++;
 						}
 					}
@@ -92,6 +95,32 @@ public final class ActiveBeansUtils {
 			keys
 		);
 		return resultList.isEmpty()? null:resultList.get(0);
+	}
+	
+	public static <T extends Model<?, ?, ?, ?>> int update(DataSource ds, 
+			Class<T> activeClass, T model){
+		List<Object> params = new ArrayList<Object>();
+		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
+		final List<Object> keys = new ArrayList<Object>();
+		AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
+		for (Property prop : intro.properties()) {
+			Object val = handler.get(prop);
+			if(prop.autoIncrement()){
+				keys.add(val);
+			}else{
+				params.add(val);
+			}
+		}
+		for (Association assoc : intro.belongsTos()) {
+			params.add(handler.get(assoc));
+		}
+		params.addAll(keys);
+		int result = executePreparedSql(
+			ds,
+			new ActiveMigration(activeClass, ds).table().updateStatement(), 
+			params
+		);
+		return result;
 	}
 	
 	public static <T extends Model<?, ?, ?, ?>> T model(Class<T> activeClass){
