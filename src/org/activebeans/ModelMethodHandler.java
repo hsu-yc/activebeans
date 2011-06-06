@@ -1,7 +1,6 @@
 package org.activebeans;
 
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import javassist.util.proxy.MethodHandler;
@@ -29,15 +28,7 @@ public class ModelMethodHandler implements Model, MethodHandler {
 		return ActiveBeansUtils.insert(
 			ActiveBeans.repository(), 
 			selfClass,
-			self, 
-			new GeneratedKeysMapHandler() {
-				@Override
-				public void handle(Map<Property, Object> keys) {
-					for (Entry<Property, Object> key : keys.entrySet()) {
-						attrHandler.set(key.getKey(), key.getValue());
-					}
-				}
-			}
+			self
 		) == 1;
 	}
 
