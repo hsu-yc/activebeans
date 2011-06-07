@@ -22,6 +22,8 @@ public class Table {
 	private String select;
 	
 	private String update;
+	
+	private String delete;
 
 	public Table(String name, List<Column> columns) {
 		this.name = name;
@@ -78,6 +80,11 @@ public class Table {
 			update += " " + (i == 0 ? "" : "and")
 					+ keys.get(i).name() + " = ?";
 		}
+		delete = "delete from " + name + " where";
+		for (int i = 0; i < numOfKeys; i++) {
+			delete += " " + (i == 0 ? "" : "and")
+					+ keys.get(i).name() + " = ?";
+		}
 	}
 
 	public Table(String name, Column... columns) {
@@ -123,6 +130,10 @@ public class Table {
 	
 	public String updateStatement(){
 		return update;
+	}
+	
+	public String deleteStatement(){
+		return delete;
 	}
 
 }

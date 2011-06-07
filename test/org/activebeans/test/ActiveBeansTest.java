@@ -444,6 +444,19 @@ public class ActiveBeansTest {
 			obj.getCreated().toString());
 	}
 
+	/*@Test
+	public void destroyMethod(){		
+		ActiveBeans.migrate(activeClass);
+		Post model = ActiveBeans.build(activeClass);
+		assertTrue(model.save());
+		Long id = model.getId();
+		assertTrue(id != null && id != 0);
+		assertNotNull(ActiveBeans.get(activeClass, id));
+		assertTrue(model.destroy());
+		assertNull(ActiveBeans.get(activeClass, id));
+	}
+	*/
+	
 	@Test
 	public void noopModels() {
 		Post post = ActiveBeans.build(Post.class);
@@ -965,6 +978,22 @@ public class ActiveBeansTest {
 		}finally{
 			ActiveBeansUtils.executeSql(ds, table.dropStatement());
 		}
+	}
+	
+	@Test
+	public void deleteStatement() {
+		String tableName = "test";
+		String id = "id";
+		String name = "name";
+		String age = "age";
+		Table table = new Table(tableName, 
+			new Column.Builder(id, new DataType("int")).key(true)
+				.autoIncrement(true).build(),
+			new Column.Builder(name, new DataType("varchar")).build(),
+			new Column.Builder(age, new DataType("int")).build()
+		);
+		assertEquals("delete from " + tableName + " where " + id + " = ?", 
+			table.deleteStatement());
 	}
 	
 }
