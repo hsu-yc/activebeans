@@ -123,6 +123,24 @@ public final class ActiveBeansUtils {
 		return result;
 	}
 	
+	public static <T extends Model<?, ?, ?, ?>> int delete(DataSource ds, 
+			Class<T> activeClass, T model){
+		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
+		final List<Object> keys = new ArrayList<Object>();
+		AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
+		for (Property prop : intro.properties()) {
+			if(prop.autoIncrement()){
+				keys.add(handler.get(prop));
+			}
+		}
+		int result = executePreparedSql(
+			ds,
+			new ActiveMigration(activeClass, ds).table().deleteStatement(), 
+			keys
+		);
+		return result;
+	}
+	
 	public static <T extends Model<?, ?, ?, ?>> T model(Class<T> activeClass){
 		ActiveDelegate delegate = new ActiveDelegate(activeClass);
 		ProxyFactory f = new ProxyFactory();
