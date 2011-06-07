@@ -61,7 +61,11 @@ public class ModelMethodHandler implements Model, MethodHandler {
 
 	@Override
 	public boolean destroy() {
-		return false;
+		return ActiveBeansUtils.delete(
+			ActiveBeans.repository(), 
+			selfClass,
+			self
+		) == 1;
 	}
 	
 	@Override
