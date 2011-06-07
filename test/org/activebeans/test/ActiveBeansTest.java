@@ -1040,4 +1040,28 @@ public class ActiveBeansTest {
 		}
 	}
 	
+	@Test 
+	public void deleteModelTable() {
+		final Map<Property, Object> generatedKeys = new LinkedHashMap<Property, Object>();
+		Table table = new ActiveMigration(activeClass, ds).table();
+		try{
+			ActiveBeansUtils.executeSql(ds, table.createStatment());
+			final Post post = ActiveBeans.build(activeClass);
+			assertEquals(1, ActiveBeansUtils.insert(ds, activeClass, post,
+				new GeneratedKeysMapHandler() {
+					@Override
+					public void handle(Map<Property, Object> keys) {
+						generatedKeys.putAll(keys);
+					}
+				})
+			);
+			ArrayList<Object> keys = new ArrayList<Object>(generatedKeys.values());
+			assertNotNull(ActiveBeansUtils.get(ds, activeClass, keys));
+			assertEquals(1, ActiveBeansUtils.delete(ds, activeClass, post));
+			assertNull(ActiveBeansUtils.get(ds, activeClass, keys));
+		}finally{
+			ActiveBeansUtils.executeSql(ds, table.dropStatement());
+		}
+	}
+	
 }
