@@ -43,7 +43,8 @@ public class ModelMethodHandler implements Model, MethodHandler {
 
 	@Override
 	public boolean update(Object attrs) {
-		return false;
+		attrs(attrs);
+		return update();
 	}
 
 	@Override

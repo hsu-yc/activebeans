@@ -422,6 +422,27 @@ public class ActiveBeansTest {
 		assertEquals(new java.sql.Date(created.getTime()).toString(), 
 			obj.getCreated().toString());
 	}
+	
+	@Test
+	public void updateMethodWithAttrs(){		
+		ActiveBeans.migrate(activeClass);
+		Post model = ActiveBeans.build(activeClass);
+		assertTrue(model.save());
+		Long id = model.getId();
+		assertTrue(id != null && id != 0);
+		String subj = "test";
+		Date created = new Date();
+		assertTrue(model.update(
+			ActiveBeans.options(activeClass)
+				.subject().val(subj)
+				.created().val(created)
+		));
+		Post obj = ActiveBeans.get(activeClass, id);
+		assertNotNull(obj);
+		assertEquals(subj, obj.getSubject());
+		assertEquals(new java.sql.Date(created.getTime()).toString(), 
+			obj.getCreated().toString());
+	}
 
 	@Test
 	public void noopModels() {
