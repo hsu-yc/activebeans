@@ -444,7 +444,7 @@ public class ActiveBeansTest {
 			obj.getCreated().toString());
 	}
 
-	/*@Test
+	@Test
 	public void destroyMethod(){		
 		ActiveBeans.migrate(activeClass);
 		Post model = ActiveBeans.build(activeClass);
@@ -455,7 +455,6 @@ public class ActiveBeansTest {
 		assertTrue(model.destroy());
 		assertNull(ActiveBeans.get(activeClass, id));
 	}
-	*/
 	
 	@Test
 	public void noopModels() {
