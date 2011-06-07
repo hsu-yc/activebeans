@@ -996,4 +996,48 @@ public class ActiveBeansTest {
 			table.deleteStatement());
 	}
 	
+	@Test 
+	public void delete() {
+		final String id = "id";
+		final String name = "name";
+		final String age = "age";
+		final Table table = new Table("test", 
+			new Column.Builder(id, new DataType("int"))
+				.key(true).autoIncrement(true).build(),
+			new Column.Builder(name, new DataType("varchar", 50)).build(),
+			new Column.Builder(age, new DataType("int")).build()
+		);
+		try{
+			ActiveBeansUtils.executeSql(ds, table.createStatment());
+			assertEquals(1, ActiveBeansUtils.executePreparedSql(
+				ds,
+				new ResultSetHandler() {
+					@Override
+					public void handle(ResultSet keys) throws SQLException {
+						assertTrue(keys.next());
+						final int idVal = keys.getInt(1);
+						String selectStmt = table.selectStatement();
+						ActiveBeansUtils.executePreparedSqlForResult(ds, new ResultSetHandler() {
+							@Override
+							public void handle(ResultSet rs) throws SQLException {
+								assertTrue(rs.next());
+							}
+						}, selectStmt, idVal);
+						assertEquals(1, ActiveBeansUtils.executePreparedSql(ds, 
+							table.deleteStatement(), idVal));
+						ActiveBeansUtils.executePreparedSqlForResult(ds, new ResultSetHandler() {
+							@Override
+							public void handle(ResultSet rs) throws SQLException {
+								assertFalse(rs.next());
+							}
+						}, selectStmt, idVal);
+					}
+				},
+				table.insertStatement(), "", 0)
+			);
+		}finally{
+			ActiveBeansUtils.executeSql(ds, table.dropStatement());
+		}
+	}
+	
 }
