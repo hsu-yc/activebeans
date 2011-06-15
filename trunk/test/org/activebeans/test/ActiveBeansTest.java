@@ -34,6 +34,8 @@ import org.activebeans.CollectionAssociationMethods;
 import org.activebeans.Column;
 import org.activebeans.Condition;
 import org.activebeans.ConditionsMethodFilter;
+import org.activebeans.ConditionsMethodHandler;
+import org.activebeans.ConditionsMethodHandler.Operator;
 import org.activebeans.DataSourceIntrospector;
 import org.activebeans.DataType;
 import org.activebeans.GeneratedKeysMapHandler;
@@ -454,6 +456,24 @@ public class ActiveBeansTest {
 		assertNotNull(ActiveBeans.get(activeClass, id));
 		assertTrue(model.destroy());
 		assertNull(ActiveBeans.get(activeClass, id));
+	}
+	
+	@Test
+	public void conditionsMethodHandler() {
+		Class<Comment> commentClass = Comment.class;
+		ConditionsMethodHandler comment = new ConditionsMethodHandler(commentClass);
+		ActiveIntrospector commentIntro = new ActiveIntrospector(commentClass);
+		Property id = commentIntro.property("id");
+		Long idVal = 1L;
+		comment.set(id, Operator.EQL, idVal);
+		assertEquals(idVal, comment.get(id, Operator.EQL));
+		assertEquals(idVal, comment.properties().get(id).get(Operator.EQL));
+		Class<Post> postClass = Post.class;
+		Association post = commentIntro.belongsTo(postClass);
+		Conditions postVal = ActiveBeans.conditions(postClass);
+		comment.set(post, postVal);
+		assertEquals(postVal, comment.get(post));
+		assertEquals(postVal, comment.associations().get(post));
 	}
 	
 	@Test
