@@ -1,17 +1,28 @@
 package org.activebeans;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javassist.util.proxy.MethodHandler;
 
 public class ConditionsMethodHandler implements MethodHandler {
 	
+	public enum Operator {
+		GT, LT, GTE, LTE, NOT, EQL, LIKE
+	}
+	
 	private HashMap<Method, Property> propConditionMap = new HashMap<Method, Property>();
+	
+	private Map<Property, Map<Operator, Object>> propMap = new HashMap<Property, Map<Operator, Object>>();
 	
 	private HashMap<Method, Association> belongsToConditionMap = new HashMap<Method, Association>();
 	
 	private HashMap<Method, Association> hasManyConditionMap = new HashMap<Method, Association>();
+
+	private Map<Association, Object> assocMap = new HashMap<Association, Object>();
 	
 	public ConditionsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass){
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
@@ -24,6 +35,39 @@ public class ConditionsMethodHandler implements MethodHandler {
 		for (CollectionAssociationMethods methods : intro.hasManyMethods()) {
 			hasManyConditionMap.put(methods.condition(), methods.association());
 		}
+	}
+	
+	public void set(Property prop, Operator op, Object val){
+		Map<Operator, Object> map = propMap.get(prop);
+		if(map == null){
+			map = new LinkedHashMap<Operator, Object>();
+			propMap.put(prop, map);
+		}
+		map.put(op, val);
+	}
+	
+	public void set(Association assoc, Object val){
+		assocMap.put(assoc, val);
+	}
+	
+	public Object get(Property prop, Operator op){
+		return propMap.get(prop).get(op);
+	}
+	
+	public Map<Operator, Object> get(Property prop){
+		return Collections.unmodifiableMap(propMap.get(prop));
+	}
+	
+	public Object get(Association assoc){
+		return assocMap.get(assoc);
+	}
+	
+	public Map<Property, Map<Operator, Object>> properties(){
+		return Collections.unmodifiableMap(propMap);
+	}
+	
+	public Map<Association, Object> associations(){
+		return Collections.unmodifiableMap(assocMap);
 	}
 	
 	@Override
