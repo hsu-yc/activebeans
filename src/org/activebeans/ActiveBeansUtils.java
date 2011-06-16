@@ -272,6 +272,24 @@ public final class ActiveBeansUtils {
 		return executeSql(ds, Arrays.asList(stmts));
 	}
 	
+	public static void executeSqlForResult(DataSource ds, ResultSetHandler handler, String sql) {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			conn = ds.getConnection();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sql);
+			handler.handle(rs);
+		} catch (SQLException e) {
+			throw new ActiveBeansException(e);
+		} finally {
+			close(rs);
+			close(stmt);
+			close(conn);
+		}
+	}
+	
 	public static int executePreparedSql(DataSource ds, String sql, List<?> params) {
 		return executePreparedSql(ds, null, sql, params.toArray());
 	}

@@ -1150,4 +1150,33 @@ public class ActiveBeansTest {
 			table.selectAllStatement());
 	}
 	
+	@Test 
+	public void selectAll() {
+		final String id = "id";
+		final String name = "name";
+		final Table table = new Table("test", 
+			new Column.Builder(id, new DataType("int"))
+				.key(true).autoIncrement(true).build(),
+			new Column.Builder(name, new DataType("varchar", 50)).build()
+		);
+		final String nameVal = "name value";
+		try{
+			ActiveBeansUtils.executeSql(ds, table.createStatment());
+			final int rows = 3; 
+			for(int i=0; i<rows; i++){
+				assertEquals(1, ActiveBeansUtils.executePreparedSql(
+					ds, table.insertStatement(), nameVal));
+			}
+			ActiveBeansUtils.executeSqlForResult(ds, new ResultSetHandler() {
+				@Override
+				public void handle(ResultSet rs) throws SQLException {
+					assertTrue(rs.last());
+					assertEquals(rows, rs.getRow());
+				}
+			}, table.selectAllStatement());
+		}finally{
+			ActiveBeansUtils.executeSql(ds, table.dropStatement());
+		}
+	}
+	
 }
