@@ -52,6 +52,7 @@ import org.activebeans.test.model.Comment;
 import org.activebeans.test.model.Comment.Options;
 import org.activebeans.test.model.Post;
 import org.activebeans.test.model.Post.Conditions;
+import org.activebeans.test.model.Post.Models;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -474,6 +475,25 @@ public class ActiveBeansTest {
 		comment.set(post, postVal);
 		assertEquals(postVal, comment.get(post));
 		assertEquals(postVal, comment.associations().get(post));
+	}
+	
+	public void allModels(){
+		ActiveBeans.migrate(activeClass);
+		String subj1 = "subj1";
+		String subj2 = "subj2";
+		ActiveBeans.create(activeClass, ActiveBeans.options(activeClass)
+			.subject().val(subj1));
+		ActiveBeans.create(activeClass, ActiveBeans.options(activeClass)
+			.subject().val(subj2));
+		Models models = ActiveBeans.all(activeClass);
+		assertNotNull(models);
+		int cnt = 0;
+		for (Post post : models) {
+			assertNotNull(post);
+			assertTrue(activeClass.isAssignableFrom(post.getClass()));
+			cnt++;
+		}
+		assertEquals(2, cnt);
 	}
 	
 	@Test
@@ -1114,6 +1134,20 @@ public class ActiveBeansTest {
 		}finally{
 			ActiveBeansUtils.executeSql(ds, table.dropStatement());
 		}
+	}
+	
+	@Test
+	public void selectAllStatement() {
+		String tableName = "test";
+		String id = "id";
+		String name = "name";
+		Table table = new Table(tableName, 
+			new Column.Builder(id, new DataType("int")).key(true)
+				.autoIncrement(true).build(),
+			new Column.Builder(name, new DataType("varchar")).build()
+		);
+		assertEquals("select " + id + ", " + name + " from " + tableName, 
+			table.selectAllStatement());
 	}
 	
 }

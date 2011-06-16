@@ -155,6 +155,32 @@ public final class ActiveBeansUtils {
 	
 	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U models(final Class<T> activeClass) {
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
+		@SuppressWarnings("unchecked")
+		final Class<U> modelsInterface = (Class<U>) intro.modelsInterface();
+		return models(activeClass, new MethodHandler() {
+			private List<Object> objs = new ArrayList<Object>();
+			@Override
+			public Object invoke(Object self, Method method,
+					Method proceed, Object[] args)
+					throws Throwable {
+				Object rtn = null; 
+				if(method.equals(Iterable.class.getMethod("iterator"))){
+					rtn = objs.iterator();
+				} else if(method.equals(modelsInterface.getMethod("add", activeClass)) ||
+						method.equals(Models.class.getMethod("add", Model.class))){
+					objs.add(args[0]);
+					rtn = self;
+				}else {
+					rtn = defaultValue(method.getReturnType());
+				}
+				return rtn;
+			}
+		});
+	}
+	
+	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U models(
+			final Class<T> activeClass, MethodHandler handler) {
+		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		ProxyFactory f = new ProxyFactory();
 		@SuppressWarnings("unchecked")
 		final Class<U> modelsInterface = (Class<U>) intro.modelsInterface();
@@ -169,25 +195,7 @@ public final class ActiveBeansUtils {
 		});
 		try {
 			return modelsInterface.cast(f.create(new Class[0],
-				new Object[0], new MethodHandler() {
-					private List<Object> objs = new ArrayList<Object>();
-					@Override
-					public Object invoke(Object self, Method method,
-							Method proceed, Object[] args)
-							throws Throwable {
-						Object rtn = null; 
-						if(method.equals(Iterable.class.getMethod("iterator"))){
-							rtn = objs.iterator();
-						} else if(method.equals(modelsInterface.getMethod("add", activeClass)) ||
-								method.equals(Models.class.getMethod("add", Model.class))){
-							objs.add(args[0]);
-							rtn = self;
-						}else {
-							rtn = defaultValue(method.getReturnType());
-						}
-						return rtn;
-					}
-				}));
+				new Object[0], handler));
 		} catch (Throwable t) {
 			throw new ActiveBeansException(t);
 		}
