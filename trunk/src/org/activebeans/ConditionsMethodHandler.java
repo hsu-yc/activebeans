@@ -74,41 +74,52 @@ public class ConditionsMethodHandler implements MethodHandler {
 	public Object invoke(final Object self, Method method, Method proceed, Object[] args)
 			throws Throwable {
 		Object rtn = null;
-		if(propConditionMap.containsKey(method) || belongsToConditionMap.containsKey(method)){
+		if(propConditionMap.containsKey(method)){
+			final Property prop = propConditionMap.get(method);
 			rtn = new Condition<Object, Object>() {
 				@Override
 				public Object gt(Object val) {
+					set(prop, Operator.GT, val);
 					return self;
 				}
 				@Override
 				public Object lt(Object val) {
+					set(prop, Operator.LT, val);
 					return self;
 				}
 				@Override
 				public Object gte(Object val) {
+					set(prop, Operator.GTE, val);
 					return self;
 				}
 				@Override
 				public Object lte(Object val) {
+					set(prop, Operator.LTE, val);
 					return self;
 				}
 				@Override
 				public Object not(Object val) {
+					set(prop, Operator.NOT, val);
 					return self;
 				}
 				@Override
 				public Object eql(Object val) {
+					set(prop, Operator.EQL, val);
 					return self;
 				}
 				@Override
 				public Object like(Object val) {
+					set(prop, Operator.LIKE, val);
 					return self;
 				}
 			};
-		}else if(hasManyConditionMap.containsKey(method)){
+		}else if(hasManyConditionMap.containsKey(method) || belongsToConditionMap.containsKey(method)){
+			Association hasMany = hasManyConditionMap.get(method);
+			final Association assoc = hasMany == null? belongsToConditionMap.get(method):hasMany; 
 			rtn = new SingularOption<Object, Object>() {
 				@Override
 				public Object val(Object val) {
+					set(assoc, val);
 					return self;
 				}
 			};
