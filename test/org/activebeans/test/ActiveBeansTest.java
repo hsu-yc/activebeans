@@ -512,7 +512,7 @@ public class ActiveBeansTest {
 		assertNotNull(id);
 		assertSame(comment, id.val(idVal));
 		Class<Post> postClass = Post.class;
-		SingularOption<Options, org.activebeans.test.model.Post.Options> post = comment.post();
+		SingularOption<Options, Post.Options> post = comment.post();
 		assertNotNull(post);
 		String subjVal = "subj";
 		String bodyVal = "body";
@@ -541,21 +541,54 @@ public class ActiveBeansTest {
 	}
 	
 	@Test
-	public void noopCondtions(){
-		Conditions conds = ActiveBeans.conditions(activeClass);
-		assertNotNull(conds);
-		Condition<Conditions, Long> id = conds.id();
+	public void condtions(){
+		Class<Comment> commentClass = Comment.class;
+		Comment.Conditions comment = 
+			ActiveBeans.conditions(commentClass);
+		assertNotNull(comment);
+		Condition<Comment.Conditions, Long> id = comment.id();
 		assertNotNull(id);
-		assertSame(conds, id.eql(0L));
-		assertSame(conds, id.gt(0L));
-		assertSame(conds, id.gte(0L));
-		assertSame(conds, id.like(0L));
-		assertSame(conds, id.lt(0L));
-		assertSame(conds, id.lte(0L));
-		assertSame(conds, id.not(0L));
-		SingularOption<Conditions, org.activebeans.test.model.Comment.Conditions> comments = conds.comments();
-		assertNotNull(comments);
-		assertSame(conds, comments.val(null));
+		Long idVal = 1L;
+		assertSame(comment, id.eql(idVal));
+		assertSame(comment, id.gt(idVal));
+		assertSame(comment, id.gte(idVal));
+		assertSame(comment, id.like(idVal));
+		assertSame(comment, id.lt(idVal));
+		assertSame(comment, id.lte(idVal));
+		assertSame(comment, id.not(idVal));
+		Class<Post> postClass = Post.class;
+		SingularOption<Comment.Conditions, Conditions> post = comment.post();
+		assertNotNull(post);
+		String subjVal = "subj";
+		String bodyVal = "body";
+		assertSame(comment, post.val(
+			ActiveBeans.conditions(postClass)
+				.subject().eql(subjVal)
+				.comments().val(
+					ActiveBeans.conditions(commentClass)
+						.body().eql(bodyVal)
+				)
+		));
+		ConditionsMethodHandler commentHandler = (ConditionsMethodHandler)((ProxyObject)comment).getHandler();
+		ActiveIntrospector commentIntro = new ActiveIntrospector(commentClass);
+		Map<Operator, Object> idMap = commentHandler.get(commentIntro.property("id"));
+		assertEquals(idVal, idMap.get(Operator.EQL));
+		assertEquals(idVal, idMap.get(Operator.GT));
+		assertEquals(idVal, idMap.get(Operator.GTE));
+		assertEquals(idVal, idMap.get(Operator.LIKE));
+		assertEquals(idVal, idMap.get(Operator.LT));
+		assertEquals(idVal, idMap.get(Operator.LTE));
+		assertEquals(idVal, idMap.get(Operator.NOT));
+		Object postObj = commentHandler.get(commentIntro.belongsTo(postClass));
+		assertTrue(ActiveBeans.conditions(postClass).getClass().isAssignableFrom(
+			postObj.getClass()));
+		ConditionsMethodHandler postHandler = (ConditionsMethodHandler)((ProxyObject)postObj).getHandler();
+		ActiveIntrospector postIntro = new ActiveIntrospector(postClass);
+		assertEquals(subjVal, postHandler.get(postIntro.property("subject"), Operator.EQL));
+		Object commentObj = postHandler.get(postIntro.hasMany(commentClass));
+		assertTrue(comment.getClass().isAssignableFrom(commentObj.getClass()));
+		assertEquals(bodyVal, ((ConditionsMethodHandler)((ProxyObject)commentObj).getHandler())
+			.get(commentIntro.property("body"), Operator.EQL));
 	}
 
 	@Test
