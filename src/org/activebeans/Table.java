@@ -21,10 +21,12 @@ public class Table {
 	
 	private String select;
 	
+	private String selectAll;
+	
 	private String update;
 	
 	private String delete;
-
+	
 	public Table(String name, List<Column> columns) {
 		this.name = name;
 		cols.addAll(columns);
@@ -56,12 +58,13 @@ public class Table {
 			insert += (i == 0 ? "" : ", ") + (c.autoIncrement()?"default":"?");
 		}
 		insert += ")";
-		select = "select";
+		selectAll = "select";
 		for (int i=0;  i < cols.size(); i++) {
 			Column c = cols.get(i);
-			select += (i == 0 ? "" : ",") + " " + c.name();
+			selectAll += (i == 0 ? "" : ",") + " " + c.name();
 		}
-		select += " from " + name + " where";
+		selectAll += " from " + name;
+		select = selectAll + " where";
 		for (int i = 0; i < numOfKeys; i++) {
 			select += " " + (i == 0 ? "" : "and")
 					+ keys.get(i).name() + " = ?";
@@ -126,6 +129,10 @@ public class Table {
 	
 	public String selectStatement(){
 		return select;
+	}
+	
+	public String selectAllStatement(){
+		return selectAll;
 	}
 	
 	public String updateStatement(){
