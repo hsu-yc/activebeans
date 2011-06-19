@@ -80,14 +80,8 @@ public final class ActiveBeansUtils {
 			new ResultSetHandler() {
 				@Override
 				public void handle(ResultSet rs) throws SQLException {
-					ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 					if(rs.next()){
-						T model = ActiveBeansUtils.model(activeClass);
-						AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
-						for (Property p : intro.properties()) {
-							handler.set(p, rs.getObject(p.name()));
-						}
-						resultList.add(model);
+						resultList.add(toModel(rs, activeClass));
 					}
 				}
 			}, 
@@ -153,29 +147,38 @@ public final class ActiveBeansUtils {
 		}
 	}
 	
-	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U models(final Class<T> activeClass) {
-		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
-		@SuppressWarnings("unchecked")
-		final Class<U> modelsInterface = (Class<U>) intro.modelsInterface();
-		return models(activeClass, new MethodHandler() {
-			private List<Object> objs = new ArrayList<Object>();
+	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U all(final DataSource ds, final Class<T> activeClass) {
+		return models(activeClass, new ModelsMethodHandler(activeClass){
 			@Override
-			public Object invoke(Object self, Method method,
-					Method proceed, Object[] args)
-					throws Throwable {
-				Object rtn = null; 
-				if(method.equals(Iterable.class.getMethod("iterator"))){
-					rtn = objs.iterator();
-				} else if(method.equals(modelsInterface.getMethod("add", activeClass)) ||
-						method.equals(Models.class.getMethod("add", Model.class))){
-					objs.add(args[0]);
-					rtn = self;
-				}else {
-					rtn = defaultValue(method.getReturnType());
-				}
-				return rtn;
+			protected void onIteration(final List<Object> data) {
+				executeSqlForResult(ds, new ResultSetHandler() {
+					@Override
+					public void handle(ResultSet rs) throws SQLException {
+						while(rs.next()){
+							data.add(toModel(rs, activeClass));
+						}
+					}
+				}, new ActiveMigration(activeClass, ds).table().selectAllStatement());
 			}
 		});
+	}
+	
+	public static <T extends Model<?, ?, ?, ?>> T toModel(ResultSet rs, Class<T> activeClass){
+		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
+		T model = ActiveBeansUtils.model(activeClass);
+		AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
+		for (Property p : intro.properties()) {
+			try {
+				handler.set(p, rs.getObject(p.name()));
+			} catch (SQLException e) {
+				throw new ActiveBeansException(e);
+			}
+		}
+		return model;
+	}
+	
+	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U models(final Class<T> activeClass) {
+		return models(activeClass, new ModelsMethodHandler(activeClass));
 	}
 	
 	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U models(

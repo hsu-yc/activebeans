@@ -161,8 +161,8 @@ public class ActiveBeans {
 	}
 
 	public static <T extends Model<T, ?, ?, U>, U extends Models<T, ?, ?, U>> U all(
-			Class<T> modelClass) {
-		return ActiveBeansUtils.models(modelClass);
+			final Class<T> modelClass) {
+		return ActiveBeansUtils.all(defaultDs, modelClass);
 	}
 
 	public static <T extends Model<T, ?, U, V>, U, V extends Models<T, ?, U, V>> V all(
