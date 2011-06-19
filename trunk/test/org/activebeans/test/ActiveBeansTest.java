@@ -477,6 +477,7 @@ public class ActiveBeansTest {
 		assertEquals(postVal, comment.associations().get(post));
 	}
 	
+	@Test
 	public void allModels(){
 		ActiveBeans.migrate(activeClass);
 		String subj1 = "subj1";
@@ -487,9 +488,11 @@ public class ActiveBeansTest {
 			.subject().val(subj2));
 		Models models = ActiveBeans.all(activeClass);
 		assertNotNull(models);
+		List<String> subjs = Arrays.asList(new String[]{subj1, subj2});
 		int cnt = 0;
 		for (Post post : models) {
 			assertNotNull(post);
+			assertTrue(subjs.contains(post.getSubject()));
 			assertTrue(activeClass.isAssignableFrom(post.getClass()));
 			cnt++;
 		}
