@@ -56,6 +56,7 @@ import org.activebeans.test.model.Post.Models;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -499,6 +500,7 @@ public class ActiveBeansTest {
 		assertEquals(2, cnt);
 	}
 	
+	@Test
 	public void allModelsWithEqlConditions(){
 		ActiveBeans.migrate(activeClass);
 		String subj1 = "subj1";
@@ -1215,6 +1217,15 @@ public class ActiveBeansTest {
 		String subjNot = "7";
 		Class<Post> postClass = Post.class;
 		Table table = new ActiveMigration(postClass, ds).table();
+		Conditions conds = ActiveBeans.conditions(postClass)
+			.id().eql(idEql)
+			.subject().eql(subjEql)
+			.subject().gt(subjGt)
+			.subject().gte(subjGte)
+			.subject().like(subjLike)
+			.subject().lt(subjLt)
+			.subject().lte(subjLte)
+			.subject().not(subjNot);
 		assertEquals(
 			table.selectAllStatement() + " where id = ?"
 				+ " and subject = ?"
@@ -1224,17 +1235,11 @@ public class ActiveBeansTest {
 				+ " and subject < ?"
 				+ " and subject <= ?"
 				+ " and subject != ?", 
-			table.selectStatement(ActiveBeans.conditions(postClass)
-				.id().eql(idEql)
-				.subject().eql(subjEql)
-				.subject().gt(subjGt)
-				.subject().gte(subjGte)
-				.subject().like(subjLike)
-				.subject().lt(subjLt)
-				.subject().lte(subjLte)
-				.subject().not(subjNot)
-			)
+			table.selectStatement(conds)
 		);
+		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
+		assertArrayEquals(new Object[]{idEql, subjEql, subjGt, subjGte, subjLike, 
+			subjLt, subjLte, subjNot}, handler.propertyValues().toArray());
 	}
 	
 }
