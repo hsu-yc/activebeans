@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javassist.util.proxy.ProxyObject;
+
+import org.activebeans.ConditionsMethodHandler.Operator;
 
 public class Table {
 
@@ -129,6 +135,20 @@ public class Table {
 	
 	public String selectStatement(){
 		return select;
+	}
+	
+	public String selectStatement(Object conds){
+		String stmt = selectAll;
+		ConditionsMethodHandler handler = (ConditionsMethodHandler) ((ProxyObject)conds).getHandler();
+		boolean empty = true;
+		for (Entry<Property, Map<Operator, Object>> prop : handler.properties().entrySet()) {
+			for(Entry<Operator, Object> op : prop.getValue().entrySet()){
+				stmt += " " + (empty?"where":"and") + " " + ActiveBeansUtils.camelCaseToUnderscore(prop.getKey().name())
+					+ " " + op.getKey() + " ?";
+				empty = false;
+			}
+		}
+		return stmt;
 	}
 	
 	public String selectAllStatement(){

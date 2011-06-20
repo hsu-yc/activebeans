@@ -499,6 +499,27 @@ public class ActiveBeansTest {
 		assertEquals(2, cnt);
 	}
 	
+	public void allModelsWithEqlConditions(){
+		ActiveBeans.migrate(activeClass);
+		String subj1 = "subj1";
+		String subj2 = "subj2";
+		ActiveBeans.create(activeClass, ActiveBeans.options(activeClass)
+			.subject().val(subj1));
+		ActiveBeans.create(activeClass, ActiveBeans.options(activeClass)
+			.subject().val(subj2));
+		Models models = ActiveBeans.all(activeClass, ActiveBeans.conditions(activeClass)
+			.subject().eql(subj1));
+		assertNotNull(models);
+		int cnt = 0;
+		for (Post post : models) {
+			assertNotNull(post);
+			assertEquals(subj1, post.getSubject());
+			assertTrue(activeClass.isAssignableFrom(post.getClass()));
+			cnt++;
+		}
+		assertEquals(1, cnt);
+	}
+	
 	@Test
 	public void noopModels() {
 		Post post = ActiveBeans.build(Post.class);
@@ -1180,6 +1201,40 @@ public class ActiveBeansTest {
 		}finally{
 			ActiveBeansUtils.executeSql(ds, table.dropStatement());
 		}
+	}
+	
+	@Test
+	public void selectWithConditionsStatement(){
+		long idEql = 1;
+		String subjEql = "1";
+		String subjGt = "2";
+		String subjGte = "3";
+		String subjLike = "4";
+		String subjLt = "5";
+		String subjLte = "6";
+		String subjNot = "7";
+		Class<Post> postClass = Post.class;
+		Table table = new ActiveMigration(postClass, ds).table();
+		assertEquals(
+			table.selectAllStatement() + " where id = ?"
+				+ " and subject = ?"
+				+ " and subject > ?"
+				+ " and subject >= ?"
+				+ " and subject like ?"
+				+ " and subject < ?"
+				+ " and subject <= ?"
+				+ " and subject != ?", 
+			table.selectStatement(ActiveBeans.conditions(postClass)
+				.id().eql(idEql)
+				.subject().eql(subjEql)
+				.subject().gt(subjGt)
+				.subject().gte(subjGte)
+				.subject().like(subjLike)
+				.subject().lt(subjLt)
+				.subject().lte(subjLte)
+				.subject().not(subjNot)
+			)
+		);
 	}
 	
 }

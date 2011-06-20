@@ -1,5 +1,6 @@
 package org.activebeans;
 
+import java.beans.Introspector;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -147,7 +148,13 @@ public final class ActiveBeansUtils {
 		}
 	}
 	
-	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U all(final DataSource ds, final Class<T> activeClass) {
+	public static <T extends Model<?, ?, U, ?>, U, V extends Models<?, ?, ?, ?>> V all(
+			final DataSource ds, final Class<T> activeClass) {
+		return all(ds, activeClass, null);
+	}
+	
+	public static <T extends Model<?, ?, U, ?>, U, V extends Models<?, ?, ?, ?>> V all(
+			final DataSource ds, final Class<T> activeClass, final U conds) {
 		return models(activeClass, new ModelsMethodHandler(activeClass){
 			@Override
 			protected void onIteration(final List<Object> data) {
@@ -169,7 +176,7 @@ public final class ActiveBeansUtils {
 		AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
 		for (Property p : intro.properties()) {
 			try {
-				handler.set(p, rs.getObject(p.name()));
+				handler.set(p, rs.getObject(camelCaseToUnderscore(p.name())));
 			} catch (SQLException e) {
 				throw new ActiveBeansException(e);
 			}
@@ -218,6 +225,15 @@ public final class ActiveBeansUtils {
 			toks.add(tok.toLowerCase());
 		}
 		return join(toks.toArray(), "_", 0, toks.size());
+	}
+	
+	@SuppressWarnings("unused")
+	private static String underscoreToCamelCase(String input){
+		List<String> toks = new ArrayList<String>();
+		for(String tok : input.split("_")){
+			toks.add(Character.toTitleCase(tok.charAt(0)) + tok.substring(1));
+		}
+		return Introspector.decapitalize(join(toks.toArray(), "", 0, toks.size()));
 	}
 
 	public static void close(ResultSet... rsArray) {
