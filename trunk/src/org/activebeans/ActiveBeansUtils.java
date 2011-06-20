@@ -158,14 +158,23 @@ public final class ActiveBeansUtils {
 		return models(activeClass, new ModelsMethodHandler(activeClass){
 			@Override
 			protected void onIteration(final List<Object> data) {
-				executeSqlForResult(ds, new ResultSetHandler() {
+				ResultSetHandler rsHandler = new ResultSetHandler() {
 					@Override
 					public void handle(ResultSet rs) throws SQLException {
 						while(rs.next()){
 							data.add(toModel(rs, activeClass));
 						}
 					}
-				}, new ActiveMigration(activeClass, ds).table().selectAllStatement());
+				};
+				Table table = new ActiveMigration(activeClass, ds).table();
+				if(conds == null){
+					executeSqlForResult(ds, rsHandler, table.selectAllStatement());
+				}else{
+					ConditionsMethodHandler condHandler = (ConditionsMethodHandler) 
+						((ProxyObject)conds).getHandler();
+					executePreparedSqlForResult(ds, rsHandler, 
+						table.selectStatement(conds), condHandler.propertyValues());
+				}
 			}
 		});
 	}

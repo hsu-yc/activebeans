@@ -1,9 +1,11 @@
 package org.activebeans;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javassist.util.proxy.MethodHandler;
@@ -83,6 +85,14 @@ public class ConditionsMethodHandler implements MethodHandler {
 	
 	public Map<Property, Map<Operator, Object>> properties(){
 		return Collections.unmodifiableMap(propMap);
+	}
+	
+	public List<Object> propertyValues(){
+		List<Object> vals = new ArrayList<Object>();
+		for (Map<Operator, Object> valMap : propMap.values()) {
+			vals.addAll(valMap.values());
+		}
+		return vals;
 	}
 	
 	public Map<Association, Object> associations(){
