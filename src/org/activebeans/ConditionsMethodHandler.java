@@ -11,18 +11,37 @@ import javassist.util.proxy.MethodHandler;
 public class ConditionsMethodHandler implements MethodHandler {
 	
 	public enum Operator {
-		GT, LT, GTE, LTE, NOT, EQL, LIKE
+		
+		GT(">"), 
+		LT("<"), 
+		GTE(">="), 
+		LTE("<="), 
+		NOT("!="), 
+		EQL("="), 
+		LIKE("like");
+		
+		private String sqlOp;
+		
+		Operator(String sqlOp){
+			this.sqlOp = sqlOp;
+		}
+		
+		@Override
+		public String toString() {
+			return sqlOp;
+		}
+		
 	}
 	
 	private HashMap<Method, Property> propConditionMap = new HashMap<Method, Property>();
 	
-	private Map<Property, Map<Operator, Object>> propMap = new HashMap<Property, Map<Operator, Object>>();
+	private Map<Property, Map<Operator, Object>> propMap = new LinkedHashMap<Property, Map<Operator, Object>>();
 	
 	private HashMap<Method, Association> belongsToConditionMap = new HashMap<Method, Association>();
 	
 	private HashMap<Method, Association> hasManyConditionMap = new HashMap<Method, Association>();
 
-	private Map<Association, Object> assocMap = new HashMap<Association, Object>();
+	private Map<Association, Object> assocMap = new LinkedHashMap<Association, Object>();
 	
 	public ConditionsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass){
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);

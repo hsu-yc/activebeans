@@ -160,14 +160,14 @@ public class ActiveBeans {
 		return null;
 	}
 
-	public static <T extends Model<T, ?, ?, U>, U extends Models<T, ?, ?, U>> U all(
+	public static <T extends Model<T, ?, U, V>, U, V extends Models<T, ?, U, V>> V all(
 			final Class<T> modelClass) {
 		return ActiveBeansUtils.all(defaultDs, modelClass);
 	}
 
 	public static <T extends Model<T, ?, U, V>, U, V extends Models<T, ?, U, V>> V all(
 			Class<T> modelClass, U conditions) {
-		return null;
+		return ActiveBeansUtils.all(defaultDs, modelClass, conditions);
 	}
 
 }
