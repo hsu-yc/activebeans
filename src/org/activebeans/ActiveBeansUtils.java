@@ -179,6 +179,23 @@ public final class ActiveBeansUtils {
 		});
 	}
 	
+	public static <T extends Model<?, ?, ?, ?>> T first(DataSource ds, 
+			final Class<T> activeClass){
+		final List<T> resultList = new ArrayList<T>();
+		executePreparedSqlForResult(ds, 
+			new ResultSetHandler() {
+				@Override
+				public void handle(ResultSet rs) throws SQLException {
+					if(rs.next()){
+						resultList.add(toModel(rs, activeClass));
+					}
+				}
+			}, 
+			new ActiveMigration(activeClass, ds).table().selectFirstStatement()
+		);
+		return resultList.isEmpty()? null:resultList.get(0);
+	}
+	
 	public static <T extends Model<?, ?, ?, ?>> T toModel(ResultSet rs, Class<T> activeClass){
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		T model = ActiveBeansUtils.model(activeClass);
