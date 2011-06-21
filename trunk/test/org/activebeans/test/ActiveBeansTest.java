@@ -573,6 +573,26 @@ public class ActiveBeansTest {
 	}
 	
 	@Test
+	public void lastModelWithConditions(){
+		ActiveBeans.migrate(activeClass);
+		String subj1 = "subj1";
+		String subj2 = "subj2";
+		ActiveBeans.create(activeClass, ActiveBeans.options(activeClass)
+			.subject().val(subj1));
+		ActiveBeans.create(activeClass, ActiveBeans.options(activeClass)
+			.subject().val(subj2));
+		ActiveBeans.create(activeClass, ActiveBeans.options(activeClass)
+			.subject().val(subj2));
+		Post last = ActiveBeans.last(activeClass, ActiveBeans.conditions(activeClass)
+			.subject().eql(subj2));
+		assertNotNull(last);
+		assertTrue(activeClass.isAssignableFrom(last.getClass()));
+		assertEquals(subj2, last.getSubject());
+		assertNull(ActiveBeans.first(activeClass, ActiveBeans.conditions(activeClass)
+			.subject().eql("subj")));
+	}
+	
+	@Test
 	public void noopModels() {
 		Post post = ActiveBeans.build(Post.class);
 		Comment.Models comments = post.getComments();

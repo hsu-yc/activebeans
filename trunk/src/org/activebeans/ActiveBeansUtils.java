@@ -230,7 +230,7 @@ public final class ActiveBeansUtils {
 			ConditionsMethodHandler condHandler = (ConditionsMethodHandler) 
 				((ProxyObject)conds).getHandler();
 			executePreparedSqlForResult(ds, rsHandler, 
-				table.selectFirstStatement(conds), condHandler.propertyValues());
+				table.selectLastStatement(conds), condHandler.propertyValues());
 		}
 		return resultList.isEmpty()? null:resultList.get(0);
 	}
