@@ -33,6 +33,8 @@ public class Table {
 	
 	private String delete;
 	
+	private String defaultOrder;
+	
 	public Table(String name, List<Column> columns) {
 		this.name = name;
 		cols.addAll(columns);
@@ -72,8 +74,8 @@ public class Table {
 		selectAll += " from " + name;
 		select = selectAll + " where";
 		for (int i = 0; i < numOfKeys; i++) {
-			select += " " + (i == 0 ? "" : "and")
-					+ keys.get(i).name() + " = ?";
+			select += (i == 0 ? "" : " and")
+				+ " " + keys.get(i).name() + " = ?";
 		}
 		update = "update " + name + " set";
 		boolean firstUpdateCol = true;
@@ -86,13 +88,17 @@ public class Table {
 		}
 		update += " where";
 		for (int i = 0; i < numOfKeys; i++) {
-			update += " " + (i == 0 ? "" : "and")
-					+ keys.get(i).name() + " = ?";
+			update += (i == 0 ? "" : " and")
+				+ " " + keys.get(i).name() + " = ?";
 		}
 		delete = "delete from " + name + " where";
 		for (int i = 0; i < numOfKeys; i++) {
-			delete += " " + (i == 0 ? "" : "and")
-					+ keys.get(i).name() + " = ?";
+			delete += (i == 0 ? "" : " and")
+				+ " " + keys.get(i).name() + " = ?";
+		}
+		defaultOrder = "order by";
+		for (int i = 0; i < numOfKeys; i++) {
+			defaultOrder += (i == 0 ? "" : ",") + " " + keys.get(i).name();
 		}
 	}
 
@@ -148,11 +154,15 @@ public class Table {
 				empty = false;
 			}
 		}
-		return stmt;
+		return stmt + " " + defaultOrder;
 	}
 	
 	public String selectAllStatement(){
 		return selectAll;
+	}
+	
+	public String selectAllWithDefaultOrderStatement() {
+		return selectAll + " "+ defaultOrder;
 	}
 	
 	public String updateStatement(){
@@ -161,6 +171,10 @@ public class Table {
 	
 	public String deleteStatement(){
 		return delete;
+	}
+	
+	public String defaultOrder(){
+		return defaultOrder;
 	}
 
 }

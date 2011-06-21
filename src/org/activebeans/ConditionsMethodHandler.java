@@ -151,6 +151,14 @@ public class ConditionsMethodHandler implements MethodHandler {
 					set(assoc, val);
 					return self;
 				}
+				@Override
+				public Object asc() {
+					return self;
+				}
+				@Override
+				public Object desc() {
+					return self;
+				}
 			};
 		}
 		return rtn;
