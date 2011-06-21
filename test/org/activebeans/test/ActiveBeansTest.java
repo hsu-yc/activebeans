@@ -1307,4 +1307,14 @@ public class ActiveBeansTest {
 		assertArrayEquals(new Object[]{idEql, subjEql}, handler.propertyValues().toArray());
 	}
 	
+	@Test
+	public void selectLastStatement(){
+		Class<Post> postClass = Post.class;
+		Table table = new ActiveMigration(postClass, ds).table();
+		assertEquals(
+			table.selectAllStatement() + " " + table.reverseOrder()  + " limit 1",
+			table.selectLastStatement()
+		);
+	}
+	
 }

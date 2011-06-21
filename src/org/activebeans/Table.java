@@ -35,6 +35,8 @@ public class Table {
 	
 	private String defaultOrder;
 	
+	private String reverseOrder;
+	
 	private String firstLimit = "limit 1";
 	
 	public Table(String name, List<Column> columns) {
@@ -101,6 +103,10 @@ public class Table {
 		defaultOrder = "order by";
 		for (int i = 0; i < numOfKeys; i++) {
 			defaultOrder += (i == 0 ? "" : ",") + " " + keys.get(i).name();
+		}
+		reverseOrder = "order by";
+		for (int i = 0; i < numOfKeys; i++) {
+			reverseOrder += (i == 0 ? "" : ",") + " " + keys.get(i).name() + " desc";
 		}
 	}
 
@@ -189,6 +195,14 @@ public class Table {
 
 	public String selectFirstStatement(Object conds) {
 		return selectStatement(conds) + " " + firstLimit;
+	}
+	
+	public String reverseOrder(){
+		return reverseOrder;
+	}
+
+	public String selectLastStatement() {
+		return selectAll + " " + reverseOrder + " " + firstLimit;
 	}
 
 }
