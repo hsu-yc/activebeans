@@ -67,6 +67,14 @@ public class OptionsMethodHandler implements MethodHandler {
 					set(propOptionMap.get(method), val);
 					return self;
 				}
+				@Override
+				public Object asc() {
+					return self;
+				}
+				@Override
+				public Object desc() {
+					return self;
+				}
 			};
 		}else if(belongsToOptionMap.containsKey(method)){
 			rtn = new SingularOption<Object, Object>() {
@@ -78,6 +86,14 @@ public class OptionsMethodHandler implements MethodHandler {
 					@SuppressWarnings({ "unchecked", "rawtypes" })
 					Model model = rawModel.attrs(val);
 					set(assoc, model);
+					return self;
+				}
+				@Override
+				public Object asc() {
+					return self;
+				}
+				@Override
+				public Object desc() {
 					return self;
 				}
 			};

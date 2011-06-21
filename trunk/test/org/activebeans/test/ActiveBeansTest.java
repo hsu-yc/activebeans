@@ -1172,8 +1172,9 @@ public class ActiveBeansTest {
 				.autoIncrement(true).build(),
 			new Column.Builder(name, new DataType("varchar")).build()
 		);
-		assertEquals("select " + id + ", " + name + " from " + tableName, 
-			table.selectAllStatement());
+		String selectAll = "select " + id + ", " + name + " from " + tableName;
+		assertEquals(selectAll, table.selectAllStatement());
+		assertEquals(selectAll + " order by " + id, table.selectAllWithDefaultOrderStatement());
 	}
 	
 	@Test 
@@ -1199,7 +1200,7 @@ public class ActiveBeansTest {
 					assertTrue(rs.last());
 					assertEquals(rows, rs.getRow());
 				}
-			}, table.selectAllStatement());
+			}, table.selectAllWithDefaultOrderStatement());
 		}finally{
 			ActiveBeansUtils.executeSql(ds, table.dropStatement());
 		}
@@ -1226,17 +1227,17 @@ public class ActiveBeansTest {
 			.subject().lt(subjLt)
 			.subject().lte(subjLte)
 			.subject().not(subjNot);
-		assertEquals(
-			table.selectAllStatement() + " where id = ?"
+		assertEquals(table.selectAllStatement() 
+				+ " where id = ?"
 				+ " and subject = ?"
 				+ " and subject > ?"
 				+ " and subject >= ?"
 				+ " and subject like ?"
 				+ " and subject < ?"
 				+ " and subject <= ?"
-				+ " and subject != ?", 
-			table.selectStatement(conds)
-		);
+				+ " and subject != ?" 
+				+ " " + table.defaultOrder(), 
+			table.selectStatement(conds));
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
 		assertArrayEquals(new Object[]{idEql, subjEql, subjGt, subjGte, subjLike, 
 			subjLt, subjLte, subjNot}, handler.propertyValues().toArray());
