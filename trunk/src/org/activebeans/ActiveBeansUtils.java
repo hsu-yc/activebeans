@@ -207,6 +207,34 @@ public final class ActiveBeansUtils {
 		return resultList.isEmpty()? null:resultList.get(0);
 	}
 	
+	public static <T extends Model<?, ?, U, ?>, U> T last(DataSource ds, 
+			final Class<T> activeClass){
+		return last(ds, activeClass, null);
+	}
+	
+	public static <T extends Model<?, ?, U, ?>, U> T last(DataSource ds, 
+			final Class<T> activeClass, U conds){
+		final List<T> resultList = new ArrayList<T>();
+		final ResultSetHandler rsHandler = new ResultSetHandler() {
+			@Override
+			public void handle(ResultSet rs) throws SQLException {
+				if(rs.next()){
+					resultList.add(toModel(rs, activeClass));
+				}
+			}
+		};
+		Table table = new ActiveMigration(activeClass, ds).table();
+		if(conds == null){
+			executeSqlForResult(ds, rsHandler, table.selectLastStatement());
+		}else{
+			ConditionsMethodHandler condHandler = (ConditionsMethodHandler) 
+				((ProxyObject)conds).getHandler();
+			executePreparedSqlForResult(ds, rsHandler, 
+				table.selectFirstStatement(conds), condHandler.propertyValues());
+		}
+		return resultList.isEmpty()? null:resultList.get(0);
+	}
+	
 	public static <T extends Model<?, ?, ?, ?>> T toModel(ResultSet rs, Class<T> activeClass){
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		T model = ActiveBeansUtils.model(activeClass);

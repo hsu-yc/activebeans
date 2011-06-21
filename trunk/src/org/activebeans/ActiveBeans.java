@@ -151,8 +151,8 @@ public class ActiveBeans {
 		return ActiveBeansUtils.first(defaultDs, modelClass, conditions);
 	}
 
-	public static <T extends Model<T, ?, ?, ?>> T last(Class<T> modelClass) {
-		return null;
+	public static <T extends Model<T, ?, U, ?>, U> T last(Class<T> modelClass) {
+		return ActiveBeansUtils.last(defaultDs, modelClass);
 	}
 
 	public static <T extends Model<T, ?, U, ?>, U> T last(Class<T> modelClass,
