@@ -179,20 +179,31 @@ public final class ActiveBeansUtils {
 		});
 	}
 	
-	public static <T extends Model<?, ?, ?, ?>> T first(DataSource ds, 
+	public static <T extends Model<?, ?, U, ?>, U> T first(DataSource ds, 
 			final Class<T> activeClass){
+		return first(ds, activeClass, null);
+	}
+	
+	public static <T extends Model<?, ?, U, ?>, U> T first(DataSource ds, 
+			final Class<T> activeClass, U conds){
 		final List<T> resultList = new ArrayList<T>();
-		executePreparedSqlForResult(ds, 
-			new ResultSetHandler() {
-				@Override
-				public void handle(ResultSet rs) throws SQLException {
-					if(rs.next()){
-						resultList.add(toModel(rs, activeClass));
-					}
+		final ResultSetHandler rsHandler = new ResultSetHandler() {
+			@Override
+			public void handle(ResultSet rs) throws SQLException {
+				if(rs.next()){
+					resultList.add(toModel(rs, activeClass));
 				}
-			}, 
-			new ActiveMigration(activeClass, ds).table().selectFirstStatement()
-		);
+			}
+		};
+		Table table = new ActiveMigration(activeClass, ds).table();
+		if(conds == null){
+			executeSqlForResult(ds, rsHandler, table.selectFirstStatement());
+		}else{
+			ConditionsMethodHandler condHandler = (ConditionsMethodHandler) 
+				((ProxyObject)conds).getHandler();
+			executePreparedSqlForResult(ds, rsHandler, 
+				table.selectFirstStatement(conds), condHandler.propertyValues());
+		}
 		return resultList.isEmpty()? null:resultList.get(0);
 	}
 	
