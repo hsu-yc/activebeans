@@ -1243,4 +1243,14 @@ public class ActiveBeansTest {
 			subjLt, subjLte, subjNot}, handler.propertyValues().toArray());
 	}
 	
+	@Test
+	public void selectFirstStatement(){
+		Class<Post> postClass = Post.class;
+		Table table = new ActiveMigration(postClass, ds).table();
+		assertEquals(
+			table.selectAllWithDefaultOrderStatement() + " limit 1",
+			table.selectFirstStatement()
+		);
+	}
+	
 }

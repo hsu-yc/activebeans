@@ -177,4 +177,8 @@ public class Table {
 		return defaultOrder;
 	}
 
+	public String selectFirstStatement() {
+		return selectAllWithDefaultOrderStatement() + " limit 1";
+	}
+
 }
