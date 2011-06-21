@@ -1268,4 +1268,23 @@ public class ActiveBeansTest {
 		);
 	}
 	
+	@Test
+	public void selectFirstWithConditionsStatement(){
+		long idEql = 1;
+		String subjEql = "1";
+		Class<Post> postClass = Post.class;
+		Table table = new ActiveMigration(postClass, ds).table();
+		Conditions conds = ActiveBeans.conditions(postClass)
+			.id().eql(idEql)
+			.subject().eql(subjEql);
+		assertEquals(table.selectAllStatement() 
+				+ " where id = ?"
+				+ " and subject = ?"
+				+ " " + table.defaultOrder()
+				+ " " + table.firstLimit(), 
+			table.selectFirstStatement(conds));
+		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
+		assertArrayEquals(new Object[]{idEql, subjEql}, handler.propertyValues().toArray());
+	}
+	
 }

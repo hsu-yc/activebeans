@@ -35,6 +35,8 @@ public class Table {
 	
 	private String defaultOrder;
 	
+	private String firstLimit = "limit 1";
+	
 	public Table(String name, List<Column> columns) {
 		this.name = name;
 		cols.addAll(columns);
@@ -176,9 +178,17 @@ public class Table {
 	public String defaultOrder(){
 		return defaultOrder;
 	}
+	
+	public String firstLimit(){
+		return firstLimit;
+	}
 
 	public String selectFirstStatement() {
-		return selectAllWithDefaultOrderStatement() + " limit 1";
+		return selectAllWithDefaultOrderStatement() + " " + firstLimit;
+	}
+
+	public String selectFirstStatement(Object conds) {
+		return selectStatement(conds) + " " + firstLimit;
 	}
 
 }
