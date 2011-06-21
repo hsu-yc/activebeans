@@ -162,7 +162,15 @@ public class Table {
 				empty = false;
 			}
 		}
-		return stmt + " " + defaultOrder;
+		return stmt;
+	}
+	
+	public String selectWithDefaultOrderStatement(Object conds){
+		return selectStatement(conds) + " " + defaultOrder;
+	}
+	
+	public String selectWithReverseOrderStatement(Object conds){
+		return selectStatement(conds) + " " + reverseOrder;
 	}
 	
 	public String selectAllStatement(){
@@ -194,7 +202,7 @@ public class Table {
 	}
 
 	public String selectFirstStatement(Object conds) {
-		return selectStatement(conds) + " " + firstLimit;
+		return selectWithDefaultOrderStatement(conds) + " " + firstLimit;
 	}
 	
 	public String reverseOrder(){
@@ -203,6 +211,10 @@ public class Table {
 
 	public String selectLastStatement() {
 		return selectAll + " " + reverseOrder + " " + firstLimit;
+	}
+
+	public String selectLastStatement(Object conds) {
+		return selectWithReverseOrderStatement(conds) + " " + firstLimit;
 	}
 
 }

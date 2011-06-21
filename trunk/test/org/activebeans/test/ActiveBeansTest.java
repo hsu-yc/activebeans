@@ -1285,8 +1285,7 @@ public class ActiveBeansTest {
 				+ " and subject like ?"
 				+ " and subject < ?"
 				+ " and subject <= ?"
-				+ " and subject != ?" 
-				+ " " + table.defaultOrder(), 
+				+ " and subject != ?", 
 			table.selectStatement(conds));
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
 		assertArrayEquals(new Object[]{idEql, subjEql, subjGt, subjGte, subjLike, 
@@ -1330,6 +1329,25 @@ public class ActiveBeansTest {
 			table.selectAllStatement() + " " + table.reverseOrder()  + " limit 1",
 			table.selectLastStatement()
 		);
+	}
+	
+	@Test
+	public void selectLastWithConditionsStatement(){
+		long idEql = 1;
+		String subjEql = "1";
+		Class<Post> postClass = Post.class;
+		Table table = new ActiveMigration(postClass, ds).table();
+		Conditions conds = ActiveBeans.conditions(postClass)
+			.id().eql(idEql)
+			.subject().eql(subjEql);
+		assertEquals(table.selectAllStatement() 
+				+ " where id = ?"
+				+ " and subject = ?"
+				+ " " + table.reverseOrder()
+				+ " " + table.firstLimit(), 
+			table.selectLastStatement(conds));
+		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
+		assertArrayEquals(new Object[]{idEql, subjEql}, handler.propertyValues().toArray());
 	}
 	
 }
