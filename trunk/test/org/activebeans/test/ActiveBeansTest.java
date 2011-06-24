@@ -42,6 +42,7 @@ import org.activebeans.GeneratedKeysMapHandler;
 import org.activebeans.Model;
 import org.activebeans.OptionsMethodFilter;
 import org.activebeans.OptionsMethodHandler;
+import org.activebeans.OptionsMethodHandler.Order;
 import org.activebeans.Property;
 import org.activebeans.PropertyMethods;
 import org.activebeans.ResultSetHandler;
@@ -299,6 +300,15 @@ public class ActiveBeansTest {
 		comment.set(post, postVal);
 		assertEquals(postVal, comment.get(post));
 		assertTrue(comment.associations().containsValue(postVal));
+		comment.order(id, Order.ASC);
+		assertEquals(Order.ASC, comment.order(id));
+		assertTrue(comment.orders().containsValue(Order.ASC));
+		Property body = commentIntro.property("body");
+		comment.field(id);
+		comment.field(body);
+		Set<Property> fields = comment.fields();
+		assertTrue(fields.contains(id));
+		assertTrue(fields.contains(body));
 	}
 	
 	@Test

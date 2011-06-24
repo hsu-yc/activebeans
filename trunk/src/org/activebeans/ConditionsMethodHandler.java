@@ -153,11 +153,15 @@ public class ConditionsMethodHandler implements MethodHandler {
 				}
 				@Override
 				public Object asc() {
-					return self;
+					throw new UnsupportedOperationException();
 				}
 				@Override
 				public Object desc() {
-					return self;
+					throw new UnsupportedOperationException();
+				}
+				@Override
+				public Object field() {
+					throw new UnsupportedOperationException();
 				}
 			};
 		}
