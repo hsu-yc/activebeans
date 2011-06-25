@@ -121,7 +121,12 @@ public class ActiveBeans {
 
 	public static <T> boolean update(Class<? extends Model<?, T, ?, ?>> modelClass,
 			T attrs) {
-		return false;
+		ActiveBeansUtils.update(
+			ActiveBeans.repository(), 
+			modelClass,
+			attrs
+		);
+		return true;
 	}
 
 	public static <T extends Model<T, ?, ?, ?>> T get(Class<T> modelClass, Object key,
