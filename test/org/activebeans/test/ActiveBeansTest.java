@@ -652,7 +652,8 @@ public class ActiveBeansTest {
 		));
 		OptionsMethodHandler handler = (OptionsMethodHandler)((ProxyObject)comment).getHandler();
 		ActiveIntrospector commentIntro = new ActiveIntrospector(commentClass);
-		assertEquals(idVal, handler.get(commentIntro.property("id")));
+		Property idProp = commentIntro.property("id");
+		assertEquals(idVal, handler.get(idProp));
 		Object postObj = handler.get(commentIntro.belongsTo(postClass));
 		assertTrue(postClass.isAssignableFrom(postObj.getClass()));
 		Post postVal = postClass.cast(postObj);
@@ -664,6 +665,17 @@ public class ActiveBeansTest {
 		}
 		assertEquals(1, comments.size());
 		assertEquals(bodyVal, comments.get(0).getBody());
+		comment.id().field();
+		Set<Property> fields = handler.fields();
+		assertTrue(fields.contains(idProp));
+		Property bodyProp = commentIntro.property("body");
+		assertFalse(fields.contains(bodyProp));
+		comment.id().desc().body().asc();
+		assertEquals(Order.DESC, handler.order(idProp));
+		assertEquals(Order.ASC, handler.order(bodyProp));
+		Map<Property, Order> orders = handler.orders();
+		assertEquals(Order.DESC, orders.get(idProp));
+		assertEquals(Order.ASC, orders.get(bodyProp));
 	}
 	
 	@Test

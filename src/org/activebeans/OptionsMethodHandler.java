@@ -99,14 +99,17 @@ public class OptionsMethodHandler implements MethodHandler {
 				}
 				@Override
 				public Object asc() {
+					order(prop, Order.ASC);
 					return self;
 				}
 				@Override
 				public Object desc() {
+					order(prop, Order.DESC);
 					return self;
 				}
 				@Override
 				public Object field() {
+					OptionsMethodHandler.this.field(prop);
 					return self;
 				}
 			};
