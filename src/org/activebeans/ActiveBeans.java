@@ -90,17 +90,7 @@ public class ActiveBeans {
 	}
 	
 	public static <T extends Model<T, ?, U, ?>, U> U conditions(Class<T> activeClass){
-		ProxyFactory f = new ProxyFactory();
-		@SuppressWarnings("unchecked")
-		Class<U> condsInterface = (Class<U>) new ActiveIntrospector(activeClass).conditionsInterface();
-		f.setInterfaces(new Class[]{condsInterface});
-		f.setFilter(new ConditionsMethodFilter(activeClass));
-		try {
-			return condsInterface.cast(f.create(new Class[0], new Object[0],
-				new ConditionsMethodHandler(activeClass)));
-		} catch (Exception e) {
-			throw new ActiveBeansException(e);
-		}
+		return ActiveBeansUtils.conditions(activeClass);
 	}
 
 	public static <T extends Model<T, ?, ?, ?>> T build(Class<T> activeClass) {

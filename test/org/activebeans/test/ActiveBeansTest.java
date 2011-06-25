@@ -45,6 +45,7 @@ import org.activebeans.OptionsMethodHandler;
 import org.activebeans.OptionsMethodHandler.Order;
 import org.activebeans.Property;
 import org.activebeans.PropertyMethods;
+import org.activebeans.QueryPath;
 import org.activebeans.ResultSetHandler;
 import org.activebeans.SingularAssociationMethods;
 import org.activebeans.SingularOption;
@@ -499,7 +500,7 @@ public class ActiveBeansTest {
 			.subject().val(subj2));
 		Models models = ActiveBeans.all(activeClass);
 		assertNotNull(models);
-		List<String> subjs = Arrays.asList(new String[]{subj1, subj2});
+		List<String> subjs = Arrays.asList(subj1, subj2);
 		int cnt = 0;
 		for (Post post : models) {
 			assertNotNull(post);
@@ -679,7 +680,7 @@ public class ActiveBeansTest {
 	}
 	
 	@Test
-	public void condtions(){
+	public void conditions(){
 		Class<Comment> commentClass = Comment.class;
 		Comment.Conditions comment = 
 			ActiveBeans.conditions(commentClass);
@@ -695,21 +696,22 @@ public class ActiveBeansTest {
 		assertSame(comment, id.lte(idVal));
 		assertSame(comment, id.not(idVal));
 		Class<Post> postClass = Post.class;
-		SingularOption<Comment.Conditions, Conditions> post = comment.post();
-		assertNotNull(post);
+		QueryPath<Comment.Conditions, Conditions> postPath = comment.post();
+		assertNotNull(postPath);
 		String subjVal = "subj";
 		String bodyVal = "body";
-		assertSame(comment, post.val(
+		assertSame(comment, postPath.where(
 			ActiveBeans.conditions(postClass)
 				.subject().eql(subjVal)
-				.comments().val(
+				.comments().where(
 					ActiveBeans.conditions(commentClass)
 						.body().eql(bodyVal)
 				)
 		));
 		ConditionsMethodHandler commentHandler = (ConditionsMethodHandler)((ProxyObject)comment).getHandler();
 		ActiveIntrospector commentIntro = new ActiveIntrospector(commentClass);
-		Map<Operator, Object> idMap = commentHandler.get(commentIntro.property("id"));
+		Property idProp = commentIntro.property("id");
+		Map<Operator, Object> idMap = commentHandler.get(idProp);
 		assertEquals(idVal, idMap.get(Operator.EQL));
 		assertEquals(idVal, idMap.get(Operator.GT));
 		assertEquals(idVal, idMap.get(Operator.GTE));
@@ -717,16 +719,28 @@ public class ActiveBeansTest {
 		assertEquals(idVal, idMap.get(Operator.LT));
 		assertEquals(idVal, idMap.get(Operator.LTE));
 		assertEquals(idVal, idMap.get(Operator.NOT));
-		Object postObj = commentHandler.get(commentIntro.belongsTo(postClass));
+		Object post = commentHandler.get(commentIntro.belongsTo(postClass));
 		assertTrue(ActiveBeans.conditions(postClass).getClass().isAssignableFrom(
-			postObj.getClass()));
-		ConditionsMethodHandler postHandler = (ConditionsMethodHandler)((ProxyObject)postObj).getHandler();
+			post.getClass()));
+		ConditionsMethodHandler postHandler = (ConditionsMethodHandler)((ProxyObject)post).getHandler();
 		ActiveIntrospector postIntro = new ActiveIntrospector(postClass);
-		assertEquals(subjVal, postHandler.get(postIntro.property("subject"), Operator.EQL));
+		Property subjProp = postIntro.property("subject");
+		assertEquals(subjVal, postHandler.get(subjProp, Operator.EQL));
 		Object commentObj = postHandler.get(postIntro.hasMany(commentClass));
 		assertTrue(comment.getClass().isAssignableFrom(commentObj.getClass()));
 		assertEquals(bodyVal, ((ConditionsMethodHandler)((ProxyObject)commentObj).getHandler())
 			.get(commentIntro.property("body"), Operator.EQL));
+		Comment.Conditions comment2 = ActiveBeans.conditions(commentClass);
+		Conditions post2 = comment2.post().on();
+		Comment.Conditions comment3 = post2.subject().eql(subjVal)
+			.comments().on();
+		assertSame(comment2, comment3);
+		assertSame(post2, comment3.post().on());
+		comment3.id().eql(idVal);
+		assertEquals(subjVal, ((ConditionsMethodHandler)((ProxyObject)post2).getHandler())
+			.get(subjProp).get(Operator.EQL));
+		assertEquals(idVal, ((ConditionsMethodHandler)((ProxyObject)comment2).getHandler())
+			.get(idProp).get(Operator.EQL));
 	}
 
 	@Test
@@ -883,8 +897,7 @@ public class ActiveBeansTest {
 		ActiveBeansUtils.executeSql(ds, table.alterStatement(name));
 		List<String> updatedCols = dsIntro.columns(tableName);
 		assertEquals(2, updatedCols.size());
-		assertTrue(updatedCols.containsAll(Arrays.asList(new String[] {
-				id.name(), name.name() })));
+		assertTrue(updatedCols.containsAll(Arrays.asList(id.name(), name.name())));
 		ActiveBeansUtils.executeSql(ds, table.dropStatement());
 	}
 
