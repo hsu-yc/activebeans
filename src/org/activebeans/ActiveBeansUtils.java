@@ -147,6 +147,13 @@ public final class ActiveBeansUtils {
 		return result;
 	}
 	
+	public static <T extends Model<?, ?, ?, ?>> int delete(DataSource ds, Class<T> activeClass){
+		return executeSql(
+			ds,
+			new ActiveMigration(activeClass, ds).table().deleteAllStatement()
+		)[0];
+	}
+	
 	public static <T extends Model<?, ?, ?, ?>> T model(Class<T> activeClass){
 		ActiveDelegate delegate = new ActiveDelegate(activeClass);
 		ProxyFactory f = new ProxyFactory();

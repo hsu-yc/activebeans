@@ -116,13 +116,14 @@ public class ActiveBeans {
 	}
 
 	public static boolean destroy(Class<? extends Model<?, ?, ?, ?>> modelClass) {
-		return false;
+		ActiveBeansUtils.delete(defaultDs, modelClass);
+		return true;
 	}
 
 	public static <T> boolean update(Class<? extends Model<?, T, ?, ?>> modelClass,
 			T attrs) {
 		ActiveBeansUtils.update(
-			ActiveBeans.repository(), 
+			defaultDs, 
 			modelClass,
 			attrs
 		);
