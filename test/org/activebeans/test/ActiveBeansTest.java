@@ -1446,4 +1446,10 @@ public class ActiveBeansTest {
 		assertArrayEquals(new Object[]{subj, created}, handler.properties().values().toArray());
 	}
 	
+	@Test
+	public void deleteAllStatement(){
+		Table table = new ActiveMigration(Post.class, ds).table();
+		assertEquals("delete from " + table.name(), table.deleteAllStatement());
+	}
+	
 }
