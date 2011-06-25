@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import javassist.util.proxy.MethodHandler;
+import javassist.util.proxy.ProxyObject;
 
 public class ConditionsMethodHandler implements MethodHandler {
 	
@@ -45,7 +46,10 @@ public class ConditionsMethodHandler implements MethodHandler {
 
 	private Map<Association, Object> assocMap = new LinkedHashMap<Association, Object>();
 	
+	private Class<? extends Model<?, ?, ?, ?>> activeClass;
+	
 	public ConditionsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass){
+		this.activeClass = activeClass;
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		for (PropertyMethods methods : intro.propertyMethods()) {
 			propConditionMap.put(methods.condition(), methods.property());
@@ -80,7 +84,16 @@ public class ConditionsMethodHandler implements MethodHandler {
 	}
 	
 	public Object get(Association assoc){
-		return assocMap.get(assoc);
+		Object rtn = assocMap.get(assoc);
+		if(rtn == null){
+			@SuppressWarnings("rawtypes")
+			Class clazz = assoc.with();
+			@SuppressWarnings("unchecked")
+			Object conditions = ActiveBeansUtils.conditions(clazz);
+			rtn = conditions;
+			set(assoc, rtn);
+		}
+		return rtn;
 	}
 	
 	public Map<Property, Map<Operator, Object>> properties(){
@@ -144,24 +157,24 @@ public class ConditionsMethodHandler implements MethodHandler {
 			};
 		}else if(hasManyConditionMap.containsKey(method) || belongsToConditionMap.containsKey(method)){
 			Association hasMany = hasManyConditionMap.get(method);
-			final Association assoc = hasMany == null? belongsToConditionMap.get(method):hasMany; 
-			rtn = new SingularOption<Object, Object>() {
+			final Association assoc = hasMany == null? belongsToConditionMap.get(method):hasMany;
+			rtn = new QueryPath<Object, Object>() {
 				@Override
-				public Object val(Object val) {
+				public Object where(Object val) {
 					set(assoc, val);
 					return self;
 				}
 				@Override
-				public Object asc() {
-					throw new UnsupportedOperationException();
-				}
-				@Override
-				public Object desc() {
-					throw new UnsupportedOperationException();
-				}
-				@Override
-				public Object field() {
-					throw new UnsupportedOperationException();
+				public Object on() {
+					Object conditions = get(assoc);
+					ActiveIntrospector intro = new ActiveIntrospector(assoc.with());
+					Association belongsTo = intro.belongsTo(activeClass);
+					Association inverseAssoc = belongsTo == null?intro.hasMany(activeClass):belongsTo;  
+					if(inverseAssoc != null){
+						ConditionsMethodHandler handler = (ConditionsMethodHandler) ((ProxyObject)conditions).getHandler();
+						handler.set(inverseAssoc, self);
+					}
+					return conditions;
 				}
 			};
 		}

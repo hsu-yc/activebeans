@@ -148,6 +148,20 @@ public final class ActiveBeansUtils {
 		}
 	}
 	
+	public static <T extends Model<T, ?, U, ?>, U> U conditions(Class<T> activeClass){
+		ProxyFactory f = new ProxyFactory();
+		@SuppressWarnings("unchecked")
+		Class<U> condsInterface = (Class<U>) new ActiveIntrospector(activeClass).conditionsInterface();
+		f.setInterfaces(new Class[]{condsInterface});
+		f.setFilter(new ConditionsMethodFilter(activeClass));
+		try {
+			return condsInterface.cast(f.create(new Class[0], new Object[0],
+				new ConditionsMethodHandler(activeClass)));
+		} catch (Exception e) {
+			throw new ActiveBeansException(e);
+		}
+	}
+	
 	public static <T extends Model<?, ?, U, ?>, U, V extends Models<?, ?, ?, ?>> V all(
 			final DataSource ds, final Class<T> activeClass) {
 		return all(ds, activeClass, null);
@@ -264,7 +278,7 @@ public final class ActiveBeansUtils {
 			@Override
 			public boolean isHandled(Method m) {
 				return !(m.getDeclaringClass().equals(Models.class)
-					&& Arrays.asList(new String[] { "all", "attrs" })
+					&& Arrays.asList("all", "attrs")
 					.contains(m.getName()));
 			}
 		});

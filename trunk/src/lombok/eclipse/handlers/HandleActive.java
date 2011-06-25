@@ -21,6 +21,7 @@ import org.activebeans.CollectionOption;
 import org.activebeans.Condition;
 import org.activebeans.Model;
 import org.activebeans.Models;
+import org.activebeans.QueryPath;
 import org.activebeans.SingularOption;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
@@ -745,7 +746,7 @@ class BelongsToDefinition {
 		conditionsType.sourceStart = source.sourceStart;
 		conditionsType.sourceEnd = source.sourceEnd;
 		Eclipse.setGeneratedBy(conditionsType, source);
-		char[][] optionInterf = Eclipse.fromQualifiedName(SingularOption.class
+		char[][] optionInterf = Eclipse.fromQualifiedName(QueryPath.class
 				.getCanonicalName());
 		final TypeReference[][] typeArguments = new TypeReference[optionInterf.length][];
 		long[] poss3 = new long[optionInterf.length];
@@ -866,7 +867,7 @@ class HasManyDefinition {
 		optionsType.sourceStart = source.sourceStart;
 		optionsType.sourceEnd = source.sourceEnd;
 		Eclipse.setGeneratedBy(optionsType, source);
-		char[][] optionInterf = Eclipse.fromQualifiedName(SingularOption.class
+		char[][] optionInterf = Eclipse.fromQualifiedName(QueryPath.class
 				.getCanonicalName());
 		final TypeReference[][] typeArguments = new TypeReference[optionInterf.length][];
 		long[] poss3 = new long[optionInterf.length];
