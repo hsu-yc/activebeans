@@ -118,6 +118,17 @@ public final class ActiveBeansUtils {
 		return result;
 	}
 	
+	public static <T> int update(DataSource ds, 
+			Class<? extends Model<?, T, ?, ?>> activeClass, T attrs){
+		OptionsMethodHandler handler = (OptionsMethodHandler) ((ProxyObject)attrs).getHandler();
+		int result = executePreparedSql(
+			ds,
+			new ActiveMigration(activeClass, ds).table().updateAllStatement(attrs), 
+			handler.properties().values().toArray()
+		);
+		return result;
+	}
+	
 	public static <T extends Model<?, ?, ?, ?>> int delete(DataSource ds, 
 			Class<T> activeClass, T model){
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);

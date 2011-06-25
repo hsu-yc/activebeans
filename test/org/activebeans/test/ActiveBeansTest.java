@@ -458,6 +458,30 @@ public class ActiveBeansTest {
 		assertEquals(new java.sql.Date(created.getTime()).toString(), 
 			obj.getCreated().toString());
 	}
+	
+	@Test
+	public void updateAllModels(){		
+		ActiveBeans.migrate(activeClass);
+		int insertCnt = 3;
+		for(int i=0; i< insertCnt; i++){
+			ActiveBeans.create(activeClass);
+		}
+		String subj = "test";
+		Date created = new Date();
+		assertTrue(ActiveBeans.update(activeClass,
+			ActiveBeans.options(activeClass)
+				.subject().val(subj)
+				.created().val(created)
+		));
+		int cnt = 0;
+		for (Post p : ActiveBeans.all(activeClass)) {
+			assertEquals(subj, p.getSubject());
+			assertEquals(new java.sql.Date(created.getTime()).toString(), 
+				p.getCreated().toString());
+			cnt++;
+		}
+		assertEquals(insertCnt, cnt);
+	}
 
 	@Test
 	public void destroyMethod(){		
