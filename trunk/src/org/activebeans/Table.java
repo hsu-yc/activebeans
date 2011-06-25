@@ -33,6 +33,8 @@ public class Table {
 	
 	private String delete;
 	
+	private String deleteAll; 
+	
 	private String defaultOrder;
 	
 	private String reverseOrder;
@@ -95,7 +97,8 @@ public class Table {
 			update += (i == 0 ? "" : " and")
 				+ " " + keys.get(i).name() + " = ?";
 		}
-		delete = "delete from " + name + " where";
+		deleteAll = "delete from " + name;
+		delete = deleteAll + " where";
 		for (int i = 0; i < numOfKeys; i++) {
 			delete += (i == 0 ? "" : " and")
 				+ " " + keys.get(i).name() + " = ?";
@@ -187,6 +190,10 @@ public class Table {
 	
 	public String deleteStatement(){
 		return delete;
+	}
+	
+	public String deleteAllStatement(){
+		return deleteAll;
 	}
 	
 	public String defaultOrder(){
