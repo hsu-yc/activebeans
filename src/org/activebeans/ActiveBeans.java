@@ -10,7 +10,7 @@ import javassist.util.proxy.ProxyFactory;
 
 import javax.sql.DataSource;
 
-public class ActiveBeans {
+public final class ActiveBeans {
 
 	private static String defaultContext;
 
@@ -93,25 +93,46 @@ public class ActiveBeans {
 		return ActiveBeansUtils.conditions(activeClass);
 	}
 
-	public static <T extends Model<T, ?, ?, ?>> T build(Class<T> activeClass) {
-		return ActiveBeansUtils.model(activeClass);
+	public static <T extends Model<T, U, ?, ?>, U> T build(Class<T> activeClass) {
+		return build(activeClass, null);
 	}
 
 	public static <T extends Model<T, U, ?, ?>, U> T build(Class<T> modelClass,
 			U attrs) {
-		return build(modelClass).attrs(attrs);
+		T model = ActiveBeansUtils.model(modelClass);
+		if(attrs != null){
+			model.attrs(attrs);
+		}
+		return model;
 	}
 
 	public static <T extends Model<T, U, ?, ?>, U> T create(Class<T> modelClass) {
-		T model = build(modelClass);
-		model.save();
-		return model;
+		return create(modelClass, null);
 	}
 
 	public static <T extends Model<T, U, ?, ?>, U> T create(Class<T> modelClass,
 			U attrs) {
 		T model = build(modelClass, attrs);
 		model.save();
+		return model;
+	}
+	
+	public static <T extends Model<T, U, V, ?>, U, V> T firstOrCreate(
+			Class<T> modelClass) {
+		return firstOrCreate(modelClass, null, null);
+	}
+	
+	public static <T extends Model<T, U, V, ?>, U, V> T firstOrCreate(
+			Class<T> modelClass, U attrs) {
+		return firstOrCreate(modelClass, attrs, null);
+	}
+	
+	public static <T extends Model<T, U, V, ?>, U, V> T firstOrCreate(
+			Class<T> modelClass, U attrs, V conds) {
+		T model = first(modelClass, conds);
+		if(model == null){
+			model = create(modelClass, attrs);
+		}
 		return model;
 	}
 
@@ -139,7 +160,7 @@ public class ActiveBeans {
 	}
 
 	public static <T extends Model<T, ?, U, ?>, U> T first(Class<T> modelClass) {
-		return ActiveBeansUtils.first(defaultDs, modelClass);
+		return first(modelClass, null);
 	}
 
 	public static <T extends Model<T, ?, U, ?>, U> T first(Class<T> modelClass,
@@ -148,7 +169,7 @@ public class ActiveBeans {
 	}
 
 	public static <T extends Model<T, ?, U, ?>, U> T last(Class<T> modelClass) {
-		return ActiveBeansUtils.last(defaultDs, modelClass);
+		return last(modelClass, null);
 	}
 
 	public static <T extends Model<T, ?, U, ?>, U> T last(Class<T> modelClass,
@@ -158,7 +179,7 @@ public class ActiveBeans {
 
 	public static <T extends Model<T, ?, U, V>, U, V extends Models<T, ?, U, V>> V all(
 			final Class<T> modelClass) {
-		return ActiveBeansUtils.all(defaultDs, modelClass);
+		return all(modelClass, null);
 	}
 
 	public static <T extends Model<T, ?, U, V>, U, V extends Models<T, ?, U, V>> V all(

@@ -181,11 +181,6 @@ public final class ActiveBeansUtils {
 	}
 	
 	public static <T extends Model<?, ?, U, ?>, U, V extends Models<?, ?, ?, ?>> V all(
-			final DataSource ds, final Class<T> activeClass) {
-		return all(ds, activeClass, null);
-	}
-	
-	public static <T extends Model<?, ?, U, ?>, U, V extends Models<?, ?, ?, ?>> V all(
 			final DataSource ds, final Class<T> activeClass, final U conds) {
 		return models(activeClass, new ModelsMethodHandler(activeClass){
 			@Override
@@ -212,11 +207,6 @@ public final class ActiveBeansUtils {
 	}
 	
 	public static <T extends Model<?, ?, U, ?>, U> T first(DataSource ds, 
-			final Class<T> activeClass){
-		return first(ds, activeClass, null);
-	}
-	
-	public static <T extends Model<?, ?, U, ?>, U> T first(DataSource ds, 
 			final Class<T> activeClass, U conds){
 		final List<T> resultList = new ArrayList<T>();
 		final ResultSetHandler rsHandler = new ResultSetHandler() {
@@ -237,11 +227,6 @@ public final class ActiveBeansUtils {
 				table.selectFirstStatement(conds), condHandler.propertyValues());
 		}
 		return resultList.isEmpty()? null:resultList.get(0);
-	}
-	
-	public static <T extends Model<?, ?, U, ?>, U> T last(DataSource ds, 
-			final Class<T> activeClass){
-		return last(ds, activeClass, null);
 	}
 	
 	public static <T extends Model<?, ?, U, ?>, U> T last(DataSource ds, 
