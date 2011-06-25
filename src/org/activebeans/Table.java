@@ -156,9 +156,9 @@ public class Table {
 		ConditionsMethodHandler handler = (ConditionsMethodHandler) ((ProxyObject)conds).getHandler();
 		boolean empty = true;
 		for (Entry<Property, Map<Operator, Object>> prop : handler.properties().entrySet()) {
-			for(Entry<Operator, Object> op : prop.getValue().entrySet()){
+			for(Operator op : prop.getValue().keySet()){
 				stmt += " " + (empty?"where":"and") + " " + ActiveBeansUtils.camelCaseToUnderscore(prop.getKey().name())
-					+ " " + op.getKey() + " ?";
+					+ " " + op + " ?";
 				empty = false;
 			}
 		}
@@ -215,6 +215,18 @@ public class Table {
 
 	public String selectLastStatement(Object conds) {
 		return selectWithReverseOrderStatement(conds) + " " + firstLimit;
+	}
+	
+	public String updateAllStatement(Object options){
+		String stmt = "update " + name;
+		OptionsMethodHandler handler = (OptionsMethodHandler) ((ProxyObject)options).getHandler();
+		boolean empty = true;
+		for (Property prop : handler.properties().keySet()) {
+			stmt += (empty?" set":",") + " " + ActiveBeansUtils.camelCaseToUnderscore(prop.name())
+				+ " = ?";
+			empty = false;
+		}
+		return stmt;
 	}
 
 }
