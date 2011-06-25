@@ -496,6 +496,20 @@ public class ActiveBeansTest {
 	}
 	
 	@Test
+	public void destroyAllModels(){		
+		ActiveBeans.migrate(activeClass);
+		for(int i=0; i< 3; i++){
+			ActiveBeans.create(activeClass);
+		}
+		assertTrue(ActiveBeans.destroy(activeClass));
+		int cnt = 0;
+		for (@SuppressWarnings("unused") Post p : ActiveBeans.all(activeClass)) {
+			cnt++;
+		}
+		assertEquals(0, cnt);
+	}
+	
+	@Test
 	public void conditionsMethodHandler() {
 		Class<Comment> commentClass = Comment.class;
 		ConditionsMethodHandler comment = new ConditionsMethodHandler(commentClass);
