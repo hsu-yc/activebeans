@@ -16,7 +16,7 @@ public class OptionsMethodHandler implements MethodHandler {
 	
 	private Map<Method, Property> propOptionMap = new HashMap<Method, Property>();
 	
-	private Map<Property, Object> propMap = new HashMap<Property, Object>();
+	private Map<Property, Object> propMap = new LinkedHashMap<Property, Object>();
 	
 	private Map<Property, Order> orders = new LinkedHashMap<Property, Order>();
 	

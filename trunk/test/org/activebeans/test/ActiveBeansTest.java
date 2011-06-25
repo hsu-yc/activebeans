@@ -1405,4 +1405,21 @@ public class ActiveBeansTest {
 		assertArrayEquals(new Object[]{idEql, subjEql}, handler.propertyValues().toArray());
 	}
 	
+	@Test
+	public void updateAllStatement(){
+		String subj = "1";
+		Date created = new Date();
+		Class<Post> postClass = Post.class;
+		Table table = new ActiveMigration(postClass, ds).table();
+		Post.Options options = ActiveBeans.options(postClass)
+			.subject().val(subj)
+			.created().val(created);
+		assertEquals("update " + table.name()
+				+ " set subject = ?"
+				+ ", created = ?",
+			table.updateAllStatement(options));
+		OptionsMethodHandler handler = (OptionsMethodHandler)((ProxyObject)options).getHandler();
+		assertArrayEquals(new Object[]{subj, created}, handler.properties().values().toArray());
+	}
+	
 }
