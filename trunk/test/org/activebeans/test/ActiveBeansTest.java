@@ -607,6 +607,39 @@ public class ActiveBeansTest {
 	}
 	
 	@Test
+	public void firstOrCreateModel(){
+		ActiveBeans.migrate(activeClass);
+		int insertCnt = 0;
+		Long id = 1L;
+		String subj = "subj";
+		Post.Options options = ActiveBeans.options(activeClass)
+			.subject().val(subj);
+		assertEquals(id, ActiveBeans.firstOrCreate(activeClass, options).getId());
+		insertCnt++;
+		String subj2 = "subj2";
+		for(int i=0; i<2; i++){
+			ActiveBeans.create(activeClass, ActiveBeans.options(activeClass)
+				.subject().val(subj2));
+			insertCnt++;
+		}
+		Post model = ActiveBeans.firstOrCreate(activeClass);
+		assertEquals(id, model.getId());
+		assertEquals(subj, model.getSubject());
+		Long id2 = 2L;
+		Post model2 = ActiveBeans.firstOrCreate(activeClass, options, 
+			ActiveBeans.conditions(activeClass)
+				.subject().eql(subj2));
+		assertEquals(id2, model2.getId());
+		assertEquals(subj2, model2.getSubject());
+		Post model3 = ActiveBeans.firstOrCreate(activeClass, options, 
+				ActiveBeans.conditions(activeClass)
+					.subject().eql("subj3"));
+		insertCnt++;
+		assertEquals(Long.valueOf(insertCnt), model3.getId());
+		assertEquals(subj, model3.getSubject());
+	}
+	
+	@Test
 	public void lastModel(){
 		ActiveBeans.migrate(activeClass);
 		String subj1 = "subj1";
