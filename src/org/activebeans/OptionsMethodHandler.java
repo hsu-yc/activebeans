@@ -4,9 +4,7 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 import javassist.util.proxy.MethodHandler;
 
@@ -17,10 +15,6 @@ public class OptionsMethodHandler implements MethodHandler {
 	private Map<Method, Property> propOptionMap = new HashMap<Method, Property>();
 	
 	private Map<Property, Object> propMap = new LinkedHashMap<Property, Object>();
-	
-	private Map<Property, Order> orders = new LinkedHashMap<Property, Order>();
-	
-	private Set<Property> fields = new LinkedHashSet<Property>();
 	
 	private Map<Method, Association> belongsToOptionMap = new HashMap<Method, Association>();
 	
@@ -65,26 +59,6 @@ public class OptionsMethodHandler implements MethodHandler {
 		return Collections.unmodifiableMap(assocMap);
 	}
 	
-	public void order(Property prop, Order order) {
-		orders.put(prop, order);
-	}
-	
-	public Order order(Property prop) {
-		return orders.get(prop);
-	}
-	
-	public Map<Property, Order> orders(){
-		return Collections.unmodifiableMap(orders);
-	}
-	
-	public void field(Property prop) {
-		fields.add(prop);
-	}
-	
-	public Set<Property> fields(){
-		return Collections.unmodifiableSet(fields);
-	}
-	
 	@Override
 	public Object invoke(final Object self, final Method method, Method proceed, Object[] args)
 			throws Throwable {
@@ -95,21 +69,6 @@ public class OptionsMethodHandler implements MethodHandler {
 				@Override
 				public Object val(Object val) {
 					set(prop, val);
-					return self;
-				}
-				@Override
-				public Object asc() {
-					order(prop, Order.ASC);
-					return self;
-				}
-				@Override
-				public Object desc() {
-					order(prop, Order.DESC);
-					return self;
-				}
-				@Override
-				public Object field() {
-					OptionsMethodHandler.this.field(prop);
 					return self;
 				}
 			};
@@ -124,18 +83,6 @@ public class OptionsMethodHandler implements MethodHandler {
 					Model model = rawModel.attrs(val);
 					set(assoc, model);     
 					return self;
-				}
-				@Override
-				public Object asc() {
-					throw new UnsupportedOperationException();
-				}
-				@Override
-				public Object desc() {
-					throw new UnsupportedOperationException();
-				}
-				@Override
-				public Object field() {
-					throw new UnsupportedOperationException();
 				}
 			};
 		}else if(hasManyOptionMap.containsKey(method)){

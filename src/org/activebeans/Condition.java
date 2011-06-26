@@ -16,4 +16,10 @@ public interface Condition<T, U> {
 	
 	T like(U val);
 	
+	T field();
+	
+	T asc();
+	
+	T desc();
+	
 }

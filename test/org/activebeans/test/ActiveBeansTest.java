@@ -301,15 +301,6 @@ public class ActiveBeansTest {
 		comment.set(post, postVal);
 		assertEquals(postVal, comment.get(post));
 		assertTrue(comment.associations().containsValue(postVal));
-		comment.order(id, Order.ASC);
-		assertEquals(Order.ASC, comment.order(id));
-		assertTrue(comment.orders().containsValue(Order.ASC));
-		Property body = commentIntro.property("body");
-		comment.field(id);
-		comment.field(body);
-		Set<Property> fields = comment.fields();
-		assertTrue(fields.contains(id));
-		assertTrue(fields.contains(body));
 	}
 	
 	@Test
@@ -525,6 +516,15 @@ public class ActiveBeansTest {
 		comment.set(post, postVal);
 		assertEquals(postVal, comment.get(post));
 		assertEquals(postVal, comment.associations().get(post));
+		comment.order(id, Order.ASC);
+		assertEquals(Order.ASC, comment.order(id));
+		assertTrue(comment.orders().containsValue(Order.ASC));
+		Property body = commentIntro.property("body");
+		comment.field(id);
+		comment.field(body);
+		Set<Property> fields = comment.fields();
+		assertTrue(fields.contains(id));
+		assertTrue(fields.contains(body));
 	}
 	
 	@Test
@@ -737,17 +737,6 @@ public class ActiveBeansTest {
 		}
 		assertEquals(1, comments.size());
 		assertEquals(bodyVal, comments.get(0).getBody());
-		comment.id().field();
-		Set<Property> fields = handler.fields();
-		assertTrue(fields.contains(idProp));
-		Property bodyProp = commentIntro.property("body");
-		assertFalse(fields.contains(bodyProp));
-		comment.id().desc().body().asc();
-		assertEquals(Order.DESC, handler.order(idProp));
-		assertEquals(Order.ASC, handler.order(bodyProp));
-		Map<Property, Order> orders = handler.orders();
-		assertEquals(Order.DESC, orders.get(idProp));
-		assertEquals(Order.ASC, orders.get(bodyProp));
 	}
 	
 	@Test
@@ -812,6 +801,17 @@ public class ActiveBeansTest {
 			.get(subjProp).get(Operator.EQL));
 		assertEquals(idVal, ((ConditionsMethodHandler)((ProxyObject)comment2).getHandler())
 			.get(idProp).get(Operator.EQL));
+		comment.id().field();
+		Set<Property> fields = commentHandler.fields();
+		assertTrue(fields.contains(idProp));
+		Property bodyProp = commentIntro.property("body");
+		assertFalse(fields.contains(bodyProp));
+		comment.id().desc().body().asc();
+		assertEquals(Order.DESC, commentHandler.order(idProp));
+		assertEquals(Order.ASC, commentHandler.order(bodyProp));
+		Map<Property, Order> orders = commentHandler.orders();
+		assertEquals(Order.DESC, orders.get(idProp));
+		assertEquals(Order.ASC, orders.get(bodyProp));
 	}
 
 	@Test
