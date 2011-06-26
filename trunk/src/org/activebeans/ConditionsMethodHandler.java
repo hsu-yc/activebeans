@@ -5,11 +5,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyObject;
+
+import org.activebeans.OptionsMethodHandler.Order;
 
 public class ConditionsMethodHandler implements MethodHandler {
 	
@@ -39,6 +43,10 @@ public class ConditionsMethodHandler implements MethodHandler {
 	private HashMap<Method, Property> propConditionMap = new HashMap<Method, Property>();
 	
 	private Map<Property, Map<Operator, Object>> propMap = new LinkedHashMap<Property, Map<Operator, Object>>();
+	
+	private Map<Property, Order> orders = new LinkedHashMap<Property, Order>();
+	
+	private Set<Property> fields = new LinkedHashSet<Property>();
 	
 	private HashMap<Method, Association> belongsToConditionMap = new HashMap<Method, Association>();
 	
@@ -112,6 +120,26 @@ public class ConditionsMethodHandler implements MethodHandler {
 		return Collections.unmodifiableMap(assocMap);
 	}
 	
+	public void order(Property prop, Order order) {
+		orders.put(prop, order);
+	}
+	
+	public Order order(Property prop) {
+		return orders.get(prop);
+	}
+	
+	public Map<Property, Order> orders(){
+		return Collections.unmodifiableMap(orders);
+	}
+	
+	public void field(Property prop) {
+		fields.add(prop);
+	}
+	
+	public Set<Property> fields(){
+		return Collections.unmodifiableSet(fields);
+	}
+	
 	@Override
 	public Object invoke(final Object self, Method method, Method proceed, Object[] args)
 			throws Throwable {
@@ -152,6 +180,21 @@ public class ConditionsMethodHandler implements MethodHandler {
 				@Override
 				public Object like(Object val) {
 					set(prop, Operator.LIKE, val);
+					return self;
+				}
+				@Override
+				public Object asc() {
+					order(prop, Order.ASC);
+					return self;
+				}
+				@Override
+				public Object desc() {
+					order(prop, Order.DESC);
+					return self;
+				}
+				@Override
+				public Object field() {
+					ConditionsMethodHandler.this.field(prop);
 					return self;
 				}
 			};
