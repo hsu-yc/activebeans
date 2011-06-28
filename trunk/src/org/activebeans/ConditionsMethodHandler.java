@@ -15,7 +15,16 @@ import javassist.util.proxy.ProxyObject;
 
 public class ConditionsMethodHandler implements MethodHandler {
 
-	public enum Order { ASC, DESC }
+	public enum Order { 
+		
+		ASC, DESC;
+		
+		@Override
+		public String toString() {
+			return super.toString().toLowerCase();
+		}
+	
+	}
 	
 	public enum Operator {
 		
