@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import javassist.util.proxy.ProxyObject;
 
 import org.activebeans.ConditionsMethodHandler.Operator;
+import org.activebeans.ConditionsMethodHandler.Order;
 
 public class Table {
 
@@ -234,6 +235,16 @@ public class Table {
 			empty = false;
 		}
 		return stmt;
+	}
+
+	public static String orderClause(Map<String, Order> order) {
+		String clause = "";
+		boolean first = true;
+		for (Entry<String, Order> e : order.entrySet()) {
+			clause += (first?"order by":",") + " "+ e.getKey() + " " + e.getValue();
+			first = false;
+		}
+		return clause;
 	}
 
 }
