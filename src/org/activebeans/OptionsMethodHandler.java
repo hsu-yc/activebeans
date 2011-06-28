@@ -8,9 +8,7 @@ import java.util.Map;
 
 import javassist.util.proxy.MethodHandler;
 
-public class OptionsMethodHandler implements MethodHandler {
-	
-	public enum Order { ASC, DESC } 
+public class OptionsMethodHandler implements MethodHandler { 
 	
 	private Map<Method, Property> propOptionMap = new HashMap<Method, Property>();
 	

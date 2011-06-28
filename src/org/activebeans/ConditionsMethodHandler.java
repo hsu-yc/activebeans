@@ -13,9 +13,9 @@ import java.util.Set;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyObject;
 
-import org.activebeans.OptionsMethodHandler.Order;
-
 public class ConditionsMethodHandler implements MethodHandler {
+
+	public enum Order { ASC, DESC }
 	
 	public enum Operator {
 		

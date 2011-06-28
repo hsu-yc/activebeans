@@ -36,13 +36,13 @@ import org.activebeans.Condition;
 import org.activebeans.ConditionsMethodFilter;
 import org.activebeans.ConditionsMethodHandler;
 import org.activebeans.ConditionsMethodHandler.Operator;
+import org.activebeans.ConditionsMethodHandler.Order;
 import org.activebeans.DataSourceIntrospector;
 import org.activebeans.DataType;
 import org.activebeans.GeneratedKeysMapHandler;
 import org.activebeans.Model;
 import org.activebeans.OptionsMethodFilter;
 import org.activebeans.OptionsMethodHandler;
-import org.activebeans.OptionsMethodHandler.Order;
 import org.activebeans.Property;
 import org.activebeans.PropertyMethods;
 import org.activebeans.QueryPath;
@@ -672,6 +672,25 @@ public class ActiveBeansTest {
 		assertEquals(subj2, last.getSubject());
 		assertNull(ActiveBeans.first(activeClass, ActiveBeans.conditions(activeClass)
 			.subject().eql("subj")));
+	}
+	
+	public void orderModel(){
+		ActiveBeans.migrate(activeClass);
+		List<String> subjs = new ArrayList<String>();
+		for(int i=0; i<3; i++){
+			String subj = String.valueOf(i);
+			ActiveBeans.create(activeClass, ActiveBeans.options(activeClass)
+				.subject().val(subj));
+			subjs.add(subj);
+		}
+		Collections.reverse(subjs);
+		List<String> oSubjs = new ArrayList<String>();
+		Models rs = ActiveBeans.all(activeClass, ActiveBeans.conditions(activeClass)
+			.id().desc());
+		for (Post post : rs) {
+			oSubjs.add(post.getSubject());
+		}
+		assertArrayEquals(subjs.toArray(), oSubjs.toArray());
 	}
 	
 	@Test
@@ -1497,6 +1516,24 @@ public class ActiveBeansTest {
 	public void deleteAllStatement(){
 		Table table = new ActiveMigration(Post.class, ds).table();
 		assertEquals("delete from " + table.name(), table.deleteAllStatement());
+	}
+	
+	@Test
+	public void orderClause(){
+		String field1 = "a";
+		String field2 = "b";
+		String field3 = "c";
+		Order order1 = Order.ASC;
+		Order order2 = Order.DESC;
+		Order order3 = Order.ASC;
+		Map<String, Order> order = new LinkedHashMap<String, Order>();
+		order.put(field1, order1);
+		order.put(field2, order2);
+		order.put(field3, order3);
+		assertEquals("order by " + field1 + " " + order1
+				+ ", " + field2 + " " + order2
+				+ ", " + field3 + " " + order3, 
+			Table.orderClause(order));
 	}
 	
 }
