@@ -195,12 +195,12 @@ public final class ActiveBeansUtils {
 				};
 				Table table = new ActiveMigration(activeClass, ds).table();
 				if(conds == null){
-					executeSqlForResult(ds, rsHandler, table.selectAllStatement());
+					executeSqlForResult(ds, rsHandler, table.selectAllWithOrderStatement());
 				}else{
 					ConditionsMethodHandler condHandler = (ConditionsMethodHandler) 
 						((ProxyObject)conds).getHandler();
 					executePreparedSqlForResult(ds, rsHandler, 
-						table.selectWithDefaultOrderStatement(conds), condHandler.propertyValues());
+						table.selectAllWithOrderStatement(conds), condHandler.propertyValues());
 				}
 			}
 		});
