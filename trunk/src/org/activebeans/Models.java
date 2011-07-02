@@ -1,7 +1,10 @@
 package org.activebeans;
 
+import java.util.Set;
 
-public interface Models<T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> extends Iterable<T> {
+
+public interface Models<T extends Model<T, U, V, W>, U, V, W extends Models<T, U, V, W>> 
+		extends Set<T> {
 
 	boolean save();
 
@@ -30,10 +33,6 @@ public interface Models<T extends Model<T, U, V, W>, U, V, W extends Models<T, U
 	T last();
 
 	T last(V cond);
-
-	Models<T, U, V, W> add(T model);
-
-	Models<T, U, V, W> all();
 
 	Models<T, U, V, W> all(V cond);
 

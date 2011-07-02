@@ -700,30 +700,8 @@ public class ActiveBeansTest {
 		assertEquals(oSubjs.get(oSubjs.size() - 1), ActiveBeans.last(activeClass, conds).getSubject());
 	}
 	
-	@Test
-	public void noopModels() {
-		Post post = ActiveBeans.build(Post.class);
-		Comment.Models comments = post.getComments();
-		assertNotNull(comments);
-		assertNotNull(comments.add(null));
-		assertNull(comments.all());
-		assertNull(comments.all(null));
-		assertNull(comments.attrs(null));
-		assertNull(comments.build());
-		assertNull(comments.build(null));
-		assertNull(comments.create());
-		assertNull(comments.create(null));
-		assertFalse(comments.destroy());
-		assertNull(comments.first());
-		assertNull(comments.first(null));
-		assertNull(comments.get(null));
-		assertNotNull(comments.iterator());
-		assertNull(comments.last());
-		assertNull(comments.last(null));
-		assertNull(comments.popular());
-		assertFalse(comments.save());
-		assertFalse(comments.update());
-		assertFalse(comments.update(null));
+	public void models() {
+		
 	}
 	
 	@Test
