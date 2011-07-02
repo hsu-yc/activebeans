@@ -7,12 +7,16 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javassist.util.proxy.ProxyObject;
+
 @SuppressWarnings("rawtypes")
 public class ModelsMethodHandler extends Delegate implements Models {
 	
 	private Class<? extends Model<?, ?, ?, ?>> activeClass;
 	
 	private Class<?> modelsInterface;
+	
+	private Class<?> conditionsInterface;
 	
 	private Object conds;
 	
@@ -24,10 +28,16 @@ public class ModelsMethodHandler extends Delegate implements Models {
 	
 	public ModelsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass, Object conds) {
 		this.activeClass = activeClass;
-		modelsInterface = new ActiveIntrospector(activeClass).modelsInterface();
+		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
+		modelsInterface = intro.modelsInterface();
+		conditionsInterface = intro.conditionsInterface();
 		this.conds = conds;
 	}
 
+	public Object conditions(){
+		return conds; 
+	}
+	
 	@Override
 	public boolean add(Object e) {
 		data.add(e);
@@ -169,7 +179,13 @@ public class ModelsMethodHandler extends Delegate implements Models {
 
 	@Override
 	public Models all(Object conds) {
-		return null;
+		if(this.conds == null){
+			this.conds = conds;
+		}else if(conds != null){
+			ConditionsMethodHandler thisConds = (ConditionsMethodHandler) ((ProxyObject)this.conds).getHandler();
+			thisConds.chain((ConditionsMethodHandler) ((ProxyObject)conds).getHandler());
+		}
+		return (Models) self();
 	}
 	
 	@Override
@@ -178,17 +194,19 @@ public class ModelsMethodHandler extends Delegate implements Models {
 		String name = method.getName();
 		Class<?>[] params = method.getParameterTypes();
 		Object rtn = null;
-		boolean objectType = params.length > 0?params[0].equals(Object.class):false;
-		Object arg = objectType?args[0]:null; 
-		if(name.equals("all") && objectType){
+		boolean conditionsType = params.length > 0?params[0].equals(conditionsInterface):false;
+		Object arg = conditionsType?args[0]:null; 
+		if(name.equals("all") && conditionsType){
 			rtn = all(arg);
-		}else if(name.equals("attrs") && objectType){
+		}else if(name.equals("attrs") && conditionsType){
 			attrs(arg);
 		}else if(method.getReturnType().equals(modelsInterface)){
 			try{
 				Method finder = activeClass.getMethod(name, params);
 				if(Modifier.isStatic(finder.getModifiers())){
-					System.out.println(finder);
+					ModelsMethodHandler models = (ModelsMethodHandler) ((ProxyObject)finder.invoke(null, args)).getHandler();
+					all(models.conditions());
+					rtn = self;
 				}
 			}catch(NoSuchMethodException e){}
 		}

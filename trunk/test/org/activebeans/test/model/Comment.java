@@ -1,6 +1,7 @@
 package org.activebeans.test.model;
 
 import org.activebeans.Active;
+import org.activebeans.ActiveBeans;
 import org.activebeans.Association;
 import org.activebeans.Property;
 
@@ -14,7 +15,8 @@ import org.activebeans.Property;
 public class Comment {
 	
 	public static Models popular() {
-		return null;
+		return ActiveBeans.all(Comment.class, ActiveBeans.conditions(Comment.class)
+			.body().asc());
 	}
 
 }
