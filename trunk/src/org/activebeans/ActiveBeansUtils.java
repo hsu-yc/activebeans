@@ -1,7 +1,6 @@
 package org.activebeans;
 
 import java.beans.Introspector;
-import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,8 +12,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 import javassist.util.proxy.ProxyObject;
@@ -182,9 +181,9 @@ public final class ActiveBeansUtils {
 	
 	public static <T extends Model<?, ?, U, ?>, U, V extends Models<?, ?, ?, ?>> V all(
 			final DataSource ds, final Class<T> activeClass, final U conds) {
-		return models(activeClass, new ModelsMethodHandler(activeClass){
+		return models(activeClass, new ModelsMethodHandler(activeClass, conds){
 			@Override
-			protected void onIteration(final List<Object> data) {
+			protected void onIteration(final Set<Object> data, Object conditions) {
 				ResultSetHandler rsHandler = new ResultSetHandler() {
 					@Override
 					public void handle(ResultSet rs) throws SQLException {
@@ -194,13 +193,13 @@ public final class ActiveBeansUtils {
 					}
 				};
 				Table table = new ActiveMigration(activeClass, ds).table();
-				if(conds == null){
+				if(conditions == null){
 					executeSqlForResult(ds, rsHandler, table.selectAllWithOrderStatement());
 				}else{
 					ConditionsMethodHandler condHandler = (ConditionsMethodHandler) 
-						((ProxyObject)conds).getHandler();
+						((ProxyObject)conditions).getHandler();
 					executePreparedSqlForResult(ds, rsHandler, 
-						table.selectAllWithOrderStatement(conds), condHandler.propertyValues());
+						table.selectAllWithOrderStatement(conditions), condHandler.propertyValues());
 				}
 			}
 		});
@@ -277,14 +276,7 @@ public final class ActiveBeansUtils {
 		@SuppressWarnings("unchecked")
 		final Class<U> modelsInterface = (Class<U>) intro.modelsInterface();
 		f.setInterfaces(new Class[] { modelsInterface });
-		f.setFilter(new MethodFilter() {
-			@Override
-			public boolean isHandled(Method m) {
-				return !(m.getDeclaringClass().equals(Models.class)
-					&& Arrays.asList("all", "attrs")
-					.contains(m.getName()));
-			}
-		});
+		f.setFilter(new ClassMethodFilter(modelsInterface));
 		try {
 			return modelsInterface.cast(f.create(new Class[0],
 				new Object[0], handler));

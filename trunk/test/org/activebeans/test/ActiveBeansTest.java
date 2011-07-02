@@ -700,8 +700,47 @@ public class ActiveBeansTest {
 		assertEquals(oSubjs.get(oSubjs.size() - 1), ActiveBeans.last(activeClass, conds).getSubject());
 	}
 	
+	@Test
 	public void models() {
-		
+		Class<Comment> commentClass = Comment.class;
+		ActiveBeans.migrate(commentClass);
+		int size = 3;
+		for(int i=0; i < size; i++){
+			ActiveBeans.create(commentClass);
+		}
+		Comment.Models models = ActiveBeans.all(commentClass);
+		models.add(null);
+		Set<Comment> oModels = Collections.singleton(ActiveBeans.build(commentClass));
+		models.addAll(oModels);
+		models.all(null);
+		models.attrs(null);
+		models.build();
+		models.build(null);
+		models.clear();
+		models.contains(null);
+		models.containsAll(oModels);
+		models.create();
+		models.create(null);
+		models.destroy();
+		models.equals(null);
+		models.first();
+		models.first(null);
+		models.get(null);
+		models.hashCode();
+		models.isEmpty();
+		models.iterator();
+		models.last();
+		models.last(null);
+		models.remove(null);
+		models.removeAll(oModels);
+		models.retainAll(oModels);
+		models.save();
+		models.size();
+		models.toArray();
+		models.toArray(new Comment[0]);
+		models.update();
+		models.update(null);
+		models.popular();
 	}
 	
 	@Test
@@ -1534,6 +1573,33 @@ public class ActiveBeansTest {
 		for (Entry<Property, Order> e : orders.entrySet()) {
 			assertEquals(e.getValue().reverse(), reverse.get(e.getKey()));
 		}
+	}
+	
+	@Test 
+	public void chainConditions(){
+		Long id= 1L;
+		ConditionsMethodHandler conds1 = (ConditionsMethodHandler) (
+				(ProxyObject)ActiveBeans.conditions(activeClass)
+					.id().eql(id)
+					.id().asc()
+					.id().field()
+			).getHandler();
+		String subj = "subj";
+		ConditionsMethodHandler conds2 = (ConditionsMethodHandler) (
+				(ProxyObject)ActiveBeans.conditions(activeClass)
+					.id().desc()
+					.subject().eql(subj)
+					.subject().field()
+			).getHandler();
+		conds1.chain(conds2);
+		Property idProp = activeIntro.property("id");
+		assertEquals(id, conds1.get(idProp, Operator.EQL));
+		assertEquals(Order.DESC, conds1.order(idProp));
+		assertTrue(conds1.fields().contains(idProp));
+		Property subjProp = activeIntro.property("subject");
+		assertEquals(subj, conds1.get(subjProp, Operator.EQL));
+		assertEquals(Order.DESC, conds1.order(idProp));
+		assertTrue(conds1.fields().contains(subjProp));
 	}
 	
 }

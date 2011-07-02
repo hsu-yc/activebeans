@@ -15,13 +15,5 @@ import org.activebeans.Property;
 	hasMany = @Association(with = Comment.class)
 )
 public class Post {
-
-	public void hello(){
-		
-	}
-	
-	public void world(){
-		
-	}
 	
 }

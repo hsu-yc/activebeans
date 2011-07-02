@@ -1,28 +1,31 @@
 package org.activebeans;
 
-import java.util.ArrayList;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @SuppressWarnings("rawtypes")
 public class ModelsMethodHandler extends Delegate implements Models {
 	
-	@SuppressWarnings("unused")
 	private Class<? extends Model<?, ?, ?, ?>> activeClass;
 	
-	@SuppressWarnings("unused")
 	private Class<?> modelsInterface;
 	
-	private List<Object> data = new ArrayList<Object>();
+	private Object conds;
+	
+	private Set<Object> data = new LinkedHashSet<Object>();
 	
 	public ModelsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass) {
+		this(activeClass, null);
+	}
+	
+	public ModelsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass, Object conds) {
 		this.activeClass = activeClass;
 		modelsInterface = new ActiveIntrospector(activeClass).modelsInterface();
-	}
-
-	protected void onIteration(List<Object> data){
-		
+		this.conds = conds;
 	}
 
 	@Override
@@ -33,164 +36,167 @@ public class ModelsMethodHandler extends Delegate implements Models {
 
 	@Override
 	public boolean addAll(Collection c) {
-		// TODO Auto-generated method stub
-		return false;
+		@SuppressWarnings("unchecked")
+		boolean rtn = data.addAll(c);
+		return rtn;
 	}
 
 	@Override
 	public void clear() {
-		// TODO Auto-generated method stub
-		
+		data.clear();
 	}
 
 	@Override
 	public boolean contains(Object o) {
-		// TODO Auto-generated method stub
-		return false;
+		return data.contains(o);
 	}
 
 	@Override
 	public boolean containsAll(Collection c) {
-		// TODO Auto-generated method stub
-		return false;
+		return data.containsAll(c);
 	}
 
 	@Override
 	public boolean isEmpty() {
-		// TODO Auto-generated method stub
-		return false;
+		return data.isEmpty();
 	}
 
 	@Override
 	public Iterator iterator() {
-		onIteration(data);
+		onIteration(data, conds);
 		return data.iterator();
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		// TODO Auto-generated method stub
-		return false;
+		return data.remove(o);
 	}
 
 	@Override
 	public boolean removeAll(Collection c) {
-		// TODO Auto-generated method stub
-		return false;
+		return data.removeAll(c);
 	}
 
 	@Override
 	public boolean retainAll(Collection c) {
-		// TODO Auto-generated method stub
-		return false;
+		return data.retainAll(c);
 	}
 
 	@Override
 	public int size() {
-		// TODO Auto-generated method stub
-		return 0;
+		return data.size();
 	}
 
 	@Override
 	public Object[] toArray() {
-		// TODO Auto-generated method stub
-		return null;
+		return data.toArray();
 	}
 
 	@Override
 	public Object[] toArray(Object[] a) {
-		// TODO Auto-generated method stub
-		return null;
+		return data.toArray(a);
 	}
 
 	@Override
 	public boolean save() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean update() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean update(Object opts) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public Models attrs(Object opts) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean destroy() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public Model build() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Model build(Object opts) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Model create() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Model create(Object opts) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Model get(Object key, Object... keys) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Model first() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Model first(Object cond) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Model last() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Model last(Object cond) {
-		// TODO Auto-generated method stub
+	public Model last(Object conds) {
 		return null;
 	}
 
 	@Override
-	public Models all(Object cond) {
-		// TODO Auto-generated method stub
+	public Models all(Object conds) {
 		return null;
+	}
+	
+	@Override
+	protected Object methodMissing(Object self, Method method, Method proceed,
+			Object[] args) throws Throwable {
+		String name = method.getName();
+		Class<?>[] params = method.getParameterTypes();
+		Object rtn = null;
+		boolean objectType = params.length > 0?params[0].equals(Object.class):false;
+		Object arg = objectType?args[0]:null; 
+		if(name.equals("all") && objectType){
+			rtn = all(arg);
+		}else if(name.equals("attrs") && objectType){
+			attrs(arg);
+		}else if(method.getReturnType().equals(modelsInterface)){
+			try{
+				Method finder = activeClass.getMethod(name, params);
+				if(Modifier.isStatic(finder.getModifiers())){
+					System.out.println(finder);
+				}
+			}catch(NoSuchMethodException e){}
+		}
+		return rtn;
+	}
+	
+	protected void onIteration(Set<Object> data, Object conds){ 
+		
 	}
 	
 }
