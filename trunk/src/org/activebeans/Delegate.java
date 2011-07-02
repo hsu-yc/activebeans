@@ -6,17 +6,18 @@ import javassist.util.proxy.MethodHandler;
 
 public class Delegate implements MethodHandler {
 	
-	private Object target;
-	
-	public Delegate(Object target){
-		this.target = target;
-	}
+	private Object self;
 	
 	@Override
 	public Object invoke(Object self, Method method, Method proceed,
 			Object[] args) throws Throwable {
-		return target.getClass().getMethod(method.getName(), method.getParameterTypes())
-			.invoke(target, args);
+		this.self = self;
+		return this.getClass().getMethod(method.getName(), method.getParameterTypes())
+			.invoke(this, args);
+	}
+	
+	public Object self(){
+		return self;
 	}
 
 }

@@ -1,26 +1,20 @@
 package org.activebeans;
 
-import java.lang.reflect.Method;
 import java.util.Map.Entry;
 
-import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyObject;
 
 @SuppressWarnings("rawtypes")
-public class ModelMethodHandler implements Model, MethodHandler {
+public class ModelMethodHandler extends Delegate implements Model {
 	
-	private Model self;
 	private Class<Model> selfClass; 
 	private AttributeMethodHandler attrHandler;
-	private Delegate delegate;
-	
 	
 	public ModelMethodHandler(AttributeMethodHandler attrHandler){
 		this.attrHandler = attrHandler;
 		@SuppressWarnings("unchecked")
 		Class<Model> activeClass = (Class<Model>) attrHandler.activeClass();
 		selfClass = activeClass;
-		delegate = new Delegate(this);
 	}
 	
 	@Override
@@ -28,7 +22,7 @@ public class ModelMethodHandler implements Model, MethodHandler {
 		return ActiveBeansUtils.insert(
 			ActiveBeans.repository(), 
 			selfClass,
-			self
+			(Model) self()
 		) == 1;
 	}
 
@@ -37,7 +31,7 @@ public class ModelMethodHandler implements Model, MethodHandler {
 		return ActiveBeansUtils.update(
 				ActiveBeans.repository(), 
 				selfClass,
-				self
+				(Model) self()
 			) == 1;
 	}
 
@@ -56,7 +50,7 @@ public class ModelMethodHandler implements Model, MethodHandler {
 		for (Entry<Association, Object> e : options.associations().entrySet()) {
 			attrHandler.set(e.getKey(), e.getValue());
 		}
-		return (Model) self;
+		return (Model) self();
 	}
 
 	@Override
@@ -64,15 +58,8 @@ public class ModelMethodHandler implements Model, MethodHandler {
 		return ActiveBeansUtils.delete(
 			ActiveBeans.repository(), 
 			selfClass,
-			self
+			(Model) self()
 		) == 1;
-	}
-	
-	@Override
-	public Object invoke(Object self, Method method, Method proceed,
-			Object[] args) throws Throwable {
-		this.self = (Model) self;
-		return delegate.invoke(self, method, proceed, args);
 	}
 
 }
