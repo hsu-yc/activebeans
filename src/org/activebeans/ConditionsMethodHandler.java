@@ -170,6 +170,17 @@ public class ConditionsMethodHandler implements MethodHandler {
 		return Collections.unmodifiableSet(fields);
 	}
 	
+	public void chain(ConditionsMethodHandler conds){
+		for (Entry<Property, Map<Operator, Object>> e1 : conds.properties().entrySet()) {
+			for (Entry<Operator, Object> e2 : e1.getValue().entrySet()) {
+				set(e1.getKey(), e2.getKey(), e2.getValue());
+			}
+		}
+		assocMap.putAll(conds.associations());
+		orders.putAll(conds.orders());
+		fields.addAll(conds.fields());
+	}
+	
 	@Override
 	public Object invoke(final Object self, Method method, Method proceed, Object[] args)
 			throws Throwable {

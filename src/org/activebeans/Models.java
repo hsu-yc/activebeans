@@ -28,12 +28,12 @@ public interface Models<T extends Model<T, U, V, W>, U, V, W extends Models<T, U
 
 	T first();
 
-	T first(V cond);
+	T first(V conds);
 
 	T last();
 
-	T last(V cond);
+	T last(V conds);
 
-	Models<T, U, V, W> all(V cond);
+	Models<T, U, V, W> all(V conds);
 
 }
