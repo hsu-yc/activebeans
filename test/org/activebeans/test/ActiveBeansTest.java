@@ -41,6 +41,7 @@ import org.activebeans.DataSourceIntrospector;
 import org.activebeans.DataType;
 import org.activebeans.GeneratedKeysMapHandler;
 import org.activebeans.Model;
+import org.activebeans.ModelsMethodHandler;
 import org.activebeans.OptionsMethodFilter;
 import org.activebeans.OptionsMethodHandler;
 import org.activebeans.Property;
@@ -698,6 +699,36 @@ public class ActiveBeansTest {
 		assertEquals(firstSubj, ActiveBeans.firstOrCreate(activeClass, null, conds)
 			.getSubject());
 		assertEquals(oSubjs.get(oSubjs.size() - 1), ActiveBeans.last(activeClass, conds).getSubject());
+	}
+	
+	@Test 
+	public void chainModelConditions(){
+		Class<Comment> commentClass = Comment.class;
+		Long id= 1L;
+		String body = "body";
+		Comment.Models models = ActiveBeans.all(commentClass)
+			.all(ActiveBeans.conditions(commentClass)
+				.id().eql(id)
+				.id().asc()
+				.id().field()
+			).all(ActiveBeans.conditions(commentClass)
+				.id().desc()
+				.body().eql(body)
+				.body().field()
+			).popular();
+		ModelsMethodHandler modelsHandler = (ModelsMethodHandler) ((ProxyObject)models).getHandler();
+		ConditionsMethodHandler conds = (ConditionsMethodHandler) 
+			((ProxyObject)modelsHandler.conditions()).getHandler();
+		ActiveIntrospector commentIntro = new ActiveIntrospector(commentClass);
+		Property idProp = commentIntro.property("id");
+		assertEquals(id, conds.get(idProp, Operator.EQL));
+		assertEquals(Order.DESC, conds.order(idProp));
+		assertTrue(conds.fields().contains(idProp));
+		Property bodyProp = commentIntro.property("body");
+		assertEquals(body, conds.get(bodyProp, Operator.EQL));
+		assertEquals(Order.DESC, conds.order(idProp));
+		assertTrue(conds.fields().contains(bodyProp));
+		assertEquals(Order.ASC, conds.order(bodyProp));
 	}
 	
 	@Test
