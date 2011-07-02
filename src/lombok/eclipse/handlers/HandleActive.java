@@ -339,13 +339,8 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		interfRef.sourceEnd = source.sourceEnd;
 		Eclipse.setGeneratedBy(interfRef, source);
 		List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
-		methods.add(covariantAllFinder(interf, interfRef,
-				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.add(covariantAllFinderWithOptions(interf, interfRef,
 				Eclipse.copyType(conditionsRef, source),
-				ExtraCompilerModifiers.AccSemicolonBody, source));
-		methods.add(covariantAdder(interf, interfRef,
-				Eclipse.copyType(beanRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.add(covariantAttrsMethod(interf, interfRef,
 				Eclipse.copyType(optionsRef, source),
@@ -385,8 +380,16 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		return interf;
 	}
 
-	private static MethodDeclaration covariantAllFinder(TypeDeclaration parent,
-			TypeReference type, int modifier, ASTNode source) {
+	private static MethodDeclaration covariantAllFinderWithOptions(
+			TypeDeclaration parent, TypeReference type, TypeReference conditions,
+			int modifier, ASTNode source) {
+		int pS = source.sourceStart, pE = source.sourceEnd;
+		long p = (long) pS << 32 | pE;
+		Argument param = new Argument("options".toCharArray(), p, conditions,
+				Modifier.FINAL);
+		param.sourceStart = pS;
+		param.sourceEnd = pE;
+		Eclipse.setGeneratedBy(param, source);
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
 		Eclipse.setGeneratedBy(method, source);
@@ -401,49 +404,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
 		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
-		return method;
-	}
-
-	private static MethodDeclaration covariantAllFinderWithOptions(
-			TypeDeclaration parent, TypeReference type, TypeReference conditions,
-			int modifier, ASTNode source) {
-		int pS = source.sourceStart, pE = source.sourceEnd;
-		long p = (long) pS << 32 | pE;
-		Argument param = new Argument("options".toCharArray(), p, conditions,
-				Modifier.FINAL);
-		param.sourceStart = pS;
-		param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
-		MethodDeclaration method = covariantAllFinder(parent, type, modifier,
-				source);
 		method.arguments = new Argument[] { param };
-		return method;
-	}
-
-	private static MethodDeclaration covariantAdder(TypeDeclaration parent,
-			TypeReference rtnType, TypeReference argType, int modifier,
-			ASTNode source) {
-		int pS = source.sourceStart, pE = source.sourceEnd;
-		long p = (long) pS << 32 | pE;
-		Argument arg = new Argument("model".toCharArray(), p, Eclipse.copyType(
-				argType, source), Modifier.FINAL);
-		arg.sourceStart = pS;
-		arg.sourceEnd = pE;
-		Eclipse.setGeneratedBy(arg, source);
-		MethodDeclaration method = new MethodDeclaration(
-				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
-		method.modifiers = modifier;
-		method.returnType = Eclipse.copyType(rtnType, source);
-		method.annotations = null;
-		method.arguments = new Argument[] { arg };
-		method.selector = "add".toCharArray();
-		method.binding = null;
-		method.thrownExceptions = null;
-		method.typeParameters = null;
-		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
-		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
-		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
 		return method;
 	}
 
