@@ -3,6 +3,7 @@ package org.activebeans;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -14,6 +15,8 @@ import org.activebeans.ConditionsMethodHandler.Order;
 
 public class Table {
 
+	private static final String FIRST_LIMIT = "limit 1";
+	
 	private String name;
 
 	private List<Column> cols = new ArrayList<Column>();
@@ -39,8 +42,6 @@ public class Table {
 	private String defaultOrder;
 	
 	private String reverseOrder;
-	
-	private String firstLimit = "limit 1";
 	
 	public Table(String name, List<Column> columns) {
 		this.name = name;
@@ -138,7 +139,7 @@ public class Table {
 		String alterStmt = alter;
 		for (int i = 0; i < cols.size(); i++) {
 			alterStmt += (i == 0 ? "" : ",") + " add column "
-					+ cols.get(i).definition();
+				+ cols.get(i).definition();
 		}
 		return alterStmt;
 	}
@@ -155,7 +156,7 @@ public class Table {
 		return select;
 	}
 	
-	public String selectStatement(Object conds){
+	public String selectAllStatement(Object conds){
 		String stmt = selectAll;
 		ConditionsMethodHandler handler = (ConditionsMethodHandler) ((ProxyObject)conds).getHandler();
 		boolean empty = true;
@@ -169,20 +170,26 @@ public class Table {
 		return stmt;
 	}
 	
-	public String selectWithDefaultOrderStatement(Object conds){
-		return selectStatement(conds) + " " + defaultOrder;
+	public String selectAllWithOrderStatement(){
+		return selectAll + " " + defaultOrder;
 	}
 	
-	public String selectWithReverseOrderStatement(Object conds){
-		return selectStatement(conds) + " " + reverseOrder;
+	public String selectAllWithOrderStatement(Object conds){
+		ConditionsMethodHandler handler = (ConditionsMethodHandler) ((ProxyObject)conds).getHandler();
+		return selectAllStatement(conds) + " " + propertyOrderClause(handler.orders(), defaultOrder);
+	}
+	
+	public String selectAllWithReverseOrderStatement(){
+		return selectAll + " " + reverseOrder;
+	}
+	
+	public String selectAllWithReverseOrderStatement(Object conds){
+		ConditionsMethodHandler handler = (ConditionsMethodHandler) ((ProxyObject)conds).getHandler();
+		return selectAllStatement(conds) + " " + propertyOrderClause(handler.reverseOrders(), reverseOrder);
 	}
 	
 	public String selectAllStatement(){
 		return selectAll;
-	}
-	
-	public String selectAllWithDefaultOrderStatement() {
-		return selectAll + " "+ defaultOrder;
 	}
 	
 	public String updateStatement(){
@@ -202,15 +209,15 @@ public class Table {
 	}
 	
 	public String firstLimit(){
-		return firstLimit;
+		return FIRST_LIMIT;
 	}
 
 	public String selectFirstStatement() {
-		return selectAllWithDefaultOrderStatement() + " " + firstLimit;
+		return selectAll + " " + defaultOrder + " " + FIRST_LIMIT;
 	}
 
 	public String selectFirstStatement(Object conds) {
-		return selectWithDefaultOrderStatement(conds) + " " + firstLimit;
+		return selectAllWithOrderStatement(conds) + " " + FIRST_LIMIT;
 	}
 	
 	public String reverseOrder(){
@@ -218,11 +225,11 @@ public class Table {
 	}
 
 	public String selectLastStatement() {
-		return selectAll + " " + reverseOrder + " " + firstLimit;
+		return selectAll + " " + reverseOrder + " " + FIRST_LIMIT;
 	}
 
 	public String selectLastStatement(Object conds) {
-		return selectWithReverseOrderStatement(conds) + " " + firstLimit;
+		return selectAllWithReverseOrderStatement(conds) + " " + FIRST_LIMIT;
 	}
 	
 	public String updateAllStatement(Object options){
@@ -237,7 +244,25 @@ public class Table {
 		return stmt;
 	}
 
-	public static String orderClause(Map<String, Order> order) {
+	public static String propertyOrderClause(Map<Property, Order> order, String defaultClause){
+		String orderClause;
+		if(order.isEmpty()){
+			orderClause = defaultClause;
+		}else{
+			orderClause = propertyOrderClause(order);
+		}
+		return orderClause;
+	}
+	
+	public static String propertyOrderClause(Map<Property, Order> order){
+		Map<String, Order> o = new LinkedHashMap<String, Order>(); 
+		for (Entry<Property, Order> e : order.entrySet()) {
+			o.put(ActiveBeansUtils.camelCaseToUnderscore(e.getKey().name()), e.getValue());
+		}
+		return stringOrderClause(o);
+	}
+		
+	public static String stringOrderClause(Map<String, Order> order) {
 		String clause = "";
 		boolean first = true;
 		for (Entry<String, Order> e : order.entrySet()) {

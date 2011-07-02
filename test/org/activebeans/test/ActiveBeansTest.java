@@ -674,6 +674,7 @@ public class ActiveBeansTest {
 			.subject().eql("subj")));
 	}
 	
+	@Test
 	public void orderModel(){
 		ActiveBeans.migrate(activeClass);
 		List<String> subjs = new ArrayList<String>();
@@ -685,12 +686,18 @@ public class ActiveBeansTest {
 		}
 		Collections.reverse(subjs);
 		List<String> oSubjs = new ArrayList<String>();
-		Models rs = ActiveBeans.all(activeClass, ActiveBeans.conditions(activeClass)
-			.id().desc());
+		Conditions conds = ActiveBeans.conditions(activeClass)
+			.subject().desc();
+		Models rs = ActiveBeans.all(activeClass, conds);
 		for (Post post : rs) {
 			oSubjs.add(post.getSubject());
 		}
 		assertArrayEquals(subjs.toArray(), oSubjs.toArray());
+		String firstSubj = oSubjs.get(0);
+		assertEquals(firstSubj, ActiveBeans.first(activeClass, conds).getSubject());
+		assertEquals(firstSubj, ActiveBeans.firstOrCreate(activeClass, null, conds)
+			.getSubject());
+		assertEquals(oSubjs.get(oSubjs.size() - 1), ActiveBeans.last(activeClass, conds).getSubject());
 	}
 	
 	@Test
@@ -1369,7 +1376,7 @@ public class ActiveBeansTest {
 		);
 		String selectAll = "select " + id + ", " + name + " from " + tableName;
 		assertEquals(selectAll, table.selectAllStatement());
-		assertEquals(selectAll + " order by " + id, table.selectAllWithDefaultOrderStatement());
+		assertEquals(selectAll + " order by " + id, table.selectAllWithOrderStatement());
 	}
 	
 	@Test 
@@ -1395,7 +1402,7 @@ public class ActiveBeansTest {
 					assertTrue(rs.last());
 					assertEquals(rows, rs.getRow());
 				}
-			}, table.selectAllWithDefaultOrderStatement());
+			}, table.selectAllWithOrderStatement());
 		}finally{
 			ActiveBeansUtils.executeSql(ds, table.dropStatement());
 		}
@@ -1431,7 +1438,7 @@ public class ActiveBeansTest {
 				+ " and subject < ?"
 				+ " and subject <= ?"
 				+ " and subject != ?", 
-			table.selectStatement(conds));
+			table.selectAllStatement(conds));
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
 		assertArrayEquals(new Object[]{idEql, subjEql, subjGt, subjGte, subjLike, 
 			subjLt, subjLte, subjNot}, handler.propertyValues().toArray());
@@ -1442,7 +1449,7 @@ public class ActiveBeansTest {
 		Class<Post> postClass = Post.class;
 		Table table = new ActiveMigration(postClass, ds).table();
 		assertEquals(
-			table.selectAllWithDefaultOrderStatement() + " limit 1",
+			table.selectAllWithOrderStatement() + " limit 1",
 			table.selectFirstStatement()
 		);
 	}
@@ -1471,7 +1478,7 @@ public class ActiveBeansTest {
 		Class<Post> postClass = Post.class;
 		Table table = new ActiveMigration(postClass, ds).table();
 		assertEquals(
-			table.selectAllStatement() + " " + table.reverseOrder()  + " limit 1",
+			table.selectAllWithReverseOrderStatement() + " limit 1",
 			table.selectLastStatement()
 		);
 	}
@@ -1533,7 +1540,22 @@ public class ActiveBeansTest {
 		assertEquals("order by " + field1 + " " + order1
 				+ ", " + field2 + " " + order2
 				+ ", " + field3 + " " + order3, 
-			Table.orderClause(order));
+			Table.stringOrderClause(order));
+	}
+	
+	@Test
+	public void reverseOrder(){
+		assertEquals(Order.DESC, Order.ASC.reverse());
+		assertEquals(Order.ASC, Order.DESC.reverse());
+		Conditions conds = ActiveBeans.conditions(activeClass)
+			.id().asc()
+			.subject().desc();
+		ConditionsMethodHandler handler = (ConditionsMethodHandler) ((ProxyObject)conds).getHandler();
+		Map<Property, Order> orders = handler.orders();
+		Map<Property, Order> reverse = handler.reverseOrders();
+		for (Entry<Property, Order> e : orders.entrySet()) {
+			assertEquals(e.getValue().reverse(), reverse.get(e.getKey()));
+		}
 	}
 	
 }

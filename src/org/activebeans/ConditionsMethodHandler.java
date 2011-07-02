@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javassist.util.proxy.MethodHandler;
@@ -17,12 +18,24 @@ public class ConditionsMethodHandler implements MethodHandler {
 
 	public enum Order { 
 		
-		ASC, DESC;
+		ASC {
+			@Override
+			public Order reverse() {
+				return DESC;
+			}
+		}, DESC {
+			@Override
+			public Order reverse() {
+				return ASC;
+			}
+		};
 		
 		@Override
 		public String toString() {
 			return super.toString().toLowerCase();
 		}
+		
+		public abstract Order reverse();
 	
 	}
 	
@@ -139,6 +152,14 @@ public class ConditionsMethodHandler implements MethodHandler {
 	
 	public Map<Property, Order> orders(){
 		return Collections.unmodifiableMap(orders);
+	}
+	
+	public Map<Property, Order> reverseOrders(){
+		Map<Property, Order> reverse = new LinkedHashMap<Property, Order>();
+		for (Entry<Property, Order> e : orders.entrySet()) {
+			reverse.put(e.getKey(), e.getValue().reverse());
+		}
+		return reverse;
 	}
 	
 	public void field(Property prop) {
