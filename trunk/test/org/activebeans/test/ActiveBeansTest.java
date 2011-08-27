@@ -570,6 +570,17 @@ public class ActiveBeansTest {
 			cnt++;
 		}
 		assertEquals(1, cnt);
+		Models allInModels = ActiveBeans.all(activeClass).all(ActiveBeans.conditions(activeClass)
+			.subject().eql(subj1));
+		assertNotNull(allInModels);
+		cnt = 0;
+		for (Post post : allInModels) {
+			assertNotNull(post);
+			assertEquals(subj1, post.getSubject());
+			assertTrue(activeClass.isAssignableFrom(post.getClass()));
+			cnt++;
+		}
+		assertEquals(1, cnt);
 	}
 	
 	@Test
