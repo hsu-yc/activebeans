@@ -181,12 +181,15 @@ public class ModelsMethodHandler extends Delegate implements Models {
 
 	@Override
 	public Model last() {
-		return null;
+		return last(null);
 	}
 
 	@Override
 	public Model last(Object conds) {
-		return null;
+		all(conds);
+		@SuppressWarnings("unchecked")
+		Model last = ActiveBeansUtils.last(ActiveBeans.repository(), activeClass, this.conds);
+		return last;
 	}
 
 	@Override
