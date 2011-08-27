@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -183,7 +184,8 @@ public final class ActiveBeansUtils {
 			final DataSource ds, final Class<T> activeClass, final U conds) {
 		return models(activeClass, new ModelsMethodHandler(activeClass, conds){
 			@Override
-			protected void onIteration(final Set<Object> data, Object conditions) {
+			protected Set<Object> query(Object conditions) {
+				final Set<Object> data = new LinkedHashSet<Object>();
 				ResultSetHandler rsHandler = new ResultSetHandler() {
 					@Override
 					public void handle(ResultSet rs) throws SQLException {
@@ -201,6 +203,7 @@ public final class ActiveBeansUtils {
 					executePreparedSqlForResult(ds, rsHandler, 
 						table.selectAllWithOrderStatement(conditions), condHandler.propertyValues());
 				}
+				return data;
 			}
 		});
 	}

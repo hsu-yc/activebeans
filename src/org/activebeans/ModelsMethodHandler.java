@@ -3,6 +3,7 @@ package org.activebeans;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -12,7 +13,7 @@ import javassist.util.proxy.ProxyObject;
 @SuppressWarnings("rawtypes")
 public class ModelsMethodHandler extends Delegate implements Models {
 	
-	private Class<? extends Model<?, ?, ?, ?>> activeClass;
+	private Class<? extends Model> activeClass;
 	
 	private Class<?> modelsInterface;
 	
@@ -20,8 +21,10 @@ public class ModelsMethodHandler extends Delegate implements Models {
 	
 	private Object conds;
 	
-	private Set<Object> data = new LinkedHashSet<Object>();
+	private boolean loaded;
 	
+	private Set<Object> data = new LinkedHashSet<Object>();
+
 	public ModelsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass) {
 		this(activeClass, null);
 	}
@@ -40,12 +43,14 @@ public class ModelsMethodHandler extends Delegate implements Models {
 	
 	@Override
 	public boolean add(Object e) {
+		load();
 		data.add(e);
 		return true;
 	}
 
 	@Override
 	public boolean addAll(Collection c) {
+		load();
 		@SuppressWarnings("unchecked")
 		boolean rtn = data.addAll(c);
 		return rtn;
@@ -58,52 +63,61 @@ public class ModelsMethodHandler extends Delegate implements Models {
 
 	@Override
 	public boolean contains(Object o) {
+		load();
 		return data.contains(o);
 	}
 
 	@Override
 	public boolean containsAll(Collection c) {
+		load();
 		return data.containsAll(c);
 	}
 
 	@Override
 	public boolean isEmpty() {
+		load();
 		return data.isEmpty();
 	}
 
 	@Override
 	public Iterator iterator() {
-		onIteration(data, conds);
+		load();
 		return data.iterator();
 	}
 
 	@Override
 	public boolean remove(Object o) {
+		load();
 		return data.remove(o);
 	}
 
 	@Override
 	public boolean removeAll(Collection c) {
+		load();
 		return data.removeAll(c);
 	}
 
 	@Override
 	public boolean retainAll(Collection c) {
+		load();
 		return data.retainAll(c);
 	}
 
 	@Override
 	public int size() {
+		load();
 		return data.size();
 	}
 
 	@Override
 	public Object[] toArray() {
+		load();
 		return data.toArray();
 	}
 
 	@Override
 	public Object[] toArray(Object[] a) {
+		load();
 		return data.toArray(a);
 	}
 
@@ -153,18 +167,16 @@ public class ModelsMethodHandler extends Delegate implements Models {
 	}
 
 	@Override
-	public Model get(Object key, Object... keys) {
-		return null;
-	}
-
-	@Override
 	public Model first() {
-		return null;
+		return first(null);
 	}
 
 	@Override
-	public Model first(Object cond) {
-		return null;
+	public Model first(Object conds) {
+		all(conds);
+		@SuppressWarnings("unchecked")
+		Model first = ActiveBeansUtils.first(ActiveBeans.repository(), activeClass, this.conds);
+		return first;
 	}
 
 	@Override
@@ -213,8 +225,15 @@ public class ModelsMethodHandler extends Delegate implements Models {
 		return rtn;
 	}
 	
-	protected void onIteration(Set<Object> data, Object conds){ 
-		
+	private void load(){
+		if(!loaded){
+			data.addAll(query(conds));
+			loaded = true;
+		}
+	}
+	
+	protected Set<Object> query(Object conds){ 
+		return Collections.emptySet();
 	}
 	
 }
