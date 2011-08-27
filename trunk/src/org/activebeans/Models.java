@@ -24,8 +24,6 @@ public interface Models<T extends Model<T, U, V, W>, U, V, W extends Models<T, U
 
 	T create(U opts);
 
-	T get(Object key, Object... keys);
-
 	T first();
 
 	T first(V conds);
