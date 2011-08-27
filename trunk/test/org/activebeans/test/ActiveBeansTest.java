@@ -664,6 +664,10 @@ public class ActiveBeansTest {
 		assertNotNull(last);
 		assertTrue(activeClass.isAssignableFrom(last.getClass()));
 		assertEquals(subj2, last.getSubject());
+		Post lastinModels = ActiveBeans.all(activeClass).last();
+		assertNotNull(lastinModels);
+		assertTrue(activeClass.isAssignableFrom(lastinModels.getClass()));
+		assertEquals(subj2, lastinModels.getSubject());
 	}
 	
 	@Test
@@ -683,6 +687,13 @@ public class ActiveBeansTest {
 		assertTrue(activeClass.isAssignableFrom(last.getClass()));
 		assertEquals(subj2, last.getSubject());
 		assertNull(ActiveBeans.first(activeClass, ActiveBeans.conditions(activeClass)
+			.subject().eql("subj")));
+		Post lastInModels = ActiveBeans.all(activeClass).last(ActiveBeans.conditions(activeClass)
+				.subject().eql(subj2));
+		assertNotNull(lastInModels);
+		assertTrue(activeClass.isAssignableFrom(lastInModels.getClass()));
+		assertEquals(subj2, lastInModels.getSubject());
+		assertNull(ActiveBeans.all(activeClass).first(ActiveBeans.conditions(activeClass)
 			.subject().eql("subj")));
 	}
 	
