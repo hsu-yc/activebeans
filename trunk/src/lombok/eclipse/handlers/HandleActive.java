@@ -45,7 +45,7 @@ import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
 import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 
-public class HandleActive implements EclipseAnnotationHandler<Active> {
+public class HandleActive extends EclipseAnnotationHandler<Active> {
 
 	private static final String ATTRIBUTES_INTERFACE = "Attributes";
 
@@ -72,7 +72,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 	}
 	
 	@Override
-	public boolean handle(AnnotationValues<Active> at, Annotation ast,
+	public void handle(AnnotationValues<Active> at, Annotation ast,
 			EclipseNode node) {
 		try {
 			CompilationUnitDeclaration source = (CompilationUnitDeclaration) node
@@ -175,7 +175,7 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 					Arrays.asList(source.types));
 			types.add(attrInterf);
 			source.types = types.toArray(new TypeDeclaration[0]);
-			node.up().up().add(attrInterf, Kind.TYPE).recursiveSetHandled();
+			node.up().up().add(attrInterf, Kind.TYPE);
 			char[][] activateQName = Eclipse.fromQualifiedName(node.up()
 					.getPackageDeclaration()
 					+ "."
@@ -205,13 +205,12 @@ public class HandleActive implements EclipseAnnotationHandler<Active> {
 			injectType(beanType, modelsInterf);
 			injectType(beanType, optionsInterf);
 			injectType(beanType, conditionsInterf);
-			node.up().add(modelsInterf, Kind.TYPE).recursiveSetHandled();
+			node.up().add(modelsInterf, Kind.TYPE);
 		} catch (Exception e) {
 			StringWriter msg = new StringWriter();
 			e.printStackTrace(new PrintWriter(msg));
 			node.addWarning(msg.toString());
 		}
-		return true;
 	}
 
 	private static boolean valdateAtLeastOneKey(Expression activeBeanProps) {
@@ -877,6 +876,10 @@ class FinderMethodRetriever extends EclipseASTAdapter {
 					methods.add(m);
 				}
 			}
+			@Override
+			public boolean deferUntilPostDiet() {
+				return false;
+			}
 		});
 	}
 
@@ -921,6 +924,11 @@ class FinderMethodRetriever extends EclipseASTAdapter {
 		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
 		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
 		return method;
+	}
+
+	@Override
+	public boolean deferUntilPostDiet() {
+		return false;
 	}
 
 }
