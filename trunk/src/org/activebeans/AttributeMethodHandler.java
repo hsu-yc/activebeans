@@ -8,6 +8,8 @@ import javassist.util.proxy.MethodHandler;
 
 public class AttributeMethodHandler implements MethodHandler {
 
+	private Model<?, ?, ?, ?> self;
+	
 	private Class<? extends Model<?, ?, ?, ?>> activeClass;
 	
 	private Map<Method, Property> propGetterMap = new HashMap<Method, Property>();
@@ -57,7 +59,8 @@ public class AttributeMethodHandler implements MethodHandler {
 	public Object get(Association assoc){
 		Object rtn = assocMap.get(assoc);
 		if(rtn == null && hasManyGetterMap.containsValue(assoc)){
-			rtn = ActiveBeansUtils.models(assoc.with());
+			Class<? extends Model<?, ?, ?, ?>> assocClass = assoc.with();
+			rtn = ActiveBeansUtils.models(assocClass, new ActiveIntrospector(assocClass).belongsTo(activeClass), self);
 			set(assoc, rtn);
 		}
 		return rtn;
@@ -70,6 +73,7 @@ public class AttributeMethodHandler implements MethodHandler {
 	@Override
 	public Object invoke(Object self, Method method, Method proceed,
 			Object[] args) throws Throwable {
+		this.self = (Model<?, ?, ?, ?>) self;
 		Object rtn = null;
 		if (propGetterMap.containsKey(method)) {
 			rtn = get(propGetterMap.get(method));
