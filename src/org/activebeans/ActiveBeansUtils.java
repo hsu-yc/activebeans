@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -46,7 +47,26 @@ public final class ActiveBeansUtils {
 			}
 		}
 		for (Association assoc : intro.belongsTos()) {
-			params.add(handler.get(assoc));
+			ActiveIntrospector clazzIntro = new ActiveIntrospector(assoc.with());
+			@SuppressWarnings("rawtypes")
+			Model obj = (Model) handler.get(assoc);
+			List<Property> keys = clazzIntro.keys();
+			if(obj == null){
+				params.addAll(Collections.nCopies(keys.size(), null));
+			}else{
+				ActiveDelegate activeHandler = (ActiveDelegate)((ProxyObject)obj).getHandler();
+				AttributeMethodHandler attrHandler = activeHandler.attrHandler();
+				boolean saved = false;
+				for (Property key : keys) {
+					saved |= attrHandler.get(key) != null; 
+				}
+				if(!saved){
+					obj.save();
+				}
+				for (Property key : keys) {
+					params.add(attrHandler.get(key)); 
+				}
+			}
 		}
 		final Map<Property, Object> generatedKeyMap = new LinkedHashMap<Property, Object>();
 		int result = executePreparedSql(
@@ -100,7 +120,7 @@ public final class ActiveBeansUtils {
 		AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
 		for (Property prop : intro.properties()) {
 			Object val = handler.get(prop);
-			if(prop.autoIncrement()){
+			if(prop.key()){
 				keys.add(val);
 			}else{
 				params.add(val);
@@ -134,10 +154,8 @@ public final class ActiveBeansUtils {
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		final List<Object> keys = new ArrayList<Object>();
 		AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
-		for (Property prop : intro.properties()) {
-			if(prop.autoIncrement()){
-				keys.add(handler.get(prop));
-			}
+		for (Property prop : intro.keys()) {
+			keys.add(handler.get(prop));
 		}
 		int result = executePreparedSql(
 			ds,
