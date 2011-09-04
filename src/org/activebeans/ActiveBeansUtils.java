@@ -207,7 +207,7 @@ public final class ActiveBeansUtils {
 	
 	public static <T extends Model<?, ?, U, ?>, U, V extends Models<?, ?, ?, ?>> V all(
 			final DataSource ds, final Class<T> activeClass, final U conds) {
-		return models(activeClass, new ModelsMethodHandler(activeClass, conds){
+		return models(activeClass, new ModelsMethodHandler(activeClass, null, null, conds){
 			@Override
 			protected Set<Object> query(Object conditions) {
 				final Set<Object> data = new LinkedHashSet<Object>();
@@ -293,11 +293,11 @@ public final class ActiveBeansUtils {
 		return model;
 	}
 	
-	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U models(final Class<T> activeClass) {
-		return models(activeClass, new ModelsMethodHandler(activeClass));
+	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U models(Class<T> activeClass, Association assoc, Model<?, ?, ?, ?> assocModel) {
+		return models(activeClass, new ModelsMethodHandler(activeClass, assoc, assocModel));
 	}
 	
-	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U models(
+	private static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U models(
 			final Class<T> activeClass, MethodHandler handler) {
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		ProxyFactory f = new ProxyFactory();

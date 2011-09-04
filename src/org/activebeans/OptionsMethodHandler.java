@@ -89,12 +89,12 @@ public class OptionsMethodHandler implements MethodHandler {
 				@Override
 				public Object val(Object... val) {
 					Association assoc = hasManyOptionMap.get(method);
-					Class<? extends Model<?, ?, ?, ?>> activeClass = assoc.with();
+					final Class<? extends Model<?, ?, ?, ?>> assocClass = assoc.with();
 					@SuppressWarnings("rawtypes")
-					Models models = ActiveBeansUtils.models(activeClass);
+					Models models = ActiveBeansUtils.models(assocClass, null, null);
 					for (Object v : val) {
 						@SuppressWarnings("rawtypes")
-						Model rawModel = ActiveBeansUtils.model(assoc.with());
+						Model rawModel = ActiveBeansUtils.model(assocClass);
 						@SuppressWarnings("rawtypes")
 						Model model = rawModel.attrs(v);
 						models.add(model);

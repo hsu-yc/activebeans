@@ -19,21 +19,27 @@ public class ModelsMethodHandler extends Delegate implements Models {
 	
 	private Class<?> conditionsInterface;
 	
+	private Association assoc;
+	
+	private Model assocModel;
+	
 	private Object conds;
 	
 	private boolean loaded;
 	
 	private Set<Object> data = new LinkedHashSet<Object>();
-
-	public ModelsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass) {
-		this(activeClass, null);
+	
+	public ModelsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass, Association assoc, Model assocModel) {
+		this(activeClass, assoc, assocModel, null);
 	}
 	
-	public ModelsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass, Object conds) {
+	public ModelsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass, Association assoc, Model assocModel, Object conds) {
 		this.activeClass = activeClass;
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		modelsInterface = intro.modelsInterface();
 		conditionsInterface = intro.conditionsInterface();
+		this.assoc = assoc;
+		this.assocModel = assocModel;
 		this.conds = conds;
 	}
 
@@ -148,7 +154,12 @@ public class ModelsMethodHandler extends Delegate implements Models {
 
 	@Override
 	public Model build() {
-		return null;
+		Model model = ActiveBeansUtils.model(activeClass);
+		if(assoc != null){
+			AttributeMethodHandler attrHandler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
+			attrHandler.set(assoc, assocModel);
+		}
+		return model;
 	}
 
 	@Override

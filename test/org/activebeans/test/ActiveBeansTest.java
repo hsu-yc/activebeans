@@ -821,6 +821,19 @@ public class ActiveBeansTest {
 	}
 	
 	@Test
+	public void buildOneToManyAssociations(){
+		Class<Post> postClass = Post.class;
+		Class<Comment> commentClass = Comment.class;
+		ActiveBeans.migrate(postClass);
+		ActiveBeans.migrate(commentClass);
+		Post post = ActiveBeans.create(postClass);
+		Comment comment = post.getComments().build();
+		comment.save();
+		assertNotNull(comment.getId());
+		assertEquals(post.getId(), comment.getPost().getId());
+	}
+	
+	@Test
 	public void models() {
 		Class<Comment> commentClass = Comment.class;
 		ActiveBeans.migrate(commentClass);
