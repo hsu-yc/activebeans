@@ -33,6 +33,32 @@ public final class ActiveBeansUtils {
 		return insert(ds, activeClass, model, null);
 	}
 	
+	private static List<Object> insertBelongsToAssociation(@SuppressWarnings("rawtypes") Model model, Association assoc){
+		AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
+		ActiveIntrospector clazzIntro = new ActiveIntrospector(assoc.with());
+		@SuppressWarnings("rawtypes")
+		Model obj = (Model) handler.get(assoc);
+		List<Property> keys = clazzIntro.keys();
+		List<Object> keyVals = new ArrayList<Object>();
+		if(obj == null){
+			keyVals.addAll(Collections.nCopies(keys.size(), null));
+		}else{
+			ActiveDelegate activeHandler = (ActiveDelegate)((ProxyObject)obj).getHandler();
+			AttributeMethodHandler attrHandler = activeHandler.attrHandler();
+			boolean saved = false;
+			for (Property key : keys) {
+				saved |= attrHandler.get(key) != null; 
+			}
+			if(!saved){
+				obj.save();
+			}
+			for (Property key : keys) {
+				keyVals.add(attrHandler.get(key)); 
+			}
+		}
+		return keyVals;
+	}
+	
 	public static <T extends Model<?, ?, ?, ?>> int insert(
 			DataSource ds, Class<T> activeClass, T model, GeneratedKeysMapHandler generatedKeys){
 		List<Object> params = new ArrayList<Object>();
@@ -47,26 +73,7 @@ public final class ActiveBeansUtils {
 			}
 		}
 		for (Association assoc : intro.belongsTos()) {
-			ActiveIntrospector clazzIntro = new ActiveIntrospector(assoc.with());
-			@SuppressWarnings("rawtypes")
-			Model obj = (Model) handler.get(assoc);
-			List<Property> keys = clazzIntro.keys();
-			if(obj == null){
-				params.addAll(Collections.nCopies(keys.size(), null));
-			}else{
-				ActiveDelegate activeHandler = (ActiveDelegate)((ProxyObject)obj).getHandler();
-				AttributeMethodHandler attrHandler = activeHandler.attrHandler();
-				boolean saved = false;
-				for (Property key : keys) {
-					saved |= attrHandler.get(key) != null; 
-				}
-				if(!saved){
-					obj.save();
-				}
-				for (Property key : keys) {
-					params.add(attrHandler.get(key)); 
-				}
-			}
+			params.addAll(insertBelongsToAssociation(model, assoc));
 		}
 		final Map<Property, Object> generatedKeyMap = new LinkedHashMap<Property, Object>();
 		int result = executePreparedSql(
@@ -127,7 +134,7 @@ public final class ActiveBeansUtils {
 			}
 		}
 		for (Association assoc : intro.belongsTos()) {
-			params.add(handler.get(assoc));
+			params.addAll(insertBelongsToAssociation(model, assoc));
 		}
 		params.addAll(keys);
 		int result = executePreparedSql(
