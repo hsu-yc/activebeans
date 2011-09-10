@@ -154,18 +154,22 @@ public class ModelsMethodHandler extends Delegate implements Models {
 
 	@Override
 	public Model build() {
+		return build(null);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public Model build(Object opts) {
 		Model model = ActiveBeansUtils.model(activeClass);
+		if(opts != null){
+			model.attrs(opts);
+		}
 		add(model);
 		if(assoc != null){
 			AttributeMethodHandler attrHandler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
 			attrHandler.set(assoc, assocModel);
 		}
 		return model;
-	}
-
-	@Override
-	public Model build(Object opts) {
-		return null;
 	}
 
 	@Override
