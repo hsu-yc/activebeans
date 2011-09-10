@@ -155,6 +155,7 @@ public class ModelsMethodHandler extends Delegate implements Models {
 	@Override
 	public Model build() {
 		Model model = ActiveBeansUtils.model(activeClass);
+		add(model);
 		if(assoc != null){
 			AttributeMethodHandler attrHandler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
 			attrHandler.set(assoc, assocModel);
