@@ -7,8 +7,6 @@ import java.util.Map;
 import javassist.util.proxy.MethodHandler;
 
 public class AttributeMethodHandler implements MethodHandler {
-
-	private Model<?, ?, ?, ?> self;
 	
 	private Class<? extends Model<?, ?, ?, ?>> activeClass;
 	
@@ -57,13 +55,7 @@ public class AttributeMethodHandler implements MethodHandler {
 	}
 	
 	public Object get(Association assoc){
-		Object rtn = assocMap.get(assoc);
-		if(rtn == null && hasManyGetterMap.containsValue(assoc)){
-			Class<? extends Model<?, ?, ?, ?>> assocClass = assoc.with();
-			rtn = ActiveBeansUtils.models(assocClass, new ActiveIntrospector(assocClass).belongsTo(activeClass), self);
-			set(assoc, rtn);
-		}
-		return rtn;
+		return assocMap.get(assoc);
 	}
 	
 	public void set(Association assoc, Object val){
@@ -73,7 +65,6 @@ public class AttributeMethodHandler implements MethodHandler {
 	@Override
 	public Object invoke(Object self, Method method, Method proceed,
 			Object[] args) throws Throwable {
-		this.self = (Model<?, ?, ?, ?>) self;
 		Object rtn = null;
 		if (propGetterMap.containsKey(method)) {
 			rtn = get(propGetterMap.get(method));
@@ -86,7 +77,13 @@ public class AttributeMethodHandler implements MethodHandler {
 			set(belongsToSetterMap.get(method), args[0]);
 			rtn = Void.TYPE;
 		} else if (hasManyGetterMap.containsKey(method)) {
-			rtn = get(hasManyGetterMap.get(method));
+			Association assoc = hasManyGetterMap.get(method);
+			rtn = get(assoc);
+			if(rtn == null && hasManyGetterMap.containsValue(assoc)){
+				Class<? extends Model<?, ?, ?, ?>> assocClass = assoc.with();
+				rtn = ActiveBeansUtils.models(assocClass, new ActiveIntrospector(assocClass).belongsTo(activeClass), (Model<?, ?, ?, ?>) self);			
+				set(assoc, rtn);
+			}
 		}
 		return rtn;
 	}

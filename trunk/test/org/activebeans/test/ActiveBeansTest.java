@@ -283,7 +283,7 @@ public class ActiveBeansTest {
 		Class<? extends Model<?, ?, ?, ?>> postClass = Post.class;
 		AttributeMethodHandler post = new AttributeMethodHandler(postClass);
 		ActiveIntrospector postIntro = new ActiveIntrospector(postClass);
-		assertNotNull(post.get(postIntro.hasMany(Comment.class)));
+		assertNull(post.get(postIntro.hasMany(Comment.class)));
 	}
 	
 	@Test
@@ -821,7 +821,7 @@ public class ActiveBeansTest {
 	}
 	
 	@Test
-	public void buildOneToManyAssociations(){
+	public void buildOneToManyAssociationsFromManyEnd(){
 		Class<Post> postClass = Post.class;
 		Class<Comment> commentClass = Comment.class;
 		ActiveBeans.migrate(postClass);
@@ -829,6 +829,19 @@ public class ActiveBeansTest {
 		Post post = ActiveBeans.create(postClass);
 		Comment comment = post.getComments().build();
 		comment.save();
+		assertNotNull(comment.getId());
+		assertEquals(post.getId(), comment.getPost().getId());
+	}
+	
+	@Test
+	public void buildOneToManyAssociationsFromOneEnd(){
+		Class<Post> postClass = Post.class;
+		Class<Comment> commentClass = Comment.class;
+		ActiveBeans.migrate(postClass);
+		ActiveBeans.migrate(commentClass);
+		Post post = ActiveBeans.create(postClass);
+		Comment comment = post.getComments().build();
+		post.save();
 		assertNotNull(comment.getId());
 		assertEquals(post.getId(), comment.getPost().getId());
 	}

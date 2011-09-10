@@ -59,6 +59,15 @@ public final class ActiveBeansUtils {
 		return keyVals;
 	}
 	
+	private static <T extends Model<?, ?, ?, ?>> void insertHasManyAssociation(Class<T> activeClass, T model, Association assoc){
+		Models<?, ?, ?, ?> objs = (Models<?, ?, ?, ?>) ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler().get(assoc);
+		if(objs != null){
+			for(@SuppressWarnings("rawtypes") Model obj : objs){
+				obj.save();
+			}
+		}
+	}
+	
 	public static <T extends Model<?, ?, ?, ?>> int insert(
 			DataSource ds, Class<T> activeClass, T model, GeneratedKeysMapHandler generatedKeys){
 		List<Object> params = new ArrayList<Object>();
@@ -97,6 +106,9 @@ public final class ActiveBeansUtils {
 		);
 		if(generatedKeys != null){
 			generatedKeys.handle(generatedKeyMap);
+		}
+		for (Association assoc : intro.hasManys()) {
+			insertHasManyAssociation(activeClass, model, assoc);
 		}
 		return result;
 	}
