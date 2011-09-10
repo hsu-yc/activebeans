@@ -826,11 +826,42 @@ public class ActiveBeansTest {
 		Class<Comment> commentClass = Comment.class;
 		ActiveBeans.migrate(postClass);
 		ActiveBeans.migrate(commentClass);
+		Post post = ActiveBeans.build(postClass);
+		Comment.Models comments = post.getComments();
+		Comment c1 = comments.build();
+		c1.save();
+		assertNotNull(c1.getId());
+		Long postId = post.getId();
+		assertEquals(postId, c1.getPost().getId());
+		String body = "body"; 
+		Comment c2 = comments.build(ActiveBeans.options(commentClass)
+			.body().val(body));
+		c2.save();
+		assertNotNull(c2.getId());
+		assertEquals(postId, c2.getPost().getId());
+		assertEquals(body, c2.getBody());
+	}
+	
+	@Test
+	public void buildOneToManyAssociationsFromSavedManyEnd(){
+		Class<Post> postClass = Post.class;
+		Class<Comment> commentClass = Comment.class;
+		ActiveBeans.migrate(postClass);
+		ActiveBeans.migrate(commentClass);
 		Post post = ActiveBeans.create(postClass);
-		Comment comment = post.getComments().build();
+		Comment.Models comments = post.getComments();
+		Comment comment = comments.build();
 		comment.save();
 		assertNotNull(comment.getId());
-		assertEquals(post.getId(), comment.getPost().getId());
+		Long postId = post.getId();
+		assertEquals(postId, comment.getPost().getId());
+		String body = "body"; 
+		Comment c2 = comments.build(ActiveBeans.options(commentClass)
+			.body().val(body));
+		c2.save();
+		assertNotNull(c2.getId());
+		assertEquals(postId, c2.getPost().getId());
+		assertEquals(body, c2.getBody());
 	}
 	
 	@Test
@@ -839,11 +870,42 @@ public class ActiveBeansTest {
 		Class<Comment> commentClass = Comment.class;
 		ActiveBeans.migrate(postClass);
 		ActiveBeans.migrate(commentClass);
-		Post post = ActiveBeans.create(postClass);
-		Comment comment = post.getComments().build();
+		Post post = ActiveBeans.build(postClass);
+		Comment.Models comments = post.getComments();
+		Comment comment = comments.build();
 		post.save();
+		Long postId = post.getId();
 		assertNotNull(comment.getId());
-		assertEquals(post.getId(), comment.getPost().getId());
+		assertEquals(postId, comment.getPost().getId());
+		String body = "body"; 
+		Comment c2 = comments.build(ActiveBeans.options(commentClass)
+			.body().val(body));
+		c2.save();
+		assertNotNull(c2.getId());
+		assertEquals(postId, c2.getPost().getId());
+		assertEquals(body, c2.getBody());
+	}
+	
+	@Test
+	public void buildOneToManyAssociationsFromSavedOneEnd(){
+		Class<Post> postClass = Post.class;
+		Class<Comment> commentClass = Comment.class;
+		ActiveBeans.migrate(postClass);
+		ActiveBeans.migrate(commentClass);
+		Post post = ActiveBeans.create(postClass);
+		Comment.Models comments = post.getComments();
+		Comment comment = comments.build();
+		post.save();
+		Long postId = post.getId();
+		assertNotNull(comment.getId());
+		assertEquals(postId, comment.getPost().getId());
+		String body = "body"; 
+		Comment c2 = comments.build(ActiveBeans.options(commentClass)
+			.body().val(body));
+		c2.save();
+		assertNotNull(c2.getId());
+		assertEquals(postId, c2.getPost().getId());
+		assertEquals(body, c2.getBody());
 	}
 	
 	@Test
