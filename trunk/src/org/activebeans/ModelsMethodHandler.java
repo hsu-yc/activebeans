@@ -174,12 +174,14 @@ public class ModelsMethodHandler extends Delegate implements Models {
 
 	@Override
 	public Model create() {
-		return null;
+		return create(null);
 	}
 
 	@Override
 	public Model create(Object opts) {
-		return null;
+		Model model = build(opts);
+		model.save();
+		return model;
 	}
 
 	@Override
