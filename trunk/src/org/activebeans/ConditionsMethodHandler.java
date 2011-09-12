@@ -141,12 +141,13 @@ public class ConditionsMethodHandler implements MethodHandler {
 		return Collections.unmodifiableMap(propMap);
 	}
 	
-	public List<Object> propertyValues(){
-		List<Object> vals = new ArrayList<Object>();
+	public List<Object> params(){
+		List<Object> params = new ArrayList<Object>();
+		params.addAll(associatedKeys);
 		for (Map<Operator, Object> valMap : propMap.values()) {
-			vals.addAll(valMap.values());
+			params.addAll(valMap.values());
 		}
-		return vals;
+		return params;
 	}
 	
 	public Map<Association, Object> associations(){

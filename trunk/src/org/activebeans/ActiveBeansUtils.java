@@ -227,9 +227,14 @@ public final class ActiveBeansUtils {
 		}
 	}
 	
-	public static <T extends Model<?, ?, U, ?>, U, V extends Models<?, ?, ?, ?>> V all(
-			final DataSource ds, final Class<T> activeClass, final U conds) {
-		return models(activeClass, new ModelsMethodHandler(activeClass, null, null, conds){
+	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U all(
+			DataSource ds, final Class<T> activeClass, Object conds) {
+		return all(ds, activeClass, null, null, conds);
+	}
+	
+	private static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U all(
+			final DataSource ds, final Class<T> activeClass, Association assoc, T assocModel, final Object conds) {
+		return models(activeClass, new ModelsMethodHandler(activeClass, assoc, assocModel, conds){
 			@Override
 			protected Set<Object> query(Object conditions) {
 				final Set<Object> data = new LinkedHashSet<Object>();
@@ -248,7 +253,7 @@ public final class ActiveBeansUtils {
 					ConditionsMethodHandler condHandler = (ConditionsMethodHandler) 
 						((ProxyObject)conditions).getHandler();
 					executePreparedSqlForResult(ds, rsHandler, 
-						table.selectAllWithOrderStatement(conditions), condHandler.propertyValues());
+						table.selectAllWithOrderStatement(conditions), condHandler.params());
 				}
 				return data;
 			}
@@ -273,7 +278,7 @@ public final class ActiveBeansUtils {
 			ConditionsMethodHandler condHandler = (ConditionsMethodHandler) 
 				((ProxyObject)conds).getHandler();
 			executePreparedSqlForResult(ds, rsHandler, 
-				table.selectFirstStatement(conds), condHandler.propertyValues());
+				table.selectFirstStatement(conds), condHandler.params());
 		}
 		return resultList.isEmpty()? null:resultList.get(0);
 	}
@@ -296,12 +301,12 @@ public final class ActiveBeansUtils {
 			ConditionsMethodHandler condHandler = (ConditionsMethodHandler) 
 				((ProxyObject)conds).getHandler();
 			executePreparedSqlForResult(ds, rsHandler, 
-				table.selectLastStatement(conds), condHandler.propertyValues());
+				table.selectLastStatement(conds), condHandler.params());
 		}
 		return resultList.isEmpty()? null:resultList.get(0);
 	}
 	
-	public static <T extends Model<?, ?, ?, ?>> T toModel(DataSource ds, ResultSet rs, Class<T> activeClass){
+	private static <T extends Model<?, ?, ?, ?>> T toModel(final DataSource ds, ResultSet rs, final Class<T> activeClass){
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		T model = ActiveBeansUtils.model(activeClass);
 		AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
@@ -313,29 +318,33 @@ public final class ActiveBeansUtils {
 			}
 		}
 		for (Association assoc : intro.belongsTos()) {
-			Class<? extends Model<?, ?, ?, ? extends Models<?, ?, ?, ?>>> assocClazz = assoc.with();
+			Class<? extends Model<?, ?, ?, ? extends Models<?, ?, ?, ?>>> assocClass = assoc.with();
 			List<Object> keys = new ArrayList<Object>();
-			for(String k : associationKeys(assocClazz)){
+			for(String k : associationKeys(assocClass)){
 				try {
 					keys.add(rs.getObject(k));
 				} catch (SQLException e) {
 					throw new ActiveBeansException(e);
 				}
 			}
-			handler.set(assoc, get(ds, assocClazz, keys));
+			handler.set(assoc, get(ds, assocClass, keys));
 		}
-//		for (Association assoc : intro.hasManys()) {
-//			Class<? extends Model<?, ?, ?, ? extends Models<?, ?, ?, ?>>> assocClazz = assoc.with();
-//			List<Object> keys = new ArrayList<Object>();
-//			for (Property k : new ActiveIntrospector(assocClazz).keys()) {
-//				try {
-//					keys.add(rs.getObject(associationColumnPrefix(assocClazz) + camelCaseToUnderscore(k.name())));
-//				} catch (SQLException e) {
-//					throw new ActiveBeansException(e);
-//				}
-//			}
-//			handler.set(assoc, get(ds, assocClazz, keys));
-//		}
+		for (Association assoc : intro.hasManys()) {
+			List<Object> keys = new ArrayList<Object>();
+			for (Property k : intro.keys()) {
+				try {
+					keys.add(rs.getObject(camelCaseToUnderscore(k.name())));
+				} catch (SQLException e) {
+					throw new ActiveBeansException(e);
+				}
+			}
+			@SuppressWarnings("rawtypes")
+			Class assocClass = assoc.with();
+			@SuppressWarnings({ "unchecked", "rawtypes" })
+			Models models = all(ds, assocClass, new ActiveIntrospector(assocClass).belongsTo(activeClass), 
+				model, conditions(assocClass, activeClass, keys));
+			handler.set(assoc, models);
+		}
 		return model;
 	}
 	
@@ -345,6 +354,10 @@ public final class ActiveBeansUtils {
 				keys.add(associationColumnPrefix(clazz) + camelCaseToUnderscore(k.name()));
 		}
 		return keys;
+	}
+	
+	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U models(Class<T> activeClass) {
+		return models(activeClass, null, null);
 	}
 	
 	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U models(Class<T> activeClass, Association assoc, Model<?, ?, ?, ?> assocModel) {

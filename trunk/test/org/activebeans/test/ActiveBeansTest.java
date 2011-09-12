@@ -1005,24 +1005,24 @@ public class ActiveBeansTest {
 		assertEquals(p1.getId(), p2.getId());
 	}
 	
-//	@Test
-//	public void getOneToManyAssociations(){
-//		Class<Post> postClass = Post.class;
-//		Class<Comment> commentClass = Comment.class;
-//		ActiveBeans.migrate(postClass);
-//		ActiveBeans.migrate(commentClass);
-//		Post p1 = ActiveBeans.build(postClass);
-//		p1.save();
-//		Comment.Models comments1 = p1.getComments();
-//		Comment c1 = comments1.create();
-//		Comment c2 = comments1.create();
-//		Post p2 = ActiveBeans.get(postClass, p1.getId());
-//		assertNotNull(p2);
-//		List<Comment> comments2 = new ArrayList<Comment>(p2.getComments());
-//		assertEquals(2, comments2.size());
-//		assertEquals(c1.getId(), comments2.get(0).getId());
-//		assertEquals(c2.getId(), comments2.get(1).getId());
-//	}
+	@Test
+	public void getOneToManyAssociations(){
+		Class<Post> postClass = Post.class;
+		Class<Comment> commentClass = Comment.class;
+		ActiveBeans.migrate(postClass);
+		ActiveBeans.migrate(commentClass);
+		Post p1 = ActiveBeans.build(postClass);
+		p1.save();
+		Comment.Models comments1 = p1.getComments();
+		Comment c1 = comments1.create();
+		Comment c2 = comments1.create();
+		Post p2 = ActiveBeans.get(postClass, p1.getId());
+		assertNotNull(p2);
+		List<Comment> comments2 = new ArrayList<Comment>(p2.getComments());
+		assertEquals(2, comments2.size());
+		assertEquals(c1.getId(), comments2.get(0).getId());
+		assertEquals(c2.getId(), comments2.get(1).getId());
+	}
 	
 	@Test
 	public void models() {
@@ -1781,7 +1781,7 @@ public class ActiveBeansTest {
 			table.selectAllStatement(conds));
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
 		assertArrayEquals(new Object[]{idEql, subjEql, subjGt, subjGte, subjLike, 
-			subjLt, subjLte, subjNot}, handler.propertyValues().toArray());
+			subjLt, subjLte, subjNot}, handler.params().toArray());
 	}
 	
 	@Test
@@ -1810,7 +1810,7 @@ public class ActiveBeansTest {
 				+ " " + table.firstLimit(), 
 			table.selectFirstStatement(conds));
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
-		assertArrayEquals(new Object[]{idEql, subjEql}, handler.propertyValues().toArray());
+		assertArrayEquals(new Object[]{idEql, subjEql}, handler.params().toArray());
 	}
 	
 	@Test
@@ -1839,7 +1839,7 @@ public class ActiveBeansTest {
 				+ " " + table.firstLimit(), 
 			table.selectLastStatement(conds));
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
-		assertArrayEquals(new Object[]{idEql, subjEql}, handler.propertyValues().toArray());
+		assertArrayEquals(new Object[]{idEql, subjEql}, handler.params().toArray());
 	}
 	
 	@Test
@@ -1858,7 +1858,7 @@ public class ActiveBeansTest {
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
 		assertEquals(postClass, handler.associatedClass());
 		assertArrayEquals(new Object[]{postId}, handler.associatedKeys().toArray());
-		assertArrayEquals(new Object[]{commentBody}, handler.propertyValues().toArray());
+		assertArrayEquals(new Object[]{postId, commentBody}, handler.params().toArray());
 	}
 	
 	@Test
