@@ -1005,6 +1005,25 @@ public class ActiveBeansTest {
 		assertEquals(p1.getId(), p2.getId());
 	}
 	
+//	@Test
+//	public void getOneToManyAssociations(){
+//		Class<Post> postClass = Post.class;
+//		Class<Comment> commentClass = Comment.class;
+//		ActiveBeans.migrate(postClass);
+//		ActiveBeans.migrate(commentClass);
+//		Post p1 = ActiveBeans.build(postClass);
+//		p1.save();
+//		Comment.Models comments1 = p1.getComments();
+//		Comment c1 = comments1.create();
+//		Comment c2 = comments1.create();
+//		Post p2 = ActiveBeans.get(postClass, p1.getId());
+//		assertNotNull(p2);
+//		List<Comment> comments2 = new ArrayList<Comment>(p2.getComments());
+//		assertEquals(2, comments2.size());
+//		assertEquals(c1.getId(), comments2.get(0).getId());
+//		assertEquals(c2.getId(), comments2.get(1).getId());
+//	}
+	
 	@Test
 	public void models() {
 		Class<Comment> commentClass = Comment.class;
@@ -1821,6 +1840,25 @@ public class ActiveBeansTest {
 			table.selectLastStatement(conds));
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
 		assertArrayEquals(new Object[]{idEql, subjEql}, handler.propertyValues().toArray());
+	}
+	
+	@Test
+	public void selectWithAssociatedConditionsStatement(){
+		long postId = 1;
+		String commentBody = "1";
+		Class<Comment> commentClass = Comment.class;
+		Class<Post> postClass = Post.class;
+		Table table = new ActiveMigration(commentClass, ds).table();
+		Comment.Conditions conds = ActiveBeansUtils.conditions(commentClass, postClass, postId)
+			.body().eql(commentBody);
+		assertEquals(table.selectAllStatement() 
+				+ " where post_id = ?"
+				+ " and body = ?", 
+			table.selectAllStatement(conds));
+		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
+		assertEquals(postClass, handler.associatedClass());
+		assertArrayEquals(new Object[]{postId}, handler.associatedKeys().toArray());
+		assertArrayEquals(new Object[]{commentBody}, handler.propertyValues().toArray());
 	}
 	
 	@Test
