@@ -7,8 +7,6 @@ import javax.sql.DataSource;
 
 public class ActiveMigration {
 
-	private static final String ASSOCIATION_SUFFIX = "_id";
-
 	private Class<?> activeClass;
 
 	private Table table;
@@ -39,6 +37,7 @@ public class ActiveMigration {
 		for (Association belongsTo : ai.belongsTos()) {
 			Class<? extends Model<?, ?, ?, ?>> belongsToClazz = belongsTo.with();
 			boolean notNull = belongsTo.required();
+			String prefix = ActiveBeansUtils.associationColumnPrefix(belongsToClazz);
 			ActiveIntrospector btci = new ActiveIntrospector(belongsToClazz);
 			for (Property prop : btci.keys()) {
 				Class<?> type = prop.type();
@@ -48,16 +47,13 @@ public class ActiveMigration {
 					len = propLen == 0 ? ActiveTypeMapper.varcharLength()
 							: propLen;
 				}
-				cols.add(new Column.Builder(ActiveBeansUtils
-						.camelCaseToUnderscore(belongsToClazz.getSimpleName())
-						+ ASSOCIATION_SUFFIX, new DataType(ActiveTypeMapper
-						.sqlTypeName(type), len)).notNull(notNull).build());
+				cols.add(new Column.Builder(prefix + ActiveBeansUtils.camelCaseToUnderscore(prop.name()), 
+					new DataType(ActiveTypeMapper.sqlTypeName(type), len)).notNull(notNull).build());
 			}
-
 		}
 		table = new Table(tableName, cols);
 	}
-
+	
 	public Table table() {
 		return table;
 	}
