@@ -91,7 +91,7 @@ public class OptionsMethodHandler implements MethodHandler {
 					Association assoc = hasManyOptionMap.get(method);
 					final Class<? extends Model<?, ?, ?, ?>> assocClass = assoc.with();
 					@SuppressWarnings("rawtypes")
-					Models models = ActiveBeansUtils.models(assocClass, null, null);
+					Models models = ActiveBeansUtils.models(assocClass);
 					for (Object v : val) {
 						@SuppressWarnings("rawtypes")
 						Model rawModel = ActiveBeansUtils.model(assocClass);
