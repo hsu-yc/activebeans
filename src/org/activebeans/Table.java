@@ -160,6 +160,13 @@ public class Table {
 		String stmt = selectAll;
 		ConditionsMethodHandler handler = (ConditionsMethodHandler) ((ProxyObject)conds).getHandler();
 		boolean empty = true;
+		Class<? extends Model<?, ?, ?, ?>> assocClass = handler.associatedClass();
+		if(assocClass != null){
+			for (String k : ActiveBeansUtils.associationKeys(assocClass)) {
+				stmt += " " + (empty?"where":"and") + " " + k + " = ?"; 
+				empty = false;
+			}
+		}
 		for (Entry<Property, Map<Operator, Object>> prop : handler.properties().entrySet()) {
 			for(Operator op : prop.getValue().keySet()){
 				stmt += " " + (empty?"where":"and") + " " + ActiveBeansUtils.camelCaseToUnderscore(prop.getKey().name())

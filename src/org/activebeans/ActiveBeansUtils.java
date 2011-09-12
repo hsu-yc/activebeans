@@ -204,6 +204,16 @@ public final class ActiveBeansUtils {
 	}
 	
 	public static <T extends Model<T, ?, U, ?>, U> U conditions(Class<T> activeClass){
+		return conditions(activeClass, null, Collections.emptyList());
+	}
+	
+	public static <T extends Model<T, ?, U, ?>, U> U conditions(Class<T> activeClass, 
+			Class<? extends Model<?, ?, ?, ?>> associatedClass, Object... associatedKeys){
+		return conditions(activeClass, associatedClass, Arrays.asList(associatedKeys));
+	}
+	
+	public static <T extends Model<T, ?, U, ?>, U> U conditions(Class<T> activeClass, 
+			Class<? extends Model<?, ?, ?, ?>> associatedClass, List<Object> associatedKeys){
 		ProxyFactory f = new ProxyFactory();
 		@SuppressWarnings("unchecked")
 		Class<U> condsInterface = (Class<U>) new ActiveIntrospector(activeClass).conditionsInterface();
@@ -211,7 +221,7 @@ public final class ActiveBeansUtils {
 		f.setFilter(new ConditionsMethodFilter(activeClass));
 		try {
 			return condsInterface.cast(f.create(new Class[0], new Object[0],
-				new ConditionsMethodHandler(activeClass)));
+				new ConditionsMethodHandler(activeClass, associatedClass, associatedKeys)));
 		} catch (Exception e) {
 			throw new ActiveBeansException(e);
 		}
@@ -302,19 +312,39 @@ public final class ActiveBeansUtils {
 				throw new ActiveBeansException(e);
 			}
 		}
-		for (Association assoc : new ActiveIntrospector(activeClass).belongsTos()) {
+		for (Association assoc : intro.belongsTos()) {
 			Class<? extends Model<?, ?, ?, ? extends Models<?, ?, ?, ?>>> assocClazz = assoc.with();
 			List<Object> keys = new ArrayList<Object>();
-			for (Property k : new ActiveIntrospector(assocClazz).keys()) {
+			for(String k : associationKeys(assocClazz)){
 				try {
-					keys.add(rs.getObject(associationColumnPrefix(assocClazz) + camelCaseToUnderscore(k.name())));
+					keys.add(rs.getObject(k));
 				} catch (SQLException e) {
 					throw new ActiveBeansException(e);
 				}
 			}
 			handler.set(assoc, get(ds, assocClazz, keys));
 		}
+//		for (Association assoc : intro.hasManys()) {
+//			Class<? extends Model<?, ?, ?, ? extends Models<?, ?, ?, ?>>> assocClazz = assoc.with();
+//			List<Object> keys = new ArrayList<Object>();
+//			for (Property k : new ActiveIntrospector(assocClazz).keys()) {
+//				try {
+//					keys.add(rs.getObject(associationColumnPrefix(assocClazz) + camelCaseToUnderscore(k.name())));
+//				} catch (SQLException e) {
+//					throw new ActiveBeansException(e);
+//				}
+//			}
+//			handler.set(assoc, get(ds, assocClazz, keys));
+//		}
 		return model;
+	}
+	
+	public static List<String> associationKeys(Class<? extends Model<?, ?, ?, ?>> clazz){
+		List<String> keys = new ArrayList<String>();
+		for (Property k : new ActiveIntrospector(clazz).keys()) {
+				keys.add(associationColumnPrefix(clazz) + camelCaseToUnderscore(k.name()));
+		}
+		return keys;
 	}
 	
 	public static <T extends Model<?, ?, ?, ?>, U extends Models<?, ?, ?, ?>> U models(Class<T> activeClass, Association assoc, Model<?, ?, ?, ?> assocModel) {

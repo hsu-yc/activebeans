@@ -78,8 +78,19 @@ public class ConditionsMethodHandler implements MethodHandler {
 	
 	private Class<? extends Model<?, ?, ?, ?>> activeClass;
 	
+	private Class<? extends Model<?, ?, ?, ?>> associatedClass;
+	
+	private List<Object> associatedKeys = new ArrayList<Object>();
+	
 	public ConditionsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass){
+		this(activeClass, null, Collections.emptyList());
+	}
+	
+	public ConditionsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass, 
+			Class<? extends Model<?, ?, ?, ?>> associatedClass, List<Object> associatedKeys){
 		this.activeClass = activeClass;
+		this.associatedClass = associatedClass;
+		this.associatedKeys.addAll(associatedKeys);
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		for (PropertyMethods methods : intro.propertyMethods()) {
 			propConditionMap.put(methods.condition(), methods.property());
@@ -168,6 +179,14 @@ public class ConditionsMethodHandler implements MethodHandler {
 	
 	public Set<Property> fields(){
 		return Collections.unmodifiableSet(fields);
+	}
+	
+	public Class<? extends Model<?, ?, ?, ?>> associatedClass(){
+		return associatedClass;
+	}
+	
+	public List<Object> associatedKeys(){
+		return Collections.unmodifiableList(associatedKeys);
 	}
 	
 	public void chain(ConditionsMethodHandler conds){
