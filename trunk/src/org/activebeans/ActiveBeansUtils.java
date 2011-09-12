@@ -23,7 +23,7 @@ import javassist.util.proxy.ProxyObject;
 import javax.sql.DataSource;
 
 public final class ActiveBeansUtils {
-
+	
 	private ActiveBeansUtils() {
 
 	}
@@ -114,21 +114,21 @@ public final class ActiveBeansUtils {
 	}
 	
 	public static <T extends Model<?, ?, ?, ?>> T get(
-			DataSource ds, final Class<T> activeClass, List<?> keys){
+			final DataSource ds, final Class<T> activeClass, List<?> keys){
 		final List<T> resultList = new ArrayList<T>();
 		executePreparedSqlForResult(ds, 
 			new ResultSetHandler() {
 				@Override
 				public void handle(ResultSet rs) throws SQLException {
 					if(rs.next()){
-						resultList.add(toModel(rs, activeClass));
+						resultList.add(toModel(ds, rs, activeClass));
 					}
 				}
 			}, 
 			new ActiveMigration(activeClass, ds).table().selectStatement(), 
 			keys
 		);
-		return resultList.isEmpty()? null:resultList.get(0);
+		return resultList.isEmpty()?null:resultList.get(0);
 	}
 	
 	public static <T extends Model<?, ?, ?, ?>> int update(DataSource ds, 
@@ -227,7 +227,7 @@ public final class ActiveBeansUtils {
 					@Override
 					public void handle(ResultSet rs) throws SQLException {
 						while(rs.next()){
-							data.add(toModel(rs, activeClass));
+							data.add(toModel(ds, rs, activeClass));
 						}
 					}
 				};
@@ -245,14 +245,14 @@ public final class ActiveBeansUtils {
 		});
 	}
 	
-	public static <T extends Model<?, ?, U, ?>, U> T first(DataSource ds, 
+	public static <T extends Model<?, ?, U, ?>, U> T first(final DataSource ds, 
 			final Class<T> activeClass, U conds){
 		final List<T> resultList = new ArrayList<T>();
 		final ResultSetHandler rsHandler = new ResultSetHandler() {
 			@Override
 			public void handle(ResultSet rs) throws SQLException {
 				if(rs.next()){
-					resultList.add(toModel(rs, activeClass));
+					resultList.add(toModel(ds, rs, activeClass));
 				}
 			}
 		};
@@ -268,14 +268,14 @@ public final class ActiveBeansUtils {
 		return resultList.isEmpty()? null:resultList.get(0);
 	}
 	
-	public static <T extends Model<?, ?, U, ?>, U> T last(DataSource ds, 
+	public static <T extends Model<?, ?, U, ?>, U> T last(final DataSource ds, 
 			final Class<T> activeClass, U conds){
 		final List<T> resultList = new ArrayList<T>();
 		final ResultSetHandler rsHandler = new ResultSetHandler() {
 			@Override
 			public void handle(ResultSet rs) throws SQLException {
 				if(rs.next()){
-					resultList.add(toModel(rs, activeClass));
+					resultList.add(toModel(ds, rs, activeClass));
 				}
 			}
 		};
@@ -291,7 +291,7 @@ public final class ActiveBeansUtils {
 		return resultList.isEmpty()? null:resultList.get(0);
 	}
 	
-	public static <T extends Model<?, ?, ?, ?>> T toModel(ResultSet rs, Class<T> activeClass){
+	public static <T extends Model<?, ?, ?, ?>> T toModel(DataSource ds, ResultSet rs, Class<T> activeClass){
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		T model = ActiveBeansUtils.model(activeClass);
 		AttributeMethodHandler handler = ((ActiveDelegate)((ProxyObject)model).getHandler()).attrHandler();
@@ -301,6 +301,18 @@ public final class ActiveBeansUtils {
 			} catch (SQLException e) {
 				throw new ActiveBeansException(e);
 			}
+		}
+		for (Association assoc : new ActiveIntrospector(activeClass).belongsTos()) {
+			Class<? extends Model<?, ?, ?, ? extends Models<?, ?, ?, ?>>> assocClazz = assoc.with();
+			List<Object> keys = new ArrayList<Object>();
+			for (Property k : new ActiveIntrospector(assocClazz).keys()) {
+				try {
+					keys.add(rs.getObject(associationColumnPrefix(assocClazz) + camelCaseToUnderscore(k.name())));
+				} catch (SQLException e) {
+					throw new ActiveBeansException(e);
+				}
+			}
+			handler.set(assoc, get(ds, assocClazz, keys));
 		}
 		return model;
 	}
@@ -348,6 +360,10 @@ public final class ActiveBeansUtils {
 			toks.add(Character.toTitleCase(tok.charAt(0)) + tok.substring(1));
 		}
 		return Introspector.decapitalize(join(toks.toArray(), "", 0, toks.size()));
+	}
+	
+	public static String associationColumnPrefix(Class<? extends Model<?, ?, ?, ?>> clazz){
+		return camelCaseToUnderscore(clazz.getSimpleName()) + "_";
 	}
 
 	public static void close(ResultSet... rsArray) {
