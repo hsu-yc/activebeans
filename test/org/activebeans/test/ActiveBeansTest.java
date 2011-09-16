@@ -59,13 +59,7 @@ import org.activebeans.test.model.Post.Models;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ActiveBeansTest {
 
@@ -761,7 +755,7 @@ public class ActiveBeansTest {
 		assertEquals(body, conds.get(bodyProp, Operator.EQL));
 		assertEquals(Order.DESC, conds.order(idProp));
 		assertTrue(conds.fields().contains(bodyProp));
-		assertEquals(Order.ASC, conds.order(bodyProp));
+		assertEquals(Order.DESC, conds.order(bodyProp));
 	}
 	
 	@Test
@@ -1023,6 +1017,35 @@ public class ActiveBeansTest {
 		assertEquals(c1.getId(), comments2.get(0).getId());
 		assertEquals(c2.getId(), comments2.get(1).getId());
 	}
+	
+	@Test
+	public void reloadModelsAfterChaining(){
+		Class<Post> postClass = Post.class;
+		Class<Comment> commentClass = Comment.class;
+		ActiveBeans.migrate(postClass);
+		ActiveBeans.migrate(commentClass);
+		Post p = ActiveBeans.create(postClass);
+		Comment.Models comments = p.getComments();
+		comments.create(ActiveBeans.options(commentClass)
+			.body().val("1")
+		);
+		comments.create(ActiveBeans.options(commentClass)
+			.body().val("2")
+		);
+		comments.create(ActiveBeans.options(commentClass)
+			.body().val("3")
+		);
+		Comment.Models modelsFromFinder = ActiveBeans.all(commentClass);
+		assertEquals(3, modelsFromFinder.size());
+		assertEquals(2, modelsFromFinder.all(ActiveBeans.conditions(commentClass)
+			.body().not("2")).size());
+		assertEquals("3", new ArrayList<Comment>(modelsFromFinder.popular()).get(0).getBody());
+		Comment.Models modelsFromAssoc = ActiveBeans.get(postClass, p.getId()).getComments();
+		assertEquals(3, modelsFromAssoc.size());
+		assertEquals(2, modelsFromAssoc.all(ActiveBeans.conditions(commentClass)
+			.body().not("2")).size());
+		assertEquals("3", new ArrayList<Comment>(modelsFromAssoc.popular()).get(0).getBody());
+ 	}
 	
 	@Test
 	public void models() {

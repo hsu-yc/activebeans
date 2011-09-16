@@ -16,7 +16,7 @@ public class Comment {
 	
 	public static Models popular() {
 		return ActiveBeans.all(Comment.class, ActiveBeans.conditions(Comment.class)
-			.body().asc());
+			.body().desc());
 	}
 
 }
