@@ -212,6 +212,7 @@ public class ModelsMethodHandler extends Delegate implements Models {
 
 	@Override
 	public Models all(Object conds) {
+		loaded = false;
 		if(this.conds == null){
 			this.conds = conds;
 		}else if(conds != null){
@@ -248,6 +249,7 @@ public class ModelsMethodHandler extends Delegate implements Models {
 	
 	private void load(){
 		if(!loaded){
+			data.clear();
 			data.addAll(query(conds));
 			loaded = true;
 		}
