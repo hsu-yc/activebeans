@@ -33,5 +33,7 @@ public interface Models<T extends Model<T, U, V, W>, U, V, W extends Models<T, U
 	T last(V conds);
 
 	Models<T, U, V, W> all(V conds);
+	
+	Models<T, U, V, W> reverse();
 
 }

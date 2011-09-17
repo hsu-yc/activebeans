@@ -6,9 +6,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javassist.util.proxy.ProxyObject;
+
+import org.activebeans.ConditionsMethodHandler.Order;
 
 @SuppressWarnings("rawtypes")
 public class ModelsMethodHandler extends Delegate implements Models {
@@ -19,6 +23,8 @@ public class ModelsMethodHandler extends Delegate implements Models {
 	
 	private Class<?> conditionsInterface;
 	
+	private Class<?> optionsInterface;
+	
 	private Association assoc;
 	
 	private Model assocModel;
@@ -28,6 +34,8 @@ public class ModelsMethodHandler extends Delegate implements Models {
 	private boolean loaded;
 	
 	private Set<Object> data = new LinkedHashSet<Object>();
+
+	private List<Property> keys;
 	
 	public ModelsMethodHandler(Class<? extends Model<?, ?, ?, ?>> activeClass, Association assoc, Model assocModel) {
 		this(activeClass, assoc, assocModel, null);
@@ -38,6 +46,8 @@ public class ModelsMethodHandler extends Delegate implements Models {
 		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
 		modelsInterface = intro.modelsInterface();
 		conditionsInterface = intro.conditionsInterface();
+		optionsInterface = intro.optionsInterface();
+		keys = intro.keys();
 		this.assoc = assoc;
 		this.assocModel = assocModel;
 		this.conds = conds;
@@ -223,17 +233,39 @@ public class ModelsMethodHandler extends Delegate implements Models {
 	}
 	
 	@Override
+	public Models reverse() {
+		loaded = false;
+		if(conds == null){
+			@SuppressWarnings("unchecked")
+			Object reverseOrders = ActiveBeansUtils.conditions(activeClass);
+			ConditionsMethodHandler handler = (ConditionsMethodHandler) ((ProxyObject)reverseOrders).getHandler();
+			for(Property k : keys){
+				handler.order(k, Order.DESC);
+			}
+			conds = reverseOrders;
+		}else{
+			ConditionsMethodHandler handler = (ConditionsMethodHandler) ((ProxyObject)conds).getHandler();
+			for (Entry<Property, Order> e : handler.reverseOrders().entrySet()) {
+				handler.order(e.getKey(), e.getValue());
+			}
+		}
+		return (Models) self();
+	}
+	
+	@Override
 	protected Object methodMissing(Object self, Method method, Method proceed,
 			Object[] args) throws Throwable {
 		String name = method.getName();
 		Class<?>[] params = method.getParameterTypes();
 		Object rtn = null;
-		boolean conditionsType = params.length > 0?params[0].equals(conditionsInterface):false;
-		Object arg = conditionsType?args[0]:null; 
-		if(name.equals("all") && conditionsType){
+		boolean hasParams = params.length > 0;
+		Object arg = hasParams?args[0]:null; 
+		if(name.equals("all") && hasParams?params[0].equals(conditionsInterface):false){
 			rtn = all(arg);
-		}else if(name.equals("attrs") && conditionsType){
+		}else if(name.equals("attrs") && hasParams?params[0].equals(optionsInterface):false){
 			attrs(arg);
+		}else if(name.equals("reverse") && !hasParams){
+			reverse();
 		}else if(method.getReturnType().equals(modelsInterface)){
 			try{
 				Method finder = activeClass.getMethod(name, params);

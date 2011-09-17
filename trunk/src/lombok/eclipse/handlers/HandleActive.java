@@ -344,6 +344,8 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 		methods.add(covariantAttrsMethod(interf, interfRef,
 				Eclipse.copyType(optionsRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
+		methods.add(covariantReverseMethod(interf, interfRef,
+				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.addAll(new FinderMethodRetriever(node.up())
 				.extractInterfaceMethods(interf, source));
 		interf.methods = methods.toArray(new MethodDeclaration[0]);
@@ -425,6 +427,25 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 		method.annotations = null;
 		method.arguments = new Argument[] { param };
 		method.selector = "attrs".toCharArray();
+		method.binding = null;
+		method.thrownExceptions = null;
+		method.typeParameters = null;
+		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
+		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
+		return method;
+	}
+	
+	private static MethodDeclaration covariantReverseMethod(TypeDeclaration parent, 
+			TypeReference type, int modifier, ASTNode source) {
+		MethodDeclaration method = new MethodDeclaration(
+				parent.compilationResult);
+		Eclipse.setGeneratedBy(method, source);
+		method.modifiers = modifier;
+		method.returnType = Eclipse.copyType(type, source);
+		method.annotations = null;
+		method.arguments = null;
+		method.selector = "reverse".toCharArray();
 		method.binding = null;
 		method.thrownExceptions = null;
 		method.typeParameters = null;
