@@ -1047,6 +1047,21 @@ public class ActiveBeansTest {
 		assertEquals("3", new ArrayList<Comment>(modelsFromAssoc.popular()).get(0).getBody());
  	}
 	
+	@Test 
+	public void reverseModelsOrder(){
+		Class<Post> postClass = Post.class;
+		ActiveBeans.migrate(postClass);
+		Post p1 = ActiveBeans.create(postClass);
+		Post p2 = ActiveBeans.create(postClass);
+		Models modelsWithDefaultOrders = ActiveBeans.all(postClass);
+		assertEquals(p1.getId(), new ArrayList<Post>(modelsWithDefaultOrders).get(0).getId());
+		assertEquals(p2.getId(), new ArrayList<Post>(modelsWithDefaultOrders.reverse()).get(0).getId());
+		Models modelsWithOrders = ActiveBeans.all(postClass, ActiveBeans.conditions(postClass)
+			.id().asc());
+		assertEquals(p1.getId(), new ArrayList<Post>(modelsWithOrders).get(0).getId());
+		assertEquals(p2.getId(), new ArrayList<Post>(modelsWithOrders.reverse()).get(0).getId());
+	}
+	
 	@Test
 	public void models() {
 		Class<Comment> commentClass = Comment.class;
