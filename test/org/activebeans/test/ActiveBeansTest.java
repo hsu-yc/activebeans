@@ -1511,8 +1511,8 @@ public class ActiveBeansTest {
 				.autoIncrement(true).build(),
 			new Column.Builder(name, new DataType("varchar")).build()
 		);
-		assertEquals("select " + id + ", " + name + " from " + tableName 
-			+ " where " + id + " = ?", table.selectStatement());
+		assertEquals("select " + tableName + "." + id + ", " + tableName + "." + name + " from " + tableName 
+			+ " where " + tableName + "." + id + " = ?", table.selectStatement());
 	}
 	
 	@Test 
@@ -1757,9 +1757,9 @@ public class ActiveBeansTest {
 				.autoIncrement(true).build(),
 			new Column.Builder(name, new DataType("varchar")).build()
 		);
-		String selectAll = "select " + id + ", " + name + " from " + tableName;
+		String selectAll = "select " + tableName + "." + id + ", " + tableName + "." + name + " from " + tableName;
 		assertEquals(selectAll, table.selectAllStatement());
-		assertEquals(selectAll + " order by " + id, table.selectAllWithOrderStatement());
+		assertEquals(selectAll + " order by " + tableName + "." + id, table.selectAllWithOrderStatement());
 	}
 	
 	@Test 
@@ -1822,21 +1822,22 @@ public class ActiveBeansTest {
 			.subject().nin(subjNin)
 			.created().in()
 			.created().nin();
+		String tableName = table.name();
 		assertEquals(table.selectAllStatement() 
-				+ " where id = ?"
-				+ " and id in ('')"
-				+ " and id not in (?, ?)"
-				+ " and subject = ?"
-				+ " and subject > ?"
-				+ " and subject >= ?"
-				+ " and subject like ?"
-				+ " and subject < ?"
-				+ " and subject <= ?"
-				+ " and subject != ?"
-				+ " and subject in (?, ?, ?)"
-				+ " and subject not in (?)"
-				+ " and created in ('')"
-				+ " and created not in ('')", 
+				+ " where " + tableName + "." + "id = ?"
+				+ " and " + tableName + "." + "id in ('')"
+				+ " and " + tableName + "." + "id not in (?, ?)"
+				+ " and " + tableName + "." + "subject = ?"
+				+ " and " + tableName + "." + "subject > ?"
+				+ " and " + tableName + "." + "subject >= ?"
+				+ " and " + tableName + "." + "subject like ?"
+				+ " and " + tableName + "." + "subject < ?"
+				+ " and " + tableName + "." + "subject <= ?"
+				+ " and " + tableName + "." + "subject != ?"
+				+ " and " + tableName + "." + "subject in (?, ?, ?)"
+				+ " and " + tableName + "." + "subject not in (?)"
+				+ " and " + tableName + "." + "created in ('')"
+				+ " and " + tableName + "." + "created not in ('')", 
 			table.selectAllStatement(conds));
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
 		Object[] emptyVals = {};
@@ -1863,9 +1864,10 @@ public class ActiveBeansTest {
 		Conditions conds = ActiveBeans.conditions(postClass)
 			.id().eql(idEql)
 			.subject().eql(subjEql);
+		String tableName = table.name();
 		assertEquals(table.selectAllStatement() 
-				+ " where id = ?"
-				+ " and subject = ?"
+				+ " where " + tableName + "." + "id = ?"
+				+ " and " + tableName + "." + "subject = ?"
 				+ " " + table.defaultOrder()
 				+ " " + table.firstLimit(), 
 			table.selectFirstStatement(conds));
@@ -1892,9 +1894,10 @@ public class ActiveBeansTest {
 		Conditions conds = ActiveBeans.conditions(postClass)
 			.id().eql(idEql)
 			.subject().eql(subjEql);
+		String tableName = table.name();
 		assertEquals(table.selectAllStatement() 
-				+ " where id = ?"
-				+ " and subject = ?"
+				+ " where " + tableName + "." + "id = ?"
+				+ " and " + tableName + "." + "subject = ?"
 				+ " " + table.reverseOrder()
 				+ " " + table.firstLimit(), 
 			table.selectLastStatement(conds));
@@ -1911,9 +1914,10 @@ public class ActiveBeansTest {
 		Table table = new ActiveMigration(commentClass, ds).table();
 		Comment.Conditions conds = ActiveBeansUtils.conditions(commentClass, postClass, postId)
 			.body().eql(commentBody);
+		String tableName = table.name();
 		assertEquals(table.selectAllStatement() 
-				+ " where post_id = ?"
-				+ " and body = ?", 
+				+ " where " + tableName + "." + "post_id = ?"
+				+ " and " + tableName + "." + "body = ?", 
 			table.selectAllStatement(conds));
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
 		assertEquals(postClass, handler.associatedClass());

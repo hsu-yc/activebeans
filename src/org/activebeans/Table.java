@@ -77,13 +77,13 @@ public class Table {
 		selectAll = "select";
 		for (int i=0;  i < cols.size(); i++) {
 			Column c = cols.get(i);
-			selectAll += (i == 0 ? "" : ",") + " " + c.name();
+			selectAll += (i == 0 ? "" : ",") + " " + qualify(c.name());
 		}
 		selectAll += " from " + name;
 		select = selectAll + " where";
 		for (int i = 0; i < numOfKeys; i++) {
 			select += (i == 0 ? "" : " and")
-				+ " " + keys.get(i).name() + " = ?";
+				+ " " + qualify(keys.get(i).name()) + " = ?";
 		}
 		update = "update " + name + " set";
 		boolean firstUpdateCol = true;
@@ -107,11 +107,11 @@ public class Table {
 		}
 		defaultOrder = "order by";
 		for (int i = 0; i < numOfKeys; i++) {
-			defaultOrder += (i == 0 ? "" : ",") + " " + keys.get(i).name();
+			defaultOrder += (i == 0 ? "" : ",") + " " + qualify(keys.get(i).name());
 		}
 		reverseOrder = "order by";
 		for (int i = 0; i < numOfKeys; i++) {
-			reverseOrder += (i == 0 ? "" : ",") + " " + keys.get(i).name() + " desc";
+			reverseOrder += (i == 0 ? "" : ",") + " " + qualify(keys.get(i).name()) + " desc";
 		}
 	}
 
@@ -163,14 +163,14 @@ public class Table {
 		Class<? extends Model<?, ?, ?, ?>> assocClass = handler.associatedClass();
 		if(assocClass != null){
 			for (String k : ActiveBeansUtils.associationKeys(assocClass)) {
-				stmt += " " + (empty?"where":"and") + " " + k + " = ?"; 
+				stmt += " " + (empty?"where":"and") + " " + qualify(k) + " = ?"; 
 				empty = false;
 			}
 		}
 		for (Entry<Property, Map<Operator, Object>> prop : handler.properties().entrySet()) {
 			for(Entry<Operator, Object> exp : prop.getValue().entrySet()){
 				Operator op = exp.getKey();
-				stmt += " " + (empty?"where":"and") + " " + ActiveBeansUtils.camelCaseToUnderscore(prop.getKey().name())
+				stmt += " " + (empty?"where":"and") + " " + qualify(ActiveBeansUtils.camelCaseToUnderscore(prop.getKey().name()))
 					+ " " + op + " " + op.prepareOperand(exp.getValue());
 				empty = false;
 			}
@@ -252,7 +252,7 @@ public class Table {
 		return stmt;
 	}
 
-	public static String propertyOrderClause(Map<Property, Order> order, String defaultClause){
+	public String propertyOrderClause(Map<Property, Order> order, String defaultClause){
 		String orderClause;
 		if(order.isEmpty()){
 			orderClause = defaultClause;
@@ -262,10 +262,10 @@ public class Table {
 		return orderClause;
 	}
 	
-	public static String propertyOrderClause(Map<Property, Order> order){
+	public String propertyOrderClause(Map<Property, Order> order){
 		Map<String, Order> o = new LinkedHashMap<String, Order>(); 
 		for (Entry<Property, Order> e : order.entrySet()) {
-			o.put(ActiveBeansUtils.camelCaseToUnderscore(e.getKey().name()), e.getValue());
+			o.put(qualify(ActiveBeansUtils.camelCaseToUnderscore(e.getKey().name())), e.getValue());
 		}
 		return stringOrderClause(o);
 	}
@@ -278,6 +278,10 @@ public class Table {
 			first = false;
 		}
 		return clause;
+	}
+	
+	private String qualify(String identifier){
+		return name + "." + identifier;
 	}
 
 }
