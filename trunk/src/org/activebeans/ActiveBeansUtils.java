@@ -348,6 +348,14 @@ public final class ActiveBeansUtils {
 		return model;
 	}
 	
+	public static List<String> keys(Class<? extends Model<?, ?, ?, ?>> clazz){
+		List<String> keys = new ArrayList<String>();
+		for (Property k : new ActiveIntrospector(clazz).keys()) {
+				keys.add(camelCaseToUnderscore(k.name()));
+		}
+		return keys;
+	}
+	
 	public static List<String> associationKeys(Class<? extends Model<?, ?, ?, ?>> clazz){
 		List<String> keys = new ArrayList<String>();
 		for (Property k : new ActiveIntrospector(clazz).keys()) {

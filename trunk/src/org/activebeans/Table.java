@@ -159,7 +159,40 @@ public class Table {
 	public String selectAllStatement(Object conds){
 		String stmt = selectAll;
 		ConditionsMethodHandler handler = (ConditionsMethodHandler) ((ProxyObject)conds).getHandler();
+		Class<? extends Model<?, ?, ?, ?>> clazz = handler.activeClass();
+		ActiveIntrospector intro = new ActiveIntrospector(clazz);
 		boolean empty = true;
+		for(Entry<Association, Object> nested : handler.associations().entrySet()){
+			Association assoc = nested.getKey();
+			Class<? extends Model<?, ?, ?, ?>> assocClass = assoc.with();
+			String assocTableName = ActiveBeansUtils.camelCaseToUnderscore(
+				assocClass.getSimpleName());
+			boolean isBelongsTo = intro.belongsTo(assocClass) != null;
+			if(isBelongsTo || intro.hasMany(assocClass) != null){
+				stmt += " join " + assocTableName + " on ";
+				List<String> foreignKeys;
+				List<String> keys;
+				if(isBelongsTo){
+					foreignKeys = ActiveBeansUtils.associationKeys(assocClass);
+					keys = ActiveBeansUtils.keys(assocClass);
+				}else{
+					foreignKeys = ActiveBeansUtils.keys(clazz);
+					keys = ActiveBeansUtils.associationKeys(clazz);
+				}
+				for(int i=0; i<keys.size(); i++){
+					stmt += qualify(assocTableName, keys.get(i)) + " = " + qualify(foreignKeys.get(i));
+				}
+				ConditionsMethodHandler assocHandler = (ConditionsMethodHandler) ((ProxyObject)nested.getValue()).getHandler();
+				for (Entry<Property, Map<Operator, Object>> prop : assocHandler.properties().entrySet()) {
+					for(Entry<Operator, Object> exp : prop.getValue().entrySet()){
+						Operator op = exp.getKey();
+						stmt += " " + (empty?"where":"and") + " " + qualify(assocTableName, ActiveBeansUtils.camelCaseToUnderscore(prop.getKey().name()))
+							+ " " + op + " " + op.prepareOperand(exp.getValue());
+						empty = false;
+					}
+				}
+			}
+		}
 		Class<? extends Model<?, ?, ?, ?>> assocClass = handler.associatedClass();
 		if(assocClass != null){
 			for (String k : ActiveBeansUtils.associationKeys(assocClass)) {
@@ -281,7 +314,11 @@ public class Table {
 	}
 	
 	private String qualify(String identifier){
-		return name + "." + identifier;
+		return qualify(name, identifier);
+	}
+	
+	private static String qualify(String qualifier, String identifier){
+		return qualifier + "." + identifier;
 	}
 
 }

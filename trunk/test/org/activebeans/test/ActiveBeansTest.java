@@ -1824,25 +1824,47 @@ public class ActiveBeansTest {
 			.created().nin();
 		String tableName = table.name();
 		assertEquals(table.selectAllStatement() 
-				+ " where " + tableName + "." + "id = ?"
-				+ " and " + tableName + "." + "id in ('')"
-				+ " and " + tableName + "." + "id not in (?, ?)"
-				+ " and " + tableName + "." + "subject = ?"
-				+ " and " + tableName + "." + "subject > ?"
-				+ " and " + tableName + "." + "subject >= ?"
-				+ " and " + tableName + "." + "subject like ?"
-				+ " and " + tableName + "." + "subject < ?"
-				+ " and " + tableName + "." + "subject <= ?"
-				+ " and " + tableName + "." + "subject != ?"
-				+ " and " + tableName + "." + "subject in (?, ?, ?)"
-				+ " and " + tableName + "." + "subject not in (?)"
-				+ " and " + tableName + "." + "created in ('')"
-				+ " and " + tableName + "." + "created not in ('')", 
+				+ " where " + tableName + ".id = ?"
+				+ " and " + tableName + ".id in ('')"
+				+ " and " + tableName + ".id not in (?, ?)"
+				+ " and " + tableName + ".subject = ?"
+				+ " and " + tableName + ".subject > ?"
+				+ " and " + tableName + ".subject >= ?"
+				+ " and " + tableName + ".subject like ?"
+				+ " and " + tableName + ".subject < ?"
+				+ " and " + tableName + ".subject <= ?"
+				+ " and " + tableName + ".subject != ?"
+				+ " and " + tableName + ".subject in (?, ?, ?)"
+				+ " and " + tableName + ".subject not in (?)"
+				+ " and " + tableName + ".created in ('')"
+				+ " and " + tableName + ".created not in ('')", 
 			table.selectAllStatement(conds));
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
 		Object[] emptyVals = {};
 		assertArrayEquals(new Object[]{idEql, idIn, idNin, subjEql, subjGt, subjGte, subjLike, 
 			subjLt, subjLte, subjNot, subjIn, subjNin, emptyVals, emptyVals}, handler.params().toArray());
+	}
+	
+	@Test
+	public void selectWithNestedConditionsStatement(){
+		Class<Post> postClass = Post.class;
+		Class<Comment> commentClass = Comment.class;
+		String subjVal = "subj";
+		String bodyVal = "body";
+		Post.Conditions conds = ActiveBeans.conditions(commentClass)
+			.body().eql(bodyVal)
+			.post().on().subject().eql(subjVal);
+		Table postTable = new ActiveMigration(postClass, ds).table();
+		Table commentTable = new ActiveMigration(commentClass, ds).table();
+		String postTableName = postTable.name();
+		String commentTableName = commentTable.name();
+		assertEquals(postTable.selectAllStatement()
+				+ " join " + commentTableName + " on " + commentTableName + ".post_id = " + postTableName + ".id"  
+				+ " where " + commentTableName + ".body = ?"
+				+ " and " + postTableName + ".subject = ?",
+			postTable.selectAllStatement(conds));
+		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
+		assertArrayEquals(new Object[]{bodyVal, subjVal}, handler.params().toArray());
 	}
 	
 	@Test
@@ -1866,8 +1888,8 @@ public class ActiveBeansTest {
 			.subject().eql(subjEql);
 		String tableName = table.name();
 		assertEquals(table.selectAllStatement() 
-				+ " where " + tableName + "." + "id = ?"
-				+ " and " + tableName + "." + "subject = ?"
+				+ " where " + tableName + ".id = ?"
+				+ " and " + tableName + ".subject = ?"
 				+ " " + table.defaultOrder()
 				+ " " + table.firstLimit(), 
 			table.selectFirstStatement(conds));
@@ -1896,8 +1918,8 @@ public class ActiveBeansTest {
 			.subject().eql(subjEql);
 		String tableName = table.name();
 		assertEquals(table.selectAllStatement() 
-				+ " where " + tableName + "." + "id = ?"
-				+ " and " + tableName + "." + "subject = ?"
+				+ " where " + tableName + ".id = ?"
+				+ " and " + tableName + ".subject = ?"
 				+ " " + table.reverseOrder()
 				+ " " + table.firstLimit(), 
 			table.selectLastStatement(conds));
@@ -1916,8 +1938,8 @@ public class ActiveBeansTest {
 			.body().eql(commentBody);
 		String tableName = table.name();
 		assertEquals(table.selectAllStatement() 
-				+ " where " + tableName + "." + "post_id = ?"
-				+ " and " + tableName + "." + "body = ?", 
+				+ " where " + tableName + ".post_id = ?"
+				+ " and " + tableName + ".body = ?", 
 			table.selectAllStatement(conds));
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
 		assertEquals(postClass, handler.associatedClass());
