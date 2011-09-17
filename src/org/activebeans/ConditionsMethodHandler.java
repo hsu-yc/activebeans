@@ -132,6 +132,10 @@ public class ConditionsMethodHandler implements MethodHandler {
 		}
 	}
 	
+	public Class<? extends Model<?, ?, ?, ?>> activeClass(){
+		return activeClass;
+	}
+	
 	public void set(Property prop, Operator op, Object val){
 		Map<Operator, Object> map = propMap.get(prop);
 		if(map == null){
@@ -172,6 +176,11 @@ public class ConditionsMethodHandler implements MethodHandler {
 	
 	public List<Object> params(){
 		List<Object> params = new ArrayList<Object>();
+		for (Object conds : assocMap.values()) {
+			for (Map<Operator, Object> valMap : ((ConditionsMethodHandler)((ProxyObject)conds).getHandler()).propMap.values()) {
+				params.addAll(valMap.values());
+			}
+		}
 		params.addAll(associatedKeys);
 		for (Map<Operator, Object> valMap : propMap.values()) {
 			params.addAll(valMap.values());
