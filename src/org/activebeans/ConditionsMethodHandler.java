@@ -46,8 +46,20 @@ public class ConditionsMethodHandler implements MethodHandler {
 		GTE(">="), 
 		LTE("<="), 
 		NOT("!="), 
-		EQL("="), 
-		LIKE("like");
+		EQL("=") , 
+		LIKE("like"),
+		IN("in") {
+			@Override
+			public String prepareOperand(Object val) {
+				return prepareMultipleOperands((Object[])val);
+			}
+		},
+		NIN("not in") {
+			@Override
+			public String prepareOperand(Object val) {
+				return prepareMultipleOperands((Object[])val);
+			}
+		};
 		
 		private String sqlOp;
 		
@@ -58,6 +70,23 @@ public class ConditionsMethodHandler implements MethodHandler {
 		@Override
 		public String toString() {
 			return sqlOp;
+		}
+		
+		public String prepareOperand(Object val){
+			return "?";
+		}
+		
+		private static String prepareMultipleOperands(Object[] vals){
+			String rs;
+			if(vals.length == 0){
+				rs = "''";
+			}else{
+				rs = "";
+				for(int i=0; i<vals.length; i++){
+					rs += (i>0?", ":"") + "?";
+				}
+			}
+			return "(" + rs + ")";
 		}
 		
 	}
@@ -241,6 +270,16 @@ public class ConditionsMethodHandler implements MethodHandler {
 				@Override
 				public Object like(Object val) {
 					set(prop, Operator.LIKE, val);
+					return self;
+				}
+				@Override
+				public Object in(Object... val) {
+					set(prop, Operator.IN, val);
+					return self;
+				}
+				@Override
+				public Object nin(Object... val) {
+					set(prop, Operator.NIN, val);
 					return self;
 				}
 				@Override
