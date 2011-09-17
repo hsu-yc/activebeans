@@ -1137,6 +1137,7 @@ public class ActiveBeansTest {
 		Condition<Comment.Conditions, Long> id = comment.id();
 		assertNotNull(id);
 		Long idVal = 1L;
+		Long[] idVals = {1L, 2L, 3L};
 		assertSame(comment, id.eql(idVal));
 		assertSame(comment, id.gt(idVal));
 		assertSame(comment, id.gte(idVal));
@@ -1144,6 +1145,8 @@ public class ActiveBeansTest {
 		assertSame(comment, id.lt(idVal));
 		assertSame(comment, id.lte(idVal));
 		assertSame(comment, id.not(idVal));
+		assertSame(comment, id.in(idVals));
+		assertSame(comment, id.nin(idVals));
 		Class<Post> postClass = Post.class;
 		QueryPath<Comment.Conditions, Conditions> postPath = comment.post();
 		assertNotNull(postPath);
@@ -1168,6 +1171,8 @@ public class ActiveBeansTest {
 		assertEquals(idVal, idMap.get(Operator.LT));
 		assertEquals(idVal, idMap.get(Operator.LTE));
 		assertEquals(idVal, idMap.get(Operator.NOT));
+		assertEquals(idVals, idMap.get(Operator.IN));
+		assertEquals(idVals, idMap.get(Operator.NIN));
 		Object post = commentHandler.get(commentIntro.belongsTo(postClass));
 		assertTrue(ActiveBeans.conditions(postClass).getClass().isAssignableFrom(
 			post.getClass()));
@@ -1773,7 +1778,9 @@ public class ActiveBeansTest {
 	
 	@Test
 	public void selectWithConditionsStatement(){
-		long idEql = 1;
+		Long idEql = 1L;
+		Long[] idIn = {};
+		Long[] idNin = {2L, 3L};
 		String subjEql = "1";
 		String subjGt = "2";
 		String subjGte = "3";
@@ -1781,30 +1788,45 @@ public class ActiveBeansTest {
 		String subjLt = "5";
 		String subjLte = "6";
 		String subjNot = "7";
+		String[] subjIn = {"8", "9", "10"};
+		String[] subjNin = {"11"};
 		Class<Post> postClass = Post.class;
 		Table table = new ActiveMigration(postClass, ds).table();
 		Conditions conds = ActiveBeans.conditions(postClass)
 			.id().eql(idEql)
+			.id().in(idIn)
+			.id().nin(idNin)
 			.subject().eql(subjEql)
 			.subject().gt(subjGt)
 			.subject().gte(subjGte)
 			.subject().like(subjLike)
 			.subject().lt(subjLt)
 			.subject().lte(subjLte)
-			.subject().not(subjNot);
+			.subject().not(subjNot)
+			.subject().in(subjIn)
+			.subject().nin(subjNin)
+			.created().in()
+			.created().nin();
 		assertEquals(table.selectAllStatement() 
 				+ " where id = ?"
+				+ " and id in ('')"
+				+ " and id not in (?, ?)"
 				+ " and subject = ?"
 				+ " and subject > ?"
 				+ " and subject >= ?"
 				+ " and subject like ?"
 				+ " and subject < ?"
 				+ " and subject <= ?"
-				+ " and subject != ?", 
+				+ " and subject != ?"
+				+ " and subject in (?, ?, ?)"
+				+ " and subject not in (?)"
+				+ " and created in ('')"
+				+ " and created not in ('')", 
 			table.selectAllStatement(conds));
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
-		assertArrayEquals(new Object[]{idEql, subjEql, subjGt, subjGte, subjLike, 
-			subjLt, subjLte, subjNot}, handler.params().toArray());
+		Object[] emptyVals = {};
+		assertArrayEquals(new Object[]{idEql, idIn, idNin, subjEql, subjGt, subjGte, subjLike, 
+			subjLt, subjLte, subjNot, subjIn, subjNin, emptyVals, emptyVals}, handler.params().toArray());
 	}
 	
 	@Test

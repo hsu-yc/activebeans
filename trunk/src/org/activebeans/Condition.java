@@ -14,7 +14,11 @@ public interface Condition<T, U> {
 	
 	T eql(U val);
 	
-	T like(U val);
+	T like(U val); 
+	
+	T in(U... val);
+	
+	T nin(U... val);
 	
 	T field();
 	

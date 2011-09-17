@@ -168,9 +168,10 @@ public class Table {
 			}
 		}
 		for (Entry<Property, Map<Operator, Object>> prop : handler.properties().entrySet()) {
-			for(Operator op : prop.getValue().keySet()){
+			for(Entry<Operator, Object> exp : prop.getValue().entrySet()){
+				Operator op = exp.getKey();
 				stmt += " " + (empty?"where":"and") + " " + ActiveBeansUtils.camelCaseToUnderscore(prop.getKey().name())
-					+ " " + op + " ?";
+					+ " " + op + " " + op.prepareOperand(exp.getValue());
 				empty = false;
 			}
 		}
