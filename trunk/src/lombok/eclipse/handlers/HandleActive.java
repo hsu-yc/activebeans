@@ -338,7 +338,7 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 		interfRef.sourceEnd = source.sourceEnd;
 		Eclipse.setGeneratedBy(interfRef, source);
 		List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
-		methods.add(covariantAllFinderWithOptions(interf, interfRef,
+		methods.add(covariantAndFinderWithOptions(interf, interfRef,
 				Eclipse.copyType(conditionsRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.add(covariantAttrsMethod(interf, interfRef,
@@ -381,7 +381,7 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 		return interf;
 	}
 
-	private static MethodDeclaration covariantAllFinderWithOptions(
+	private static MethodDeclaration covariantAndFinderWithOptions(
 			TypeDeclaration parent, TypeReference type, TypeReference conditions,
 			int modifier, ASTNode source) {
 		int pS = source.sourceStart, pE = source.sourceEnd;
@@ -398,7 +398,7 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 		method.returnType = Eclipse.copyType(type, source);
 		method.annotations = null;
 		method.arguments = null;
-		method.selector = "all".toCharArray();
+		method.selector = "and".toCharArray();
 		method.binding = null;
 		method.thrownExceptions = null;
 		method.typeParameters = null;

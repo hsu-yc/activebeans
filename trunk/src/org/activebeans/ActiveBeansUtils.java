@@ -1,6 +1,7 @@
 package org.activebeans;
 
 import java.beans.Introspector;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 import javassist.util.proxy.ProxyObject;
@@ -379,7 +381,14 @@ public final class ActiveBeansUtils {
 		@SuppressWarnings("unchecked")
 		final Class<U> modelsInterface = (Class<U>) intro.modelsInterface();
 		f.setInterfaces(new Class[] { modelsInterface });
-		f.setFilter(new ClassMethodFilter(modelsInterface));
+		f.setFilter(new MethodFilter() {
+			@Override
+			public boolean isHandled(Method m) {
+				return !(m.getDeclaringClass().equals(Models.class)
+					&& Arrays.asList("and", "attrs", "reverse")
+					.contains(m.getName()));
+			}
+		});
 		try {
 			return modelsInterface.cast(f.create(new Class[0],
 				new Object[0], handler));
