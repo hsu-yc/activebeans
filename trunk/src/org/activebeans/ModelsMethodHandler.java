@@ -233,6 +233,16 @@ public class ModelsMethodHandler extends Delegate implements Models {
 	}
 	
 	@Override
+	public Models or(Object conds) {
+		return null;
+	}
+
+	@Override
+	public Models not(Object conds) {
+		return null;
+	}
+	
+	@Override
 	public Models reverse() {
 		loaded = false;
 		if(conds == null){
