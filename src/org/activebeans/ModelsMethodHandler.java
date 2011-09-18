@@ -201,7 +201,7 @@ public class ModelsMethodHandler extends Delegate implements Models {
 
 	@Override
 	public Model first(Object conds) {
-		all(conds);
+		and(conds);
 		@SuppressWarnings("unchecked")
 		Model first = ActiveBeansUtils.first(ActiveBeans.repository(), activeClass, this.conds);
 		return first;
@@ -214,14 +214,14 @@ public class ModelsMethodHandler extends Delegate implements Models {
 
 	@Override
 	public Model last(Object conds) {
-		all(conds);
+		and(conds);
 		@SuppressWarnings("unchecked")
 		Model last = ActiveBeansUtils.last(ActiveBeans.repository(), activeClass, this.conds);
 		return last;
 	}
 
 	@Override
-	public Models all(Object conds) {
+	public Models and(Object conds) {
 		loaded = false;
 		if(this.conds == null){
 			this.conds = conds;
@@ -260,8 +260,8 @@ public class ModelsMethodHandler extends Delegate implements Models {
 		Object rtn = null;
 		boolean hasParams = params.length > 0;
 		Object arg = hasParams?args[0]:null; 
-		if(name.equals("all") && hasParams?params[0].equals(conditionsInterface):false){
-			rtn = all(arg);
+		if(name.equals("and") && hasParams?params[0].equals(conditionsInterface):false){
+			rtn = and(arg);
 		}else if(name.equals("attrs") && hasParams?params[0].equals(optionsInterface):false){
 			attrs(arg);
 		}else if(name.equals("reverse") && !hasParams){
@@ -271,7 +271,7 @@ public class ModelsMethodHandler extends Delegate implements Models {
 				Method finder = activeClass.getMethod(name, params);
 				if(Modifier.isStatic(finder.getModifiers())){
 					ModelsMethodHandler models = (ModelsMethodHandler) ((ProxyObject)finder.invoke(null, args)).getHandler();
-					all(models.conditions());
+					and(models.conditions());
 					rtn = self;
 				}
 			}catch(NoSuchMethodException e){}

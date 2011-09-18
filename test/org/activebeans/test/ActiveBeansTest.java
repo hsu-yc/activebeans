@@ -564,7 +564,7 @@ public class ActiveBeansTest {
 			cnt++;
 		}
 		assertEquals(1, cnt);
-		Models allInModels = ActiveBeans.all(activeClass).all(ActiveBeans.conditions(activeClass)
+		Models allInModels = ActiveBeans.all(activeClass).and(ActiveBeans.conditions(activeClass)
 			.subject().eql(subj1));
 		assertNotNull(allInModels);
 		cnt = 0;
@@ -734,11 +734,11 @@ public class ActiveBeansTest {
 		Long id= 1L;
 		String body = "body";
 		Comment.Models models = ActiveBeans.all(commentClass)
-			.all(ActiveBeans.conditions(commentClass)
+			.and(ActiveBeans.conditions(commentClass)
 				.id().eql(id)
 				.id().asc()
 				.id().field()
-			).all(ActiveBeans.conditions(commentClass)
+			).and(ActiveBeans.conditions(commentClass)
 				.id().desc()
 				.body().eql(body)
 				.body().field()
@@ -1037,12 +1037,12 @@ public class ActiveBeansTest {
 		);
 		Comment.Models modelsFromFinder = ActiveBeans.all(commentClass);
 		assertEquals(3, modelsFromFinder.size());
-		assertEquals(2, modelsFromFinder.all(ActiveBeans.conditions(commentClass)
+		assertEquals(2, modelsFromFinder.and(ActiveBeans.conditions(commentClass)
 			.body().not("2")).size());
 		assertEquals("3", new ArrayList<Comment>(modelsFromFinder.popular()).get(0).getBody());
 		Comment.Models modelsFromAssoc = ActiveBeans.get(postClass, p.getId()).getComments();
 		assertEquals(3, modelsFromAssoc.size());
-		assertEquals(2, modelsFromAssoc.all(ActiveBeans.conditions(commentClass)
+		assertEquals(2, modelsFromAssoc.and(ActiveBeans.conditions(commentClass)
 			.body().not("2")).size());
 		assertEquals("3", new ArrayList<Comment>(modelsFromAssoc.popular()).get(0).getBody());
  	}
@@ -1074,7 +1074,7 @@ public class ActiveBeansTest {
 		models.add(null);
 		Set<Comment> oModels = Collections.singleton(ActiveBeans.build(commentClass));
 		models.addAll(oModels);
-		models.all(null);
+		models.and(null);
 		models.attrs(null);
 		models.build();
 		models.build(null);
