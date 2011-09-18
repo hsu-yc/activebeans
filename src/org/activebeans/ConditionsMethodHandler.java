@@ -2,6 +2,7 @@ package org.activebeans;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -53,11 +54,19 @@ public class ConditionsMethodHandler implements MethodHandler {
 			public String prepareOperand(Object val) {
 				return prepareMultipleOperands((Object[])val);
 			}
+			@Override
+			public List<Object> prepareParams(Object val) {
+				return prepareMultipleParams((Object[]) val);
+			}
 		},
 		NIN("not in") {
 			@Override
 			public String prepareOperand(Object val) {
 				return prepareMultipleOperands((Object[])val);
+			}
+			@Override
+			public List<Object> prepareParams(Object val) {
+				return prepareMultipleParams((Object[]) val);
 			}
 		};
 		
@@ -76,6 +85,10 @@ public class ConditionsMethodHandler implements MethodHandler {
 			return "?";
 		}
 		
+		public List<Object> prepareParams(Object val){
+			return Collections.singletonList(val);
+		}
+		
 		private static String prepareMultipleOperands(Object[] vals){
 			String rs;
 			if(vals.length == 0){
@@ -87,6 +100,10 @@ public class ConditionsMethodHandler implements MethodHandler {
 				}
 			}
 			return "(" + rs + ")";
+		}
+		
+		private static List<Object> prepareMultipleParams(Object[] vals){
+			return Arrays.asList(vals);
 		}
 		
 	}
@@ -178,12 +195,16 @@ public class ConditionsMethodHandler implements MethodHandler {
 		List<Object> params = new ArrayList<Object>();
 		for (Object conds : assocMap.values()) {
 			for (Map<Operator, Object> valMap : ((ConditionsMethodHandler)((ProxyObject)conds).getHandler()).propMap.values()) {
-				params.addAll(valMap.values());
+				for(Entry<Operator, Object> e : valMap.entrySet()){
+					params.addAll(e.getKey().prepareParams(e.getValue()));
+				}
 			}
 		}
 		params.addAll(associatedKeys);
 		for (Map<Operator, Object> valMap : propMap.values()) {
-			params.addAll(valMap.values());
+			for(Entry<Operator, Object> e : valMap.entrySet()){
+				params.addAll(e.getKey().prepareParams(e.getValue()));
+			}
 		}
 		return params;
 	}

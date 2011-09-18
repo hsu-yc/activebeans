@@ -1840,9 +1840,8 @@ public class ActiveBeansTest {
 				+ " and " + tableName + ".created not in ('')", 
 			table.selectAllStatement(conds));
 		ConditionsMethodHandler handler = (ConditionsMethodHandler)((ProxyObject)conds).getHandler();
-		Object[] emptyVals = {};
-		assertArrayEquals(new Object[]{idEql, idIn, idNin, subjEql, subjGt, subjGte, subjLike, 
-			subjLt, subjLte, subjNot, subjIn, subjNin, emptyVals, emptyVals}, handler.params().toArray());
+		assertArrayEquals(new Object[]{idEql, idNin[0], idNin[1], subjEql, subjGt, subjGte, subjLike, 
+			subjLt, subjLte, subjNot, subjIn[0], subjIn[1], subjIn[2], subjNin[0]}, handler.params().toArray());
 	}
 	
 	@Test
