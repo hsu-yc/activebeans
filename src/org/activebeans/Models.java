@@ -34,6 +34,10 @@ public interface Models<T extends Model<T, U, V, W>, U, V, W extends Models<T, U
 
 	Models<T, U, V, W> and(V conds);
 	
+	Models<T, U, V, W> or(V conds);
+	
+	Models<T, U, V, W> not(V conds);
+	
 	Models<T, U, V, W> reverse();
 
 }

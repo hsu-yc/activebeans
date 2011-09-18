@@ -341,6 +341,12 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 		methods.add(covariantAndFinderWithOptions(interf, interfRef,
 				Eclipse.copyType(conditionsRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
+		methods.add(covariantOrFinderWithOptions(interf, interfRef,
+				Eclipse.copyType(conditionsRef, source),
+				ExtraCompilerModifiers.AccSemicolonBody, source));
+		methods.add(covariantNotFinderWithOptions(interf, interfRef,
+				Eclipse.copyType(conditionsRef, source),
+				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.add(covariantAttrsMethod(interf, interfRef,
 				Eclipse.copyType(optionsRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
@@ -399,6 +405,62 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 		method.annotations = null;
 		method.arguments = null;
 		method.selector = "and".toCharArray();
+		method.binding = null;
+		method.thrownExceptions = null;
+		method.typeParameters = null;
+		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
+		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
+		method.arguments = new Argument[] { param };
+		return method;
+	}
+	
+	private static MethodDeclaration covariantOrFinderWithOptions(
+			TypeDeclaration parent, TypeReference type, TypeReference conditions,
+			int modifier, ASTNode source) {
+		int pS = source.sourceStart, pE = source.sourceEnd;
+		long p = (long) pS << 32 | pE;
+		Argument param = new Argument("options".toCharArray(), p, conditions,
+				Modifier.FINAL);
+		param.sourceStart = pS;
+		param.sourceEnd = pE;
+		Eclipse.setGeneratedBy(param, source);
+		MethodDeclaration method = new MethodDeclaration(
+				parent.compilationResult);
+		Eclipse.setGeneratedBy(method, source);
+		method.modifiers = modifier;
+		method.returnType = Eclipse.copyType(type, source);
+		method.annotations = null;
+		method.arguments = null;
+		method.selector = "or".toCharArray();
+		method.binding = null;
+		method.thrownExceptions = null;
+		method.typeParameters = null;
+		method.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
+		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
+		method.arguments = new Argument[] { param };
+		return method;
+	}
+	
+	private static MethodDeclaration covariantNotFinderWithOptions(
+			TypeDeclaration parent, TypeReference type, TypeReference conditions,
+			int modifier, ASTNode source) {
+		int pS = source.sourceStart, pE = source.sourceEnd;
+		long p = (long) pS << 32 | pE;
+		Argument param = new Argument("options".toCharArray(), p, conditions,
+				Modifier.FINAL);
+		param.sourceStart = pS;
+		param.sourceEnd = pE;
+		Eclipse.setGeneratedBy(param, source);
+		MethodDeclaration method = new MethodDeclaration(
+				parent.compilationResult);
+		Eclipse.setGeneratedBy(method, source);
+		method.modifiers = modifier;
+		method.returnType = Eclipse.copyType(type, source);
+		method.annotations = null;
+		method.arguments = null;
+		method.selector = "not".toCharArray();
 		method.binding = null;
 		method.thrownExceptions = null;
 		method.typeParameters = null;
