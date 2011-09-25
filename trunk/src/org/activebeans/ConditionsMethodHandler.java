@@ -260,6 +260,60 @@ public class ConditionsMethodHandler implements MethodHandler {
 		fields.addAll(conds.fields());
 	}
 	
+	public String prepareWhereClause(){
+		String clause = "";
+		ActiveIntrospector intro = new ActiveIntrospector(activeClass);
+		String tableName = ActiveBeansUtils.camelCaseToUnderscore(
+			activeClass.getSimpleName());
+		boolean empty = true;
+		for(Entry<Association, Object> nested : assocMap.entrySet()){
+			Association assoc = nested.getKey();
+			Class<? extends Model<?, ?, ?, ?>> assocClass = assoc.with();
+			String assocTableName = ActiveBeansUtils.camelCaseToUnderscore(
+				assocClass.getSimpleName());
+			boolean isBelongsTo = intro.belongsTo(assocClass) != null;
+			if(isBelongsTo || intro.hasMany(assocClass) != null){
+				clause += " join " + assocTableName + " on ";
+				List<String> foreignKeys;
+				List<String> keys;
+				if(isBelongsTo){
+					foreignKeys = ActiveBeansUtils.associationKeys(assocClass);
+					keys = ActiveBeansUtils.keys(assocClass);
+				}else{
+					foreignKeys = ActiveBeansUtils.keys(activeClass);
+					keys = ActiveBeansUtils.associationKeys(activeClass);
+				}
+				for(int i=0; i<keys.size(); i++){
+					clause += Table.qualify(assocTableName, keys.get(i)) + " = " + Table.qualify(tableName, foreignKeys.get(i));
+				}
+				ConditionsMethodHandler assocHandler = (ConditionsMethodHandler) ((ProxyObject)nested.getValue()).getHandler();
+				for (Entry<Property, Map<Operator, Object>> prop : assocHandler.properties().entrySet()) {
+					for(Entry<Operator, Object> exp : prop.getValue().entrySet()){
+						Operator op = exp.getKey();
+						clause += " " + (empty?"where":"and") + " " + Table.qualify(assocTableName, ActiveBeansUtils.camelCaseToUnderscore(prop.getKey().name()))
+							+ " " + op + " " + op.prepareOperand(exp.getValue());
+						empty = false;
+					}
+				}
+			}
+		}
+		if(associatedClass != null){
+			for (String k : ActiveBeansUtils.associationKeys(associatedClass)) {
+				clause += " " + (empty?"where":"and") + " " + Table.qualify(tableName, k) + " = ?"; 
+				empty = false;
+			}
+		}
+		for (Entry<Property, Map<Operator, Object>> prop : propMap.entrySet()) {
+			for(Entry<Operator, Object> exp : prop.getValue().entrySet()){
+				Operator op = exp.getKey();
+				clause += " " + (empty?"where":"and") + " " + Table.qualify(tableName, ActiveBeansUtils.camelCaseToUnderscore(prop.getKey().name()))
+					+ " " + op + " " + op.prepareOperand(exp.getValue());
+				empty = false;
+			}
+		}
+		return clause;
+	}
+	
 	@Override
 	public Object invoke(final Object self, Method method, Method proceed, Object[] args)
 			throws Throwable {
