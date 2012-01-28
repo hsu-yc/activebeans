@@ -95,7 +95,7 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 			QualifiedTypeReference optionsRef = new QualifiedTypeReference(qualifiedOptionsName, poss2);
 			optionsRef.sourceStart = node.get().sourceStart;
 			optionsRef.sourceEnd = node.get().sourceEnd;
-			Eclipse.setGeneratedBy(optionsRef, node.get());
+			EclipseHandlerUtil.setGeneratedBy(optionsRef, node.get());
 			char[][] qualifiedConditionsName = Eclipse.fromQualifiedName(
 					Eclipse.toQualifiedName(source.currentPackage.tokens) + "." +
 					String.valueOf(beanType.name) + "." +String.valueOf(conditionsInterf.name));
@@ -104,7 +104,7 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 			QualifiedTypeReference conditionsRef = new QualifiedTypeReference(qualifiedConditionsName, poss4);
 			conditionsRef.sourceStart = node.get().sourceStart;
 			conditionsRef.sourceEnd = node.get().sourceEnd;
-			Eclipse.setGeneratedBy(conditionsRef, node.get());
+			EclipseHandlerUtil.setGeneratedBy(conditionsRef, node.get());
 			char[][] modelInterf = Eclipse.fromQualifiedName(Model.class
 					.getCanonicalName());
 			final TypeReference[][] typeArguments = new TypeReference[modelInterf.length][];
@@ -114,7 +114,7 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 					 beanType.name, node.get().sourceStart);
 			beanRef.sourceStart = node.get().sourceStart;
 			beanRef.sourceEnd = node.get().sourceEnd;
-			Eclipse.setGeneratedBy(beanRef, node.get());
+			EclipseHandlerUtil.setGeneratedBy(beanRef, node.get());
 			char[][] qualifiedModelsName = Eclipse.fromQualifiedName(
 					Eclipse.toQualifiedName(source.currentPackage.tokens) + "." +
 					String.valueOf(beanType.name) + ".Models");
@@ -123,13 +123,13 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 			QualifiedTypeReference modelsRef = new QualifiedTypeReference(qualifiedModelsName, poss5);
 			modelsRef.sourceStart = node.get().sourceStart;
 			modelsRef.sourceEnd = node.get().sourceEnd;
-			Eclipse.setGeneratedBy(modelsRef, node.get());
+			EclipseHandlerUtil.setGeneratedBy(modelsRef, node.get());
 			typeArguments[modelInterf.length - 1] = new TypeReference[] { beanRef, optionsRef, conditionsRef, modelsRef };
 			ParameterizedQualifiedTypeReference modelInterfRef = new ParameterizedQualifiedTypeReference(
 					modelInterf, typeArguments, 0, poss3);
 			modelInterfRef.sourceStart = node.get().sourceStart;
 			modelInterfRef.sourceEnd = node.get().sourceEnd;
-			Eclipse.setGeneratedBy(modelInterfRef, source);
+			EclipseHandlerUtil.setGeneratedBy(modelInterfRef, source);
 			Map<String, Expression> activeMemberMap = memberMap(ast.memberValuePairs());
 			Expression activeProps = activeMemberMap.get("with");
 			if (!valdateAtLeastOneKey(activeProps)) {
@@ -184,7 +184,7 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 			Arrays.fill(poss, node.get().sourceStart);
 			QualifiedTypeReference activeTypeRef = new QualifiedTypeReference(
 					activateQName, poss);
-			Eclipse.setGeneratedBy(activeTypeRef, node.get());
+			EclipseHandlerUtil.setGeneratedBy(activeTypeRef, node.get());
 			beanType.modifiers |= ClassFileConstants.AccAbstract;
 			if (beanType.superInterfaces == null) {
 				beanType.superInterfaces = new TypeReference[] { activeTypeRef,
@@ -198,9 +198,9 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 						.toArray(new TypeReference[0]);
 			}
 			TypeDeclaration modelsInterf = modelsInterface(beanType, 
-				Eclipse.copyType(optionsRef, node.get()),
-				Eclipse.copyType(conditionsRef, node.get()),
-				Eclipse.copyType(modelsRef, node.get()),
+				EclipseHandlerUtil.copyType(optionsRef, node.get()),
+				EclipseHandlerUtil.copyType(conditionsRef, node.get()),
+				EclipseHandlerUtil.copyType(modelsRef, node.get()),
 				ClassFileConstants.AccPublic | ClassFileConstants.AccInterface, node);
 			injectType(beanType, modelsInterf);
 			injectType(beanType, optionsInterf);
@@ -298,7 +298,7 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 			CompilationUnitDeclaration parent, TypeDeclaration bean,
 			int modifier, ASTNode source) {
 		TypeDeclaration interf = new TypeDeclaration(parent.compilationResult);
-		Eclipse.setGeneratedBy(interf, source);
+		EclipseHandlerUtil.setGeneratedBy(interf, source);
 		interf.name = (String.valueOf(bean.name) + ATTRIBUTES_INTERFACE).toCharArray();
 		interf.modifiers = modifier;
 		interf.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
@@ -312,7 +312,7 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 			TypeReference modelsRef, int modifier, EclipseNode node) {
 		ASTNode source = node.get();
 		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
-		Eclipse.setGeneratedBy(interf, source);
+		EclipseHandlerUtil.setGeneratedBy(interf, source);
 		interf.name = MODELS_INTERFACE.toCharArray();
 		interf.modifiers = modifier;
 		char[][] superInterf = Eclipse.fromQualifiedName(Models.class
@@ -324,31 +324,31 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 				source.sourceStart);
 		beanRef.sourceStart = source.sourceStart;
 		beanRef.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(beanRef, source);
+		EclipseHandlerUtil.setGeneratedBy(beanRef, source);
 		typeArguments[superInterf.length - 1] = new TypeReference[] { beanRef, optionsRef, conditionsRef, modelsRef };
 		ParameterizedQualifiedTypeReference superInterfRef = new ParameterizedQualifiedTypeReference(
 				superInterf, typeArguments, 0, poss);
 		superInterfRef.sourceStart = source.sourceStart;
 		superInterfRef.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(superInterfRef, source);
+		EclipseHandlerUtil.setGeneratedBy(superInterfRef, source);
 		interf.superInterfaces = new TypeReference[] { superInterfRef };
 		SingleTypeReference interfRef = new SingleTypeReference(interf.name,
 				source.sourceStart);
 		interfRef.sourceStart = source.sourceStart;
 		interfRef.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(interfRef, source);
+		EclipseHandlerUtil.setGeneratedBy(interfRef, source);
 		List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
 		methods.add(covariantAndFinderWithOptions(interf, interfRef,
-				Eclipse.copyType(conditionsRef, source),
+				EclipseHandlerUtil.copyType(conditionsRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.add(covariantOrFinderWithOptions(interf, interfRef,
-				Eclipse.copyType(conditionsRef, source),
+				EclipseHandlerUtil.copyType(conditionsRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.add(covariantNotFinderWithOptions(interf, interfRef,
-				Eclipse.copyType(conditionsRef, source),
+				EclipseHandlerUtil.copyType(conditionsRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.add(covariantAttrsMethod(interf, interfRef,
-				Eclipse.copyType(optionsRef, source),
+				EclipseHandlerUtil.copyType(optionsRef, source),
 				ExtraCompilerModifiers.AccSemicolonBody, source));
 		methods.add(covariantReverseMethod(interf, interfRef,
 				ExtraCompilerModifiers.AccSemicolonBody, source));
@@ -365,7 +365,7 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 			int modifier, EclipseNode node) {
 		ASTNode source = node.get();
 		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
-		Eclipse.setGeneratedBy(interf, source);
+		EclipseHandlerUtil.setGeneratedBy(interf, source);
 		interf.name = OPTIONS_INTERFACE.toCharArray();
 		interf.modifiers = modifier;
 		interf.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
@@ -378,7 +378,7 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 			int modifier, EclipseNode node) {
 		ASTNode source = node.get();
 		TypeDeclaration interf = new TypeDeclaration(bean.compilationResult);
-		Eclipse.setGeneratedBy(interf, source);
+		EclipseHandlerUtil.setGeneratedBy(interf, source);
 		interf.name = CONDITIONS_INTERFACE.toCharArray();
 		interf.modifiers = modifier;
 		interf.bits |= Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
@@ -396,12 +396,12 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 				Modifier.FINAL);
 		param.sourceStart = pS;
 		param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
+		EclipseHandlerUtil.setGeneratedBy(param, source);
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
-		method.returnType = Eclipse.copyType(type, source);
+		method.returnType = EclipseHandlerUtil.copyType(type, source);
 		method.annotations = null;
 		method.arguments = null;
 		method.selector = "and".toCharArray();
@@ -424,12 +424,12 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 				Modifier.FINAL);
 		param.sourceStart = pS;
 		param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
+		EclipseHandlerUtil.setGeneratedBy(param, source);
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
-		method.returnType = Eclipse.copyType(type, source);
+		method.returnType = EclipseHandlerUtil.copyType(type, source);
 		method.annotations = null;
 		method.arguments = null;
 		method.selector = "or".toCharArray();
@@ -452,12 +452,12 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 				Modifier.FINAL);
 		param.sourceStart = pS;
 		param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
+		EclipseHandlerUtil.setGeneratedBy(param, source);
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
-		method.returnType = Eclipse.copyType(type, source);
+		method.returnType = EclipseHandlerUtil.copyType(type, source);
 		method.annotations = null;
 		method.arguments = null;
 		method.selector = "not".toCharArray();
@@ -480,12 +480,12 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 				Modifier.FINAL);
 		param.sourceStart = pS;
 		param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
+		EclipseHandlerUtil.setGeneratedBy(param, source);
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
-		method.returnType = Eclipse.copyType(type, source);
+		method.returnType = EclipseHandlerUtil.copyType(type, source);
 		method.annotations = null;
 		method.arguments = new Argument[] { param };
 		method.selector = "attrs".toCharArray();
@@ -502,9 +502,9 @@ public class HandleActive extends EclipseAnnotationHandler<Active> {
 			TypeReference type, int modifier, ASTNode source) {
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
-		method.returnType = Eclipse.copyType(type, source);
+		method.returnType = EclipseHandlerUtil.copyType(type, source);
 		method.annotations = null;
 		method.arguments = null;
 		method.selector = "reverse".toCharArray();
@@ -566,9 +566,9 @@ class PropertyDefinition {
 			ASTNode source) {
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
-		method.returnType = Eclipse.copyType(type, source);
+		method.returnType = EclipseHandlerUtil.copyType(type, source);
 		method.annotations = null;
 		method.arguments = null;
 		method.selector = ("get" + HandleActive.capitalize(name)).toCharArray();
@@ -587,18 +587,18 @@ class PropertyDefinition {
 		long p = (long) pS << 32 | pE;
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
 		method.returnType = TypeReference.baseTypeReference(TypeIds.T_void, 0);
 		method.returnType.sourceStart = pS;
 		method.returnType.sourceEnd = pE;
-		Eclipse.setGeneratedBy(method.returnType, source);
+		EclipseHandlerUtil.setGeneratedBy(method.returnType, source);
 		method.annotations = null;
-		Argument param = new Argument(name.toCharArray(), p, Eclipse.copyType(
+		Argument param = new Argument(name.toCharArray(), p, EclipseHandlerUtil.copyType(
 				type, source), Modifier.FINAL);
 		param.sourceStart = pS;
 		param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
+		EclipseHandlerUtil.setGeneratedBy(param, source);
 		method.arguments = new Argument[] { param };
 		method.selector = ("set" + HandleActive.capitalize(name)).toCharArray();
 		method.binding = null;
@@ -618,15 +618,15 @@ class PropertyDefinition {
 		long[] poss3 = new long[optionInterf.length];
 		Arrays.fill(poss3, source.sourceStart);
 		typeArguments[optionInterf.length - 1] = new TypeReference[] { 
-			Eclipse.copyType(options, source),  Eclipse.copyType(type, source)};
+				EclipseHandlerUtil.copyType(options, source),  EclipseHandlerUtil.copyType(type, source)};
 		ParameterizedQualifiedTypeReference optionType = new ParameterizedQualifiedTypeReference(
 				optionInterf, typeArguments, 0, poss3);
 		optionType.sourceStart = source.sourceStart;
 		optionType.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(optionType, source);
+		EclipseHandlerUtil.setGeneratedBy(optionType, source);
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
 		method.returnType = optionType;
 		method.annotations = null;
@@ -649,15 +649,15 @@ class PropertyDefinition {
 		long[] poss3 = new long[conditionInterf.length];
 		Arrays.fill(poss3, source.sourceStart);
 		typeArguments[conditionInterf.length - 1] = new TypeReference[] { 
-			Eclipse.copyType(conditions, source),  Eclipse.copyType(type, source)};
+				EclipseHandlerUtil.copyType(conditions, source),  EclipseHandlerUtil.copyType(type, source)};
 		ParameterizedQualifiedTypeReference conditionType = new ParameterizedQualifiedTypeReference(
 				conditionInterf, typeArguments, 0, poss3);
 		conditionType.sourceStart = source.sourceStart;
 		conditionType.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(conditionType, source);
+		EclipseHandlerUtil.setGeneratedBy(conditionType, source);
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
 		method.returnType = conditionType;
 		method.annotations = null;
@@ -698,9 +698,9 @@ class BelongsToDefinition {
 			ASTNode source) {
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
-		method.returnType = Eclipse.copyType(type, source);
+		method.returnType = EclipseHandlerUtil.copyType(type, source);
 		method.annotations = null;
 		method.arguments = null;
 		method.selector = ("get" + HandleActive.capitalize(name)).toCharArray();
@@ -719,18 +719,18 @@ class BelongsToDefinition {
 		long p = (long) pS << 32 | pE;
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
 		method.returnType = TypeReference.baseTypeReference(TypeIds.T_void, 0);
 		method.returnType.sourceStart = pS;
 		method.returnType.sourceEnd = pE;
-		Eclipse.setGeneratedBy(method.returnType, source);
+		EclipseHandlerUtil.setGeneratedBy(method.returnType, source);
 		method.annotations = null;
-		Argument param = new Argument(name.toCharArray(), p, Eclipse.copyType(
+		Argument param = new Argument(name.toCharArray(), p, EclipseHandlerUtil.copyType(
 				type, source), Modifier.FINAL);
 		param.sourceStart = pS;
 		param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
+		EclipseHandlerUtil.setGeneratedBy(param, source);
 		method.arguments = new Argument[] { param };
 		method.selector = ("set" + HandleActive.capitalize(name)).toCharArray();
 		method.binding = null;
@@ -750,22 +750,22 @@ class BelongsToDefinition {
 		QualifiedTypeReference optionsType = new QualifiedTypeReference(optionsTypeName, poss);
 		optionsType.sourceStart = source.sourceStart;
 		optionsType.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(optionsType, source);
+		EclipseHandlerUtil.setGeneratedBy(optionsType, source);
 		char[][] optionInterf = Eclipse.fromQualifiedName(SingularOption.class
 				.getCanonicalName());
 		final TypeReference[][] typeArguments = new TypeReference[optionInterf.length][];
 		long[] poss3 = new long[optionInterf.length];
 		Arrays.fill(poss3, source.sourceStart);
 		typeArguments[optionInterf.length - 1] = new TypeReference[] { 
-			Eclipse.copyType(options, source),  optionsType};
+				EclipseHandlerUtil.copyType(options, source),  optionsType};
 		ParameterizedQualifiedTypeReference optionType = new ParameterizedQualifiedTypeReference(
 				optionInterf, typeArguments, 0, poss3);
 		optionType.sourceStart = source.sourceStart;
 		optionType.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(optionType, source);
+		EclipseHandlerUtil.setGeneratedBy(optionType, source);
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
 		method.returnType = optionType;
 		method.annotations = null;
@@ -788,22 +788,22 @@ class BelongsToDefinition {
 		QualifiedTypeReference conditionsType = new QualifiedTypeReference(conditionsTypeName, poss);
 		conditionsType.sourceStart = source.sourceStart;
 		conditionsType.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(conditionsType, source);
+		EclipseHandlerUtil.setGeneratedBy(conditionsType, source);
 		char[][] optionInterf = Eclipse.fromQualifiedName(QueryPath.class
 				.getCanonicalName());
 		final TypeReference[][] typeArguments = new TypeReference[optionInterf.length][];
 		long[] poss3 = new long[optionInterf.length];
 		Arrays.fill(poss3, source.sourceStart);
 		typeArguments[optionInterf.length - 1] = new TypeReference[] { 
-			Eclipse.copyType(condtions, source),  conditionsType};
+				EclipseHandlerUtil.copyType(condtions, source),  conditionsType};
 		ParameterizedQualifiedTypeReference optionsType = new ParameterizedQualifiedTypeReference(
 				optionInterf, typeArguments, 0, poss3);
 		optionsType.sourceStart = source.sourceStart;
 		optionsType.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(optionsType, source);
+		EclipseHandlerUtil.setGeneratedBy(optionsType, source);
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
 		method.returnType = optionsType;
 		method.annotations = null;
@@ -841,14 +841,14 @@ class HasManyDefinition {
 			ASTNode source) {
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
 		char[][] rtnType = Eclipse.fromQualifiedName(qName + ".Models");
 		long[] poss = new long[rtnType.length];
 		Arrays.fill(poss, source.sourceStart);
 		QualifiedTypeReference rtnTypeRef = new QualifiedTypeReference(rtnType,
 				poss);
-		Eclipse.setGeneratedBy(rtnTypeRef, source);
+		EclipseHandlerUtil.setGeneratedBy(rtnTypeRef, source);
 		method.returnType = rtnTypeRef;
 		method.annotations = null;
 		method.arguments = null;
@@ -871,22 +871,22 @@ class HasManyDefinition {
 		QualifiedTypeReference optionsType = new QualifiedTypeReference(optionsTypeName, poss);
 		optionsType.sourceStart = source.sourceStart;
 		optionsType.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(optionsType, source);
+		EclipseHandlerUtil.setGeneratedBy(optionsType, source);
 		char[][] optionInterf = Eclipse.fromQualifiedName(CollectionOption.class
 				.getCanonicalName());
 		final TypeReference[][] typeArguments = new TypeReference[optionInterf.length][];
 		long[] poss3 = new long[optionInterf.length];
 		Arrays.fill(poss3, source.sourceStart);
 		typeArguments[optionInterf.length - 1] = new TypeReference[] { 
-			Eclipse.copyType(options, source),  Eclipse.copyType(optionsType, source)};
+				EclipseHandlerUtil.copyType(options, source),  EclipseHandlerUtil.copyType(optionsType, source)};
 		ParameterizedQualifiedTypeReference optionType = new ParameterizedQualifiedTypeReference(
 				optionInterf, typeArguments, 0, poss3);
 		optionType.sourceStart = source.sourceStart;
 		optionType.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(optionType, source);
+		EclipseHandlerUtil.setGeneratedBy(optionType, source);
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
 		method.returnType = optionType;
 		method.annotations = null;
@@ -909,22 +909,22 @@ class HasManyDefinition {
 		QualifiedTypeReference optionsType = new QualifiedTypeReference(conditionsTypeName, poss);
 		optionsType.sourceStart = source.sourceStart;
 		optionsType.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(optionsType, source);
+		EclipseHandlerUtil.setGeneratedBy(optionsType, source);
 		char[][] optionInterf = Eclipse.fromQualifiedName(QueryPath.class
 				.getCanonicalName());
 		final TypeReference[][] typeArguments = new TypeReference[optionInterf.length][];
 		long[] poss3 = new long[optionInterf.length];
 		Arrays.fill(poss3, source.sourceStart);
 		typeArguments[optionInterf.length - 1] = new TypeReference[] { 
-			Eclipse.copyType(conditions, source),  Eclipse.copyType(optionsType, source)};
+				EclipseHandlerUtil.copyType(conditions, source),  EclipseHandlerUtil.copyType(optionsType, source)};
 		ParameterizedQualifiedTypeReference optionType = new ParameterizedQualifiedTypeReference(
 				optionInterf, typeArguments, 0, poss3);
 		optionType.sourceStart = source.sourceStart;
 		optionType.sourceEnd = source.sourceEnd;
-		Eclipse.setGeneratedBy(optionType, source);
+		EclipseHandlerUtil.setGeneratedBy(optionType, source);
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = modifier;
 		method.returnType = optionType;
 		method.annotations = null;
@@ -981,20 +981,20 @@ class FinderMethodRetriever extends EclipseASTAdapter {
 		long p = (long) pS << 32 | pE;
 		MethodDeclaration method = new MethodDeclaration(
 				parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
+		EclipseHandlerUtil.setGeneratedBy(method, source);
 		method.modifiers = ExtraCompilerModifiers.AccSemicolonBody;
-		method.returnType = Eclipse.copyType(finder.returnType, source);
-		Eclipse.setGeneratedBy(method.returnType, source);
+		method.returnType = EclipseHandlerUtil.copyType(finder.returnType, source);
+		EclipseHandlerUtil.setGeneratedBy(method.returnType, source);
 		method.annotations = null;
 		Argument[] args = finder.arguments;
 		if (args != null) {
 			List<Argument> argList = new ArrayList<Argument>();
 			for (Argument arg : finder.arguments) {
-				Argument a = new Argument(arg.name, p, Eclipse.copyType(
+				Argument a = new Argument(arg.name, p, EclipseHandlerUtil.copyType(
 						arg.type, source), Modifier.FINAL);
 				a.sourceStart = pS;
 				a.sourceEnd = pE;
-				Eclipse.setGeneratedBy(a, source);
+				EclipseHandlerUtil.setGeneratedBy(a, source);
 				argList.add(a);
 			}
 			method.arguments = argList.toArray(new Argument[0]);
