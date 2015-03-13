@@ -1,0 +1,1 @@
+This library transparently augments a POJO with active record functionalities.
